@@ -1,0 +1,41 @@
+import { User } from "@prisma/client";
+import { Body, ClassSerializerInterceptor, Controller, HttpCode, Post, Put, UseInterceptors, Param } from "@nestjs/common";
+import { ApiBearerAuth } from "@nestjs/swagger";
+import { AuthToken } from "src/shared/interfaces";
+import { UserCreateDto, UserLoginDto, UserUpdateDto, TokenDto } from "./dto";
+import { UserService } from "./user.service";
+import { AllowUnauthorizedRequest } from "src/core/decorators/allow.decorator";
+
+@ApiBearerAuth()
+@Controller("user")
+@UseInterceptors(ClassSerializerInterceptor)
+export class UserController {
+  public constructor(private readonly userService: UserService) {}
+
+  @AllowUnauthorizedRequest()
+  @HttpCode(200)
+  @Post("login")
+  public async login(@Body() data: UserLoginDto): Promise<AuthToken> {
+    return this.userService.login(data);
+  }
+
+  @AllowUnauthorizedRequest()
+  @HttpCode(200)
+  @Post("signup")
+  public async signup(@Body() data: UserCreateDto): Promise<AuthToken> {
+    return this.userService.signup(data);
+  }
+
+  @AllowUnauthorizedRequest()
+  @HttpCode(200)
+  @Post("refresh-token")
+  public async getAccessToken(@Body() data: TokenDto): Promise<AuthToken> {
+    return this.userService.getToken(data.refreshToken);
+  }
+
+  @HttpCode(200)
+  @Put("update-profile/:id")
+  public async update(@Param("id") id: number, @Body() data: UserUpdateDto): Promise<User> {
+    return this.userService.update(id, data);
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "name": "nestjs-starter",
+  "version": "0.0.1",
+  "description": "NestJS Starter pack Sequelize",
+  "author": "hmake98",
+  "private": true,
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "prebuild": "rimraf build",
+    "build": "nest build && copyfiles Procfile build/",
+    "start": "node build/main",
+    "dev": "dotenv -e .env.development -- nest start --watch",
+    "debug": "dotenv -e .env.development -- nest start --debug --watch",
+    "lint": "eslint '{src,test}/**/*.ts' --fix",
+    "format": "prettier '{src,test}/**/*.ts' --write",
+    "test": "jest",
+    "test:local": "dotenv -e .env.development -- jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged",
+    "pre-push": "npm run build"
+  },
+  "engines": {
+    "node": "14.16.0"
+  },
+  "dependencies": {
+    "@nestjs/bull": "^0.4.2",
+    "@nestjs/common": "^9.0.3",
+    "@nestjs/core": "^9.0.3",
+    "@nestjs/platform-express": "^9.0.3",
+    "@nestjs/schedule": "^1.0.1",
+    "@nestjs/swagger": "^6.0.4",
+    "@nestjs/terminus": "^9.0.0",
+    "@nestjs/throttler": "^3.1.0",
+    "aws-sdk": "^2.942.0",
+    "bcrypt": "^5.0.1",
+    "bull": "^3.29.3",
+    "class-transformer": "^0.4.0",
+    "class-validator": "^0.13.1",
+    "csurf": "^1.11.0",
+    "date-fns": "^2.21.3",
+    "dotenv": "^9.0.2",
+    "express-session": "^1.17.2",
+    "firebase-admin": "^11.0.0",
+    "helmet": "^4.6.0",
+    "jest-junit": "^15.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.1",
+    "nanoid": "^3.1.23",
+    "nestjs-i18n": "^9.1.5",
+    "nestjs-pino": "^3.1.1",
+    "pg": "^8.8.0",
+    "pino-http": "^8.2.1",
+    "pino-pretty": "^9.1.1",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "^3.0.2",
+    "rxjs": "^7.5.6",
+    "sequelize": "^6.27.0",
+    "sequelize-typescript": "^2.1.5",
+    "swagger-ui-express": "^4.1.6"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^9.0.0",
+    "@nestjs/schematics": "^7.3.0",
+    "@nestjs/testing": "^9.0.3",
+    "@types/bcrypt": "^10.0.28-alpha",
+    "@types/bull": "^3.15.7",
+    "@types/copyfiles": "^2.4.0",
+    "@types/csurf": "^1.11.2",
+    "@types/eslint": "^7.2.10",
+    "@types/eslint-plugin-prettier": "^3.1.0",
+    "@types/express-session": "^1.17.3",
+    "@types/i18n": "^0.13.1",
+    "@types/jest": "^28.1.8",
+    "@types/jsonwebtoken": "^8.5.1",
+    "@types/lodash": "^4.14.169",
+    "@types/node": "^14.18.21",
+    "@types/prettier": "^2.2.3",
+    "@types/rimraf": "^3.0.0",
+    "@types/supertest": "^2.0.10",
+    "@types/swagger-ui-express": "^4.1.2",
+    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/parser": "^5.30.5",
+    "copyfiles": "^2.4.1",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^6.0.0",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jest": "^26.1.5",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^6.0.0",
+    "jest": "^26.6.3",
+    "lint-staged": "^12.3.4",
+    "prettier": "^2.8.1",
+    "pretty-quick": "^3.1.3",
+    "sequelize-cli": "^6.5.2",
+    "supertest": "^6.1.3",
+    "ts-jest": "^26.5.4",
+    "ts-loader": "^8.0.18",
+    "ts-node": "^9.1.1",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.9.4"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": ".",
+          "outputName": "junit.xml"
+        }
+      ]
+    ]
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "npm run lint",
+      "npm run format"
+    ]
+  }
+}

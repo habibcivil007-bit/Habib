@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 16
+  pre_build:
+    commands:
+      - npm install
+      - echo installation completed on `date`
+      - npm test
+  build:
+    commands:
+      - npm run build
+  post_build:
+    commands:
+      - echo build completed on `date`
+artifacts:
+  files:
+    - "**/*"
+  discard-paths: no
+reports:
+  jest_reports:
+    files:
+      - "junit.xml"
+    file-format: JUNITXML
+    base-directory: "."

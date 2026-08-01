@@ -1,0 +1,47 @@
+{
+    "testTimeout": 10000,
+    "rootDir": "../",
+    "testEnvironment": "node",
+    "testMatch": ["<rootDir>/test/**/*.spec.ts"],
+
+    "clearMocks": true,
+    "restoreMocks": true,
+    "verbose": true,
+
+    "collectCoverage": true,
+    "coverageDirectory": "<rootDir>/coverage",
+    "collectCoverageFrom": [
+        "<rootDir>/src/**/*.service.ts",
+        "<rootDir>/src/**/*.guard.ts",
+        "<rootDir>/src/**/*.filter.ts",
+        "<rootDir>/src/**/*.interceptor.ts",
+        "<rootDir>/src/**/*.repository.ts",
+        "!<rootDir>/src/common/database/services/database.service.ts",
+        "!<rootDir>/src/common/logger/services/logger.service.ts"
+    ],
+    "coverageReporters": ["text", "html", "lcov", "json-summary"],
+    "coverageThreshold": {
+        "global": {
+            "statements": 100,
+            "branches": 100,
+            "functions": 100,
+            "lines": 100
+        }
+    },
+    "coverageProvider": "v8",
+
+    "moduleFileExtensions": ["js", "ts", "json"],
+    "moduleNameMapper": {
+        "^src/(.*)$": "<rootDir>/src/$1",
+        "^@faker-js/faker$": "<rootDir>/test/mocks/faker.mock.ts"
+    },
+    "transform": {
+        "^.+\\.(t|j)sx?$": [
+            "@swc/jest",
+            {
+                "sourceMaps": true
+            }
+        ]
+    },
+    "modulePathIgnorePatterns": ["<rootDir>/dist"]
+}

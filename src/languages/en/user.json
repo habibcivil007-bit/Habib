@@ -1,0 +1,12 @@
+{
+    "success": {
+        "profile": "User profile retrieved successfully",
+        "updated": "User updated successfully",
+        "deleted": "User deleted successfully",
+        "userDeleted": "User deleted successfully"
+    },
+    "error": {
+        "userNotFound": "User not found",
+        "userExists": "User with provided email already exists"
+    }
+}

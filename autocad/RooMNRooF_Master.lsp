@@ -1,6 +1,6 @@
 ;;; -----------------------------------------------------------------------------
 ;;; RooMNRooF Master 2D CAD Standard
-;;; Version 1.0 | Metric | AutoCAD / AutoCAD LT with AutoLISP
+;;; Version 2.0 PRO | Metric | AutoCAD / AutoCAD LT with AutoLISP
 ;;;
 ;;; Purpose
 ;;;   Builds a complete, colour-led 2D consultant standard in the active drawing.
@@ -16,14 +16,24 @@
 ;;;   RMR-SHEET        Draw an A0-A4 sheet frame and title block
 ;;;   RMR-SAVE-TEMPLATE Save the current drawing as a .DWT file
 ;;;   RMR-PALETTE      Print the palette and command guide
+;;;   RMR-NORTH        Place a modern north-arrow symbol
+;;;   RMR-ROOMTAG      Place a room name / number / area tag
+;;;   RMR-KEYNOTE      Place a numbered keynote bubble
+;;;   RMR-DETAIL       Place a detail callout marker
+;;;   RMR-LEVEL        Place a level datum marker
+;;;   RMR-REVISION     Place a revision triangle and label
+;;;   RMR-MLEADER      Start a branded multileader
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
 ;;;   2. Run RMR-MASTER in a blank drawing before drawing production work.
 ;;;   3. All colours are true RGB colours. ACI 7 is retained as a fallback.
-;;;   4. Edit the data tables below to add a personal/group palette. Existing
-;;;      named styles are intentionally preserved when this file is run again.
+;;;   4. Edit the data tables below to add a personal/group palette. Normal
+;;;      RMR-MASTER runs preserve existing named styles; RMR-PRO-SETUP refreshes
+;;;      only the RMR-owned text styles to the modern PRO font stack.
 ;;;   5. Run RMR-SAVE-TEMPLATE after RMR-MASTER to save a reusable .DWT.
+;;;   6. Run RMR-PRO-SETUP once for the extra symbol blocks and MLeader style.
+;;;   7. The PRO layer, font and style tables are intentionally editable.
 ;;;
 ;;; Branding
 ;;;   Brand: RooMNRooF
@@ -55,6 +65,8 @@
    ("RMR-M-CEILING" "MAIN THEME" (166 177 181) "DASHED"      13 "Reflected ceiling information")
    ("RMR-M-AREA"    "MAIN THEME" (239 191  80) "Continuous"  9 "Room areas and zoning")
    ("RMR-M-HATCH"   "MAIN THEME" (192 160 129) "Continuous"  9 "Material hatches")
+   ("RMR-M-FILL"    "MAIN THEME" (244 238 226) "Continuous"  9 "Soft presentation fills")
+   ("RMR-M-GLASS"   "MAIN THEME" (116 190 198) "Continuous" 13 "Glass and transparent elements")
    ("RMR-M-GRID"    "MAIN THEME" ( 88 112 123) "CENTER"      9 "Architectural grids and axes")
 
    ;; 2. Furniture
@@ -89,23 +101,32 @@
    ("RMR-A-GRID"    "ANNOTATION" ( 88 112 123) "CENTER"       9 "Annotation grids and bubbles")
    ("RMR-A-FRAME"   "ANNOTATION" ( 31  42  51) "Continuous" 35 "Sheet frame and title block")
    ("RMR-A-DETAIL"  "ANNOTATION" (130  92 160) "Continuous" 18 "Detail markers")
+   ("RMR-A-ROOMTAG" "ANNOTATION" ( 31  42  51) "Continuous" 18 "Room number, name and area tags")
+   ("RMR-A-KEYNOTE" "ANNOTATION" (214 163  76) "Continuous" 18 "Numbered keynote bubbles")
+   ("RMR-A-LEVEL"   "ANNOTATION" ( 57 137 130) "Continuous" 18 "Level and datum markers")
+   ("RMR-A-REVISION" "ANNOTATION" (198  93  72) "Continuous" 18 "Revision triangles and clouds")
 
    ;; 6. Presentation / plotting
    ("RMR-PRES-TITLE" "PRESENTATION" (198  93  72) "Continuous" 25 "Title block and brand")
    ("RMR-PRES-KEY"   "PRESENTATION" (214 163  76) "Continuous" 18 "Keynotes and numbered tags")
    ("RMR-PRES-NORTH" "PRESENTATION" ( 57 137 130) "Continuous" 18 "North arrows and orientation")
+   ("RMR-PRES-STAMP" "PRESENTATION" ( 57 137 130) "Continuous" 18 "Issue, status and approval stamps")
   )
 )
 
 ;;; Text styles: (StyleName FontFile WidthFactor ObliqueAngle Description)
+;;; Preferred fonts are modern and clean. RMR:FindFont falls back safely when
+;;; a preferred font is not installed on the workstation.
 (setq *RMR-TEXT-STYLES*
  '(
-   ("RMR-TITLE"  "arial.ttf" 0.92 0.0 "Bold-looking title style; uses Arial when available")
-   ("RMR-HEAD"   "arial.ttf" 0.95 0.0 "Drawing headings and section labels")
-   ("RMR-BODY"   "arial.ttf" 1.00 0.0 "General notes and dimensions")
-   ("RMR-NOTE"   "arial.ttf" 0.95 0.0 "Small notes and technical references")
-   ("RMR-NUMBER" "arial.ttf" 0.90 0.0 "Sheet, detail and revision numbers")
-   ("RMR-MARK"   "romans.shx" 0.90 0.0 "Compact technical marker style")
+   ("RMR-TITLE"   "Montserrat-SemiBold.ttf" 0.92 0.0 "Modern display title")
+   ("RMR-HEAD"    "Montserrat-SemiBold.ttf" 0.95 0.0 "Modern drawing headings")
+   ("RMR-SUBHEAD" "Montserrat-Regular.ttf"   0.96 0.0 "Subheads and secondary titles")
+   ("RMR-BODY"    "Aptos.ttf"                1.00 0.0 "General notes and dimensions")
+   ("RMR-NOTE"    "Aptos.ttf"                0.95 0.0 "Small notes and technical references")
+   ("RMR-NUMBER"  "Montserrat-SemiBold.ttf" 0.90 0.0 "Sheet, detail and revision numbers")
+   ("RMR-LABEL"   "Aptos.ttf"                0.98 0.0 "Room tags and component labels")
+   ("RMR-MARK"    "RobotoMono-Regular.ttf"   0.90 0.0 "Compact technical marker style")
   )
 )
 
@@ -118,6 +139,13 @@
   )
 )
 
+;;; Multileader style: (Name TextHeight ArrowSize Description)
+(setq *RMR-MLEADER-SPECS*
+ '(
+   ("RMR-MLEADER" 2.50 2.50 "Modern plan callouts and keynote leaders")
+  )
+)
+
 (setq *RMR-BRAND-INK*       '(31 42 51))
 (setq *RMR-BRAND-TERRA*     '(198 93 72))
 (setq *RMR-BRAND-TEAL*      '(57 137 130))
@@ -125,6 +153,8 @@
 (setq *RMR-BRAND-SAND*      '(238 225 201))
 (setq *RMR-BRAND-BLUE*      '(47 116 181))
 (setq *RMR-BRAND-SLATE*     '(86 104 116))
+;; RMR-PRO-SETUP enables this only for the named RMR text styles.
+(setq *RMR-FORCE-STYLE-REFRESH* nil)
 
 ;;; -----------------------------------------------------------------------------
 ;;; Small helpers
@@ -160,9 +190,14 @@
 )
 
 (defun RMR:FindFont (requested)
+  ;; Preferred font -> modern system font -> common AutoCAD font fallback.
   (cond
     ((findfile requested) requested)
-    ((and (= (strcase requested) "ARIAL.TTF") (findfile "Arial.ttf")) "Arial.ttf")
+    ((findfile "Aptos.ttf") "Aptos.ttf")
+    ((findfile "Arial.ttf") "Arial.ttf")
+    ((findfile "arial.ttf") "arial.ttf")
+    ((findfile "Calibri.ttf") "Calibri.ttf")
+    ((findfile "segoeui.ttf") "segoeui.ttf")
     ((findfile "romans.shx") "romans.shx")
     ((findfile "simplex.shx") "simplex.shx")
     (T "txt.shx")
@@ -202,12 +237,11 @@
   )
 )
 
-(defun RMR:EnsureTextStyle (spec / name font width oblique)
+(defun RMR:EnsureTextStyle (spec / name font width oblique ename data)
   (setq name (nth 0 spec))
   (setq font (RMR:FindFont (nth 1 spec)))
   (setq width (nth 2 spec))
   (setq oblique (nth 3 spec))
-  ;; Existing styles are left intact so a personal font choice is not overwritten.
   (if (not (tblsearch "STYLE" name))
     (entmake
       (list
@@ -223,6 +257,17 @@
         '(42 . 2.5)
         (cons 3 font)
         (cons 4 "")
+      )
+    )
+    ;; PRO setup may explicitly refresh only the RMR-owned text styles.
+    (if *RMR-FORCE-STYLE-REFRESH*
+      (progn
+        (setq ename (tblobjname "STYLE" name))
+        (setq data (entget ename))
+        (setq data (RMR:DXF 3 font data))
+        (setq data (RMR:DXF 41 width data))
+        (setq data (RMR:DXF 50 oblique data))
+        (entmod data)
       )
     )
   )
@@ -271,8 +316,90 @@
 )
 
 ;;; -----------------------------------------------------------------------------
-;;; Arrow block and dimension styles
+;;; Arrow, symbol blocks and dimension styles
 ;;; -----------------------------------------------------------------------------
+
+(defun RMR:BeginBlock (name)
+  (entmake
+    (list '(0 . "BLOCK") (cons 2 name) '(70 . 0) (cons 10 '(0.0 0.0 0.0)))
+  )
+)
+
+(defun RMR:EndBlock ()
+  (entmake '((0 . "ENDBLK") (8 . "0")))
+)
+
+(defun RMR:BlockLine (p1 p2)
+  (entmake
+    (list '(0 . "LINE") '(8 . "0") (cons 10 p1) (cons 11 p2))
+  )
+)
+
+(defun RMR:BlockCircle (center radius)
+  (entmake
+    (list '(0 . "CIRCLE") '(8 . "0") (cons 10 center) (cons 40 radius))
+  )
+)
+
+(defun RMR:BlockSolid (p1 p2 p3 p4)
+  (entmake
+    (list '(0 . "SOLID") '(8 . "0")
+          (cons 10 p1) (cons 11 p2) (cons 12 p3) (cons 13 p4))
+  )
+)
+
+(defun RMR:BlockText (p text height style)
+  (entmake
+    (list '(0 . "TEXT") '(8 . "0") (cons 10 p) (cons 40 height)
+          (cons 1 text) (cons 7 style) '(72 . 0) '(73 . 0))
+  )
+)
+
+(defun RMR:EnsureProBlocks (/ block)
+  ;; These are deliberately simple, annotative-friendly symbols. They are
+  ;; created once and can be inserted on any RMR presentation layer.
+  (setq block "RMR-NORTH-ARROW")
+  (if (not (tblsearch "BLOCK" block))
+    (progn
+      (RMR:BeginBlock block)
+      (RMR:BlockCircle '(0.0 0.0 0.0) 7.0)
+      (RMR:BlockLine '(0.0 -5.0 0.0) '(0.0 9.0 0.0))
+      (RMR:BlockSolid '(0.0 9.0 0.0) '(-2.4 4.0 0.0) '(0.0 5.0 0.0) '(2.4 4.0 0.0))
+      (RMR:BlockText '(-1.5 11.0 0.0) "N" 3.5 "RMR-NUMBER")
+      (RMR:EndBlock)
+    )
+  )
+  (setq block "RMR-DETAIL-BUBBLE")
+  (if (not (tblsearch "BLOCK" block))
+    (progn
+      (RMR:BeginBlock block)
+      (RMR:BlockCircle '(0.0 0.0 0.0) 5.0)
+      (RMR:BlockLine '(5.0 0.0 0.0) '(21.0 0.0 0.0))
+      (RMR:BlockText '(-1.1 -1.5 0.0) "A" 3.0 "RMR-NUMBER")
+      (RMR:EndBlock)
+    )
+  )
+  (setq block "RMR-KEYNOTE-BUBBLE")
+  (if (not (tblsearch "BLOCK" block))
+    (progn
+      (RMR:BeginBlock block)
+      (RMR:BlockCircle '(0.0 0.0 0.0) 5.0)
+      (RMR:BlockText '(-2.3 -1.5 0.0) "01" 3.0 "RMR-NUMBER")
+      (RMR:EndBlock)
+    )
+  )
+  (setq block "RMR-LEVEL-DATUM")
+  (if (not (tblsearch "BLOCK" block))
+    (progn
+      (RMR:BeginBlock block)
+      (RMR:BlockLine '(0.0 0.0 0.0) '(20.0 0.0 0.0))
+      (RMR:BlockSolid '(0.0 0.0 0.0) '(5.0 3.5 0.0) '(5.0 -3.5 0.0) '(5.0 0.0 0.0))
+      (RMR:BlockText '(7.0 -1.5 0.0) "±0.000" 3.0 "RMR-NUMBER")
+      (RMR:EndBlock)
+    )
+  )
+  T
+)
 
 (defun RMR:EnsureArrowBlock (/ block)
   (setq block "RMR-ARROW-CHEVRON")
@@ -380,6 +507,37 @@
   ds
 )
 
+(defun RMR:EnsureMLeaderStyle (spec / acad doc styles name txt asz ml colour)
+  (setq name (nth 0 spec))
+  (setq txt  (nth 1 spec))
+  (setq asz  (nth 2 spec))
+  (setq acad (vlax-get-acad-object))
+  (setq doc (vla-get-ActiveDocument acad))
+  (setq styles (vla-get-MLeaderStyles doc))
+  (if (tblsearch "MLEADERSTYLE" name)
+    (setq ml (vla-Item styles name))
+    (setq ml (vla-Add styles name))
+  )
+  (RMR:TryPut ml 'ContentType 2)
+  (RMR:TryPut ml 'TextStyle "RMR-BODY")
+  (RMR:TryPut ml 'TextHeight txt)
+  (RMR:TryPut ml 'ArrowSize asz)
+  (RMR:TryPut ml 'DoglegLength (* asz 3.0))
+  (RMR:TryPut ml 'LandingGap (* asz 0.5))
+  (RMR:TryPut ml 'EnableDogleg :vlax-true)
+  (RMR:TryPut ml 'EnableLanding :vlax-true)
+  (RMR:TryPut ml 'ScaleFactor 1.0)
+  (RMR:TryPut ml 'ArrowheadBlock "RMR-ARROW-CHEVRON")
+  (setq colour (RMR:ComColor *RMR-BRAND-GOLD*))
+  (if colour
+    (progn
+      (RMR:TryPut ml 'TextColor colour)
+      (RMR:TryPut ml 'LeaderLineColor colour)
+    )
+  )
+  ml
+)
+
 ;;; -----------------------------------------------------------------------------
 ;;; Drawing entities used by RMR-LEGEND and RMR-SHEET
 ;;; -----------------------------------------------------------------------------
@@ -406,6 +564,37 @@
   (RMR:Line p2 p3 layer rgb)
   (RMR:Line p3 p4 layer rgb)
   (RMR:Line p4 p1 layer rgb)
+)
+
+(defun RMR:Circle (p radius layer rgb)
+  (entmake
+    (list
+      '(0 . "CIRCLE")
+      (cons 8 layer)
+      (cons 10 (RMR:3D p))
+      (cons 40 radius)
+      '(62 . 7)
+      (cons 420 (RMR:RGB->420 rgb))
+    )
+  )
+)
+
+(defun RMR:Triangle (p size layer rgb / p1 p2 p3)
+  (setq p1 (RMR:3D p))
+  (setq p2 (RMR:PT+ p size 0.0))
+  (setq p3 (RMR:PT+ p (/ size 2.0) size))
+  (entmake
+    (list
+      '(0 . "SOLID")
+      (cons 8 layer)
+      (cons 10 p1)
+      (cons 11 p2)
+      (cons 12 p3)
+      (cons 13 p3)
+      '(62 . 7)
+      (cons 420 (RMR:RGB->420 rgb))
+    )
+  )
 )
 
 (defun RMR:Solid (p width height layer rgb / p1 p2 p3 p4)
@@ -478,6 +667,9 @@
   (RMR:SafeSet "MSLTSCALE" 1)
   (RMR:SafeSet "CELTSCALE" 1.0)
   (RMR:SafeSet "LTSCALE" 1.0)
+  (RMR:SafeSet "LWDISPLAY" 1)
+  (RMR:SafeSet "VISRETAIN" 1)
+  (RMR:SafeSet "MIRRTEXT" 0)
   (RMR:SafeSet "TEXTSIZE" 2.5)
   (RMR:SafeSet "DIMTXT" 2.5)
   (RMR:SafeSet "DIMASZ" 2.5)
@@ -499,6 +691,9 @@
   (if (tblsearch "DIMSTYLE" "RMR-DIM-PLAN")
     (RMR:SafeSet "DIMSTYLE" "RMR-DIM-PLAN")
   )
+  (if (tblsearch "MLEADERSTYLE" "RMR-MLEADER")
+    (RMR:SafeSet "CMLEADERSTYLE" "RMR-MLEADER")
+  )
   (if (tblsearch "LAYER" "RMR-M-WALL")
     (RMR:SafeSet "CLAYER" "RMR-M-WALL")
   )
@@ -510,11 +705,15 @@
     (RMR:EnsureTextStyle spec)
   )
   (RMR:EnsureArrowBlock)
+  (RMR:EnsureProBlocks)
   (foreach spec *RMR-LAYER-SPECS*
     (RMR:EnsureLayer spec)
   )
   (foreach spec *RMR-DIMSTYLE-SPECS*
     (setq dim-result (vl-catch-all-apply 'RMR:EnsureDimStyle (list spec)))
+  )
+  (foreach spec *RMR-MLEADER-SPECS*
+    (setq dim-result (vl-catch-all-apply 'RMR:EnsureMLeaderStyle (list spec)))
   )
   (RMR:ApplyStandards)
   T
@@ -532,9 +731,9 @@
   (setvar "CMDECHO" oldecho)
   (if (vl-catch-all-error-p result)
     (princ (strcat "\nRooMNRooF: build stopped - " (vl-catch-all-error-message result)))
-    (princ "\nRooMNRooF: master standard ready. Current layer: RMR-M-WALL")
+    (princ "\nRooMNRooF PRO: master standard ready. Current layer: RMR-M-WALL")
   )
-  (princ "\nCommands: RMR-SETLAYER, RMR-LEGEND, RMR-SHEET, RMR-SAVE-TEMPLATE, RMR-PALETTE")
+  (princ "\nCommands: RMR-PRO-SETUP, RMR-SETLAYER, RMR-LEGEND, RMR-SHEET, RMR-NORTH, RMR-ROOMTAG, RMR-KEYNOTE, RMR-DETAIL, RMR-LEVEL, RMR-REVISION, RMR-MLEADER, RMR-SAVE-TEMPLATE")
   (princ)
 )
 
@@ -722,6 +921,190 @@
 )
 
 ;;; -----------------------------------------------------------------------------
+;;; Advanced annotation commands
+;;; -----------------------------------------------------------------------------
+
+(defun RMR:EnsureReady ()
+  (if (not (tblsearch "LAYER" "RMR-M-WALL"))
+    (C:RMR-MASTER)
+  )
+  T
+)
+
+(defun RMR:PlaceBlock (block layer / point scale oldlayer oldecho)
+  (RMR:EnsureReady)
+  (setq point (getpoint (strcat "\nPick insertion point for " block ": ")))
+  (if point
+    (progn
+      (setq scale (getreal "\nSymbol scale <1.0>: "))
+      (if (or (not scale) (<= scale 0.0)) (setq scale 1.0))
+      (setq oldlayer (getvar "CLAYER"))
+      (setq oldecho (getvar "CMDECHO"))
+      (setvar "CMDECHO" 0)
+      (setvar "CLAYER" layer)
+      (command "_.-insert" block point scale scale 0.0)
+      (setvar "CLAYER" oldlayer)
+      (setvar "CMDECHO" oldecho)
+      (princ (strcat "\n" block " placed."))
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-PRO-SETUP (/ old-refresh)
+  (setq old-refresh *RMR-FORCE-STYLE-REFRESH*)
+  (setq *RMR-FORCE-STYLE-REFRESH* T)
+  (C:RMR-MASTER)
+  (setq *RMR-FORCE-STYLE-REFRESH* old-refresh)
+  (princ "\nRooMNRooF PRO setup complete: modern fonts, MLeader style, symbol library and annotation layers ready.")
+  (princ "\nUse RMR-NORTH, RMR-ROOMTAG, RMR-KEYNOTE, RMR-DETAIL, RMR-LEVEL and RMR-REVISION.")
+  (princ)
+)
+
+(defun C:RMR-NORTH ()
+  (RMR:PlaceBlock "RMR-NORTH-ARROW" "RMR-PRES-NORTH")
+)
+
+(defun C:RMR-ROOMTAG (/ point number room area width height p2 layer)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nPick lower-left point for room tag: "))
+  (if point
+    (progn
+      (setq number (getstring T "\nRoom number <01>: "))
+      (if (or (not number) (= number "")) (setq number "01"))
+      (setq room (getstring T "\nRoom name <ROOM NAME>: "))
+      (if (or (not room) (= room "")) (setq room "ROOM NAME"))
+      (setq area (getstring T "\nArea text <00.00 m2>: "))
+      (if (or (not area) (= area "")) (setq area "00.00 m2"))
+      (setq width (getreal "\nTag width <70>: "))
+      (if (or (not width) (<= width 0.0)) (setq width 70.0))
+      (setq height (getreal "\nTag height <24>: "))
+      (if (or (not height) (<= height 0.0)) (setq height 24.0))
+      (setq layer "RMR-A-ROOMTAG")
+      (RMR:Rect point width height layer *RMR-BRAND-INK*)
+      (RMR:Solid point 4.0 height "RMR-PRES-TITLE" *RMR-BRAND-TERRA*)
+      (RMR:Line (RMR:PT+ point 4.0 (* height 0.55)) (RMR:PT+ point width (* height 0.55)) layer *RMR-BRAND-TEAL*)
+      (RMR:Text (RMR:PT+ point 8.0 (- height 5.5)) number 4.0 "RMR-NUMBER" layer *RMR-BRAND-TERRA*)
+      (RMR:Text (RMR:PT+ point 8.0 (* height 0.30)) room 3.0 "RMR-LABEL" layer *RMR-BRAND-INK*)
+      (RMR:Text (RMR:PT+ point 8.0 3.0) area 2.5 "RMR-NOTE" layer *RMR-BRAND-SLATE*)
+      (princ "\nRooMNRooF room tag created.")
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-KEYNOTE (/ point number radius)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nPick keynote bubble centre: "))
+  (if point
+    (progn
+      (setq number (getstring T "\nKeynote number <01>: "))
+      (if (or (not number) (= number "")) (setq number "01"))
+      (setq radius (getreal "\nBubble radius <5>: "))
+      (if (or (not radius) (<= radius 0.0)) (setq radius 5.0))
+      (RMR:Circle point radius "RMR-A-KEYNOTE" *RMR-BRAND-GOLD*)
+      (RMR:CenterText point number (* radius 0.65) "RMR-NUMBER" "RMR-A-KEYNOTE" *RMR-BRAND-INK*)
+      (princ "\nRooMNRooF keynote bubble created.")
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-DETAIL (/ point detail sheet radius start end)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nPick detail bubble centre: "))
+  (if point
+    (progn
+      (setq detail (getstring T "\nDetail number <A>: "))
+      (if (or (not detail) (= detail "")) (setq detail "A"))
+      (setq sheet (getstring T "\nReference sheet <A-501>: "))
+      (if (or (not sheet) (= sheet "")) (setq sheet "A-501"))
+      (setq radius (getreal "\nBubble radius <6>: "))
+      (if (or (not radius) (<= radius 0.0)) (setq radius 6.0))
+      (setq start (RMR:PT+ point radius 0.0))
+      (setq end (RMR:PT+ point 32.0 0.0))
+      (RMR:Circle point radius "RMR-A-DETAIL" *RMR-BRAND-SLATE*)
+      (RMR:Line start end "RMR-A-DETAIL" *RMR-BRAND-SLATE*)
+      (RMR:CenterText point detail (* radius 0.7) "RMR-NUMBER" "RMR-A-DETAIL" *RMR-BRAND-INK*)
+      (RMR:Text (RMR:PT+ point (+ radius 3.0) 1.5) sheet 2.5 "RMR-NOTE" "RMR-A-DETAIL" *RMR-BRAND-SLATE*)
+      (princ "\nRooMNRooF detail callout created.")
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-LEVEL (/ point level length)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nPick level datum point: "))
+  (if point
+    (progn
+      (setq level (getstring T "\nLevel text <+0.000>: "))
+      (if (or (not level) (= level "")) (setq level "+0.000"))
+      (setq length (getreal "\nDatum length <38>: "))
+      (if (or (not length) (<= length 0.0)) (setq length 38.0))
+      (RMR:Line point (RMR:PT+ point length 0.0) "RMR-A-LEVEL" *RMR-BRAND-TEAL*)
+      (RMR:Triangle point 6.0 "RMR-A-LEVEL" *RMR-BRAND-TEAL*)
+      (RMR:Text (RMR:PT+ point 9.0 2.0) level 3.0 "RMR-NUMBER" "RMR-A-LEVEL" *RMR-BRAND-INK*)
+      (princ "\nRooMNRooF level datum created.")
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-REVISION (/ point number text size p1 p2 p3)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nPick revision marker point: "))
+  (if point
+    (progn
+      (setq number (getstring T "\nRevision number <00>: "))
+      (if (or (not number) (= number "")) (setq number "00"))
+      (setq text (getstring T "\nRevision description <ISSUED FOR REVIEW>: "))
+      (if (or (not text) (= text "")) (setq text "ISSUED FOR REVIEW"))
+      (setq size (getreal "\nTriangle size <8>: "))
+      (if (or (not size) (<= size 0.0)) (setq size 8.0))
+      (setq p1 (RMR:3D point))
+      (setq p2 (RMR:PT+ point size 0.0))
+      (setq p3 (RMR:PT+ point (/ size 2.0) size))
+      (RMR:Line p1 p2 "RMR-A-REVISION" *RMR-BRAND-TERRA*)
+      (RMR:Line p2 p3 "RMR-A-REVISION" *RMR-BRAND-TERRA*)
+      (RMR:Line p3 p1 "RMR-A-REVISION" *RMR-BRAND-TERRA*)
+      (RMR:CenterText (RMR:PT+ point (/ size 2.0) (* size 0.36)) number (* size 0.34) "RMR-NUMBER" "RMR-A-REVISION" *RMR-BRAND-TERRA*)
+      (RMR:Text (RMR:PT+ point (+ size 3.0) 2.0) text 2.5 "RMR-NOTE" "RMR-A-REVISION" *RMR-BRAND-INK*)
+      (princ "\nRooMNRooF revision marker created.")
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-MLEADER (/ point end text oldlayer oldecho)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nPick multileader arrow point: "))
+  (if point
+    (progn
+      (setq end (getpoint point "\nPick multileader landing point: "))
+      (if end
+        (progn
+          (setq text (getstring T "\nLeader note: "))
+          (if (or (not text) (= text "")) (setq text "NOTE"))
+          (setq oldlayer (getvar "CLAYER"))
+          (setq oldecho (getvar "CMDECHO"))
+          (setvar "CMDECHO" 0)
+          (setvar "CLAYER" "RMR-A-LEADER")
+          (if (tblsearch "MLEADERSTYLE" "RMR-MLEADER")
+            (setvar "CMLEADERSTYLE" "RMR-MLEADER")
+          )
+          (command "_.mleader" point end "" text)
+          (setvar "CLAYER" oldlayer)
+          (setvar "CMDECHO" oldecho)
+          (princ "\nRooMNRooF multileader created.")
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; -----------------------------------------------------------------------------
 ;;; Save the current standard as an AutoCAD template
 ;;; -----------------------------------------------------------------------------
 
@@ -729,7 +1112,7 @@
   (if (not (tblsearch "LAYER" "RMR-M-WALL"))
     (C:RMR-MASTER)
   )
-  (setq path (getfiled "Save RooMNRooF template" "RooMNRooF_Master.dwt" "dwt" 1))
+  (setq path (getfiled "Save RooMNRooF PRO template" "RooMNRooF_PRO_Master.dwt" "dwt" 1))
   (if path
     (progn
       (vl-load-com)
@@ -757,14 +1140,22 @@
   (princ "\n 2  Furniture       RMR-F-...")
   (princ "\n 3  Structural      RMR-S-...")
   (princ "\n 4  Plumbing        RMR-P-...")
-  (princ "\n 5  Annotation      RMR-A-...  (leaders, arrows, text, dims)")
-  (princ "\n 6  Presentation     RMR-PRES-... (title, keys, north)")
+  (princ "\n 5  Annotation      RMR-A-...  (leaders, arrows, text, dims, tags)")
+  (princ "\n 6  Presentation     RMR-PRES-... (title, keys, north, stamps)")
   (princ "\n")
   (princ "\nCommands:")
   (princ "\n RMR-MASTER       Build the complete standard")
+  (princ "\n RMR-PRO-SETUP    Build PRO symbols and MLeader style")
   (princ "\n RMR-SETLAYER     Set a current layer by discipline")
   (princ "\n RMR-LEGEND       Place a true-colour layer legend")
   (princ "\n RMR-SHEET        Place an A0-A4 sheet and title block")
+  (princ "\n RMR-NORTH        Place a modern north arrow")
+  (princ "\n RMR-ROOMTAG      Place a room name / number / area tag")
+  (princ "\n RMR-KEYNOTE      Place a numbered keynote bubble")
+  (princ "\n RMR-DETAIL       Place a detail callout")
+  (princ "\n RMR-LEVEL        Place a level datum")
+  (princ "\n RMR-REVISION     Place a revision marker")
+  (princ "\n RMR-MLEADER      Place a branded multileader")
   (princ "\n RMR-SAVE-TEMPLATE Save an active drawing as .DWT")
   (princ "\n")
   (princ "\nTo add a personal palette, append a layer spec near the top:")
@@ -774,5 +1165,5 @@
   (princ)
 )
 
-(princ "\nRooMNRooF Master loaded. Type RMR-MASTER to build the standard.")
+(princ "\nRooMNRooF PRO Master loaded. Type RMR-PRO-SETUP to build the professional standard.")
 (princ)

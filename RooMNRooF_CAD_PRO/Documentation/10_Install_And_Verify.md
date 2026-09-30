@@ -14,7 +14,7 @@ copy the text from the AutoCAD command line (F2) and report it.
    If it doesn't: run `APPLOAD`, browse to `%APPDATA%\Autodesk\ApplicationPlugins\RooMNRooF.bundle\Contents\AutoLISP\RNR_Load.lsp`, and click Load.
 
 ### A2. Automatic check
-Run `RNRL-SELFTEST`. The expected result is **6 PASS, 0 FAIL** and `Commands defined: 34/34`.
+Run `RNRL-SELFTEST`. The expected result is **7 PASS, 0 FAIL** and `Commands defined: 36/36`.
 
 ### A3. Functional checks (new drawing from acadiso.dwt)
 | # | Command | What you do | Expected result |
@@ -32,7 +32,7 @@ Run `RNRL-SELFTEST`. The expected result is **6 PASS, 0 FAIL** and `Commands def
 | 11 | `RNRL-HATCH` | choose RCC or Brick, pick inside | hatch on the hatch layer; no "ANSI31 used" warning |
 | 12 | `RNRL-REBAR` / `RNRL-BARWT` | T16, 10 m | 1.578 kg/m, which gives 15.78 kg |
 | 13 | `RNRL-LEVEL`, `RNRL-TAG`, `RNRL-NORTH` | place | symbols on the ANNO-* layers |
-| 14 | `RNRL-INSERT`, `RNRL-BLOCKLIST` | | block inserted; list printed |
+| 14 | `RNRL-BLOCKS`, then `RNRL-INSERT` RNR_TOILET, `RNRL-BLOCKLIST` | | `29 of 29 RNR blocks available`; toilet inserted on A-FIXTURE; list printed |
 | 15 | `RNRL-COLORS`, `RNRL-COLORAPPLY`, `RNRL-BYLAYER` | select objects | colours change; BYLAYER resets them |
 | 16 | `RNRL-LA`, `RNRL-THAW` | | layer controls behave as described in the prompt |
 | 17 | `RNRL-ARCH` / `RNRL-STRUCT` / `RNRL-CIVIL` / `RNRL-ANNO` / `RNRL-RCC` | | only that discipline's layers are created or isolated |

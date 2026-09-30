@@ -18,13 +18,14 @@
                "RNRL-WALL" "RNRL-DOOR" "RNRL-WINDOW" "RNRL-ROOM" "RNRL-COLUMN" "RNRL-BEAM" "RNRL-FOOTING"
                "RNRL-REBAR" "RNRL-BARWT" "RNRL-HATCH" "RNRL-INSERT" "RNRL-BLOCKLIST" "RNRL-STYLES"
                "RNRL-LEVEL" "RNRL-TAG" "RNRL-NORTH" "RNRL-QA" "RNRPLOT-BW" "RNRPLOT-COLOR" "RNRPLOT-GRAY"
-               "RNRL-HELP"))
+               "RNRL-HELP" "RNRL-BLOCKS" "RNRL-SELFTEST"))
   (setq c 0)
   (foreach n cmds
     (if (not (eval (read (strcat "c:" n))))
       (princ (strcat "\n        missing command: " n))
       (setq c (1+ c))))
   (rnr:st-line (= c (length cmds)) (strcat "Commands defined: " (itoa c) "/" (itoa (length cmds))))
+  (rnr:st-line (and rnr:block-names (= (length (rnr:block-names)) 29)) "Built-in block library (29 definitions)")
   (rnr:st-line (setq f (findfile "RooMNRooF.lin")) "RooMNRooF.lin on support path")
   (rnr:st-line (findfile "RNR_RCC.pat") "RNR_RCC.pat on support path")
   (rnr:st-line (findfile "RNR_BRICK.pat") "RNR_BRICK.pat on support path")

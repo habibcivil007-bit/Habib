@@ -90,18 +90,19 @@ INSTALL
 UNINSTALL
   Run Uninstall.bat (removes only the bundle folder).
 
-COMMANDS (35)
+COMMANDS (36)
   Layers/standards: RNRL-LAYERS RNRL-ARCH RNRL-STRUCT RNRL-CIVIL RNRL-ANNO RNRL-RCC RNRL-LA RNRL-THAW
                     RNRL-COLORS RNRL-COLORAPPLY RNRL-BYLAYER RNRL-UNITS RNRL-STYLES
   Drafting:         RNRL-GRID RNRL-WALL RNRL-DOOR RNRL-WINDOW RNRL-ROOM RNRL-COLUMN RNRL-BEAM RNRL-FOOTING
   Rebar/hatch:      RNRL-REBAR RNRL-BARWT RNRL-HATCH
-  Blocks/annotation:RNRL-INSERT RNRL-BLOCKLIST RNRL-TAG RNRL-LEVEL RNRL-NORTH
+  Blocks/annotation:RNRL-BLOCKS RNRL-INSERT RNRL-BLOCKLIST RNRL-TAG RNRL-LEVEL RNRL-NORTH
   QA/plot:          RNRL-QA RNRPLOT-BW RNRPLOT-COLOR RNRPLOT-GRAY   Help: RNRL-HELP  Check: RNRL-SELFTEST
 
 INCLUDED
   Contents\\AutoLISP   15 LISP modules
   Contents\\Hatch      custom PAT hatch patterns (on the support path after install)
   Contents\\Standards  JSON standards + RooMNRooF.lin
+  Contents\\Blocks     RNR_Blocks.dxf - 29-block library (also built into the LISP code)
   Contents\\Samples    12 sample DXF drawings (3-storey residence)
   Contents\\Documentation
 
@@ -132,6 +133,7 @@ def main():
     shutil.copytree(os.path.join(ROOT, "Hatch"), os.path.join(c, "Hatch"))
     shutil.copytree(os.path.join(ROOT, "Standards"), os.path.join(c, "Standards"))
     shutil.copytree(os.path.join(ROOT, "Samples"), os.path.join(c, "Samples"))
+    shutil.copytree(os.path.join(ROOT, "Blocks"), os.path.join(c, "Blocks"))
     shutil.copytree(os.path.join(ROOT, "Documentation"), os.path.join(c, "Documentation"))
     # AutoCAD expects CRLF-friendly text; LISP/PAT/LIN files are ASCII
     for d, _, fs in os.walk(c):

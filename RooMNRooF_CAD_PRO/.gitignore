@@ -1,0 +1,10 @@
+Build/bin/
+Build/out/
+**/obj/
+**/bin/
+*.user
+.vs/
+__pycache__/
+*.bak
+*.dwl
+*.dwl2

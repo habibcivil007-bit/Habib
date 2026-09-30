@@ -1,0 +1,345 @@
+{
+  "schema": "RooMNRooF.Hatches/1.0",
+  "hatches": [
+    {
+      "name": "Concrete",
+      "category": "STRUCTURE",
+      "pattern": "AR-CONC",
+      "custom": false,
+      "scale": 1.0,
+      "angle": 0,
+      "colorId": "HATC-CONCRETE",
+      "rgb": [
+        160,
+        160,
+        160
+      ],
+      "transparency": 40,
+      "layerHint": "S-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "RCC",
+      "category": "STRUCTURE",
+      "pattern": "RNR_RCC",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-RCC",
+      "rgb": [
+        140,
+        140,
+        160
+      ],
+      "transparency": 40,
+      "layerHint": "S-HATCH",
+      "patFile": "RNR_RCC.pat"
+    },
+    {
+      "name": "Brick",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_BRICK",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-BRICK",
+      "rgb": [
+        199,
+        81,
+        70
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_BRICK.pat"
+    },
+    {
+      "name": "Block",
+      "category": "ARCHITECTURE",
+      "pattern": "AR-B816",
+      "custom": false,
+      "scale": 1.0,
+      "angle": 0,
+      "colorId": "HATC-CONCRETE",
+      "rgb": [
+        160,
+        160,
+        160
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Stone",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_STONE",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-STONE",
+      "rgb": [
+        176,
+        137,
+        104
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_STONE.pat"
+    },
+    {
+      "name": "Granite",
+      "category": "ARCHITECTURE",
+      "pattern": "AR-SAND",
+      "custom": false,
+      "scale": 1.0,
+      "angle": 0,
+      "colorId": "HATC-STONE",
+      "rgb": [
+        176,
+        137,
+        104
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Marble",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_MARBLE",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-STONE",
+      "rgb": [
+        176,
+        137,
+        104
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_MARBLE.pat"
+    },
+    {
+      "name": "Tile",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_TILE",
+      "custom": true,
+      "scale": 1.0,
+      "angle": 0,
+      "colorId": "HATC-TILE",
+      "rgb": [
+        230,
+        204,
+        178
+      ],
+      "transparency": 50,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_TILE.pat"
+    },
+    {
+      "name": "Wood",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_WOOD",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-WOOD",
+      "rgb": [
+        156,
+        102,
+        68
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_WOOD.pat"
+    },
+    {
+      "name": "Timber",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_TIMBER",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-WOOD",
+      "rgb": [
+        156,
+        102,
+        68
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_TIMBER.pat"
+    },
+    {
+      "name": "Sand",
+      "category": "CIVIL",
+      "pattern": "AR-SAND",
+      "custom": false,
+      "scale": 1.0,
+      "angle": 0,
+      "colorId": "HATC-SAND",
+      "rgb": [
+        221,
+        184,
+        146
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Soil",
+      "category": "CIVIL",
+      "pattern": "RNR_SOIL",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-EARTH",
+      "rgb": [
+        127,
+        85,
+        57
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_SOIL.pat"
+    },
+    {
+      "name": "Earth",
+      "category": "CIVIL",
+      "pattern": "EARTH",
+      "custom": false,
+      "scale": 20.0,
+      "angle": 45,
+      "colorId": "HATC-EARTH",
+      "rgb": [
+        127,
+        85,
+        57
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Water",
+      "category": "CIVIL",
+      "pattern": "RNR_WATER",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-WATER",
+      "rgb": [
+        0,
+        150,
+        199
+      ],
+      "transparency": 50,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_WATER.pat"
+    },
+    {
+      "name": "Grass",
+      "category": "LANDSCAPE",
+      "pattern": "GRASS",
+      "custom": false,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-GRASS",
+      "rgb": [
+        128,
+        185,
+        24
+      ],
+      "transparency": 50,
+      "layerHint": "A-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Glass",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_GLASS",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 45,
+      "colorId": "HATC-GLASS",
+      "rgb": [
+        173,
+        232,
+        244
+      ],
+      "transparency": 50,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_GLASS.pat"
+    },
+    {
+      "name": "Metal",
+      "category": "STRUCTURE",
+      "pattern": "ANSI32",
+      "custom": false,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-METAL",
+      "rgb": [
+        108,
+        117,
+        125
+      ],
+      "transparency": 40,
+      "layerHint": "S-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Steel",
+      "category": "STRUCTURE",
+      "pattern": "STEEL",
+      "custom": false,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-METAL",
+      "rgb": [
+        108,
+        117,
+        125
+      ],
+      "transparency": 40,
+      "layerHint": "S-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Aluminium",
+      "category": "ARCHITECTURE",
+      "pattern": "ANSI33",
+      "custom": false,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-METAL",
+      "rgb": [
+        108,
+        117,
+        125
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": null
+    },
+    {
+      "name": "Insulation",
+      "category": "ARCHITECTURE",
+      "pattern": "RNR_INSUL",
+      "custom": true,
+      "scale": 10.0,
+      "angle": 0,
+      "colorId": "HATC-INSULATION",
+      "rgb": [
+        255,
+        214,
+        224
+      ],
+      "transparency": 40,
+      "layerHint": "A-HATCH",
+      "patFile": "RNR_INSUL.pat"
+    }
+  ]
+}

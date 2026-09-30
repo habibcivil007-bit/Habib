@@ -1,0 +1,97 @@
+;;; RNR_Layers.lsp - standard layers from *RNR-LAYERS* (RNR_Data.lsp), filters, isolate/thaw
+(vl-load-com)
+
+(defun rnr:ensure-linetype (lt / f)
+  (cond
+    ((or (= (strcase lt) "CONTINUOUS") (tblsearch "LTYPE" lt)) lt)
+    ((and (wcmatch (strcase lt) "RNR_*") (setq f (findfile "RooMNRooF.lin")))
+     (vl-catch-all-apply 'vla-Load (list (vla-get-Linetypes (rnr:doc)) lt f))
+     (if (tblsearch "LTYPE" lt) lt "Continuous"))
+    (T (vl-catch-all-apply 'vla-Load (list (vla-get-Linetypes (rnr:doc)) lt "acadiso.lin"))
+       (if (tblsearch "LTYPE" lt) lt "Continuous"))))
+
+(defun rnr:layer-make (rec / name r g b lt lw tr plot desc ent obj)
+  ;; rec = (name r g b linetype lw*100 transparency plot desc)
+  (setq name (nth 0 rec) r (nth 1 rec) g (nth 2 rec) b (nth 3 rec)
+        lt (rnr:ensure-linetype (nth 4 rec)) lw (nth 5 rec) tr (nth 6 rec)
+        plot (nth 7 rec) desc (nth 8 rec))
+  (if (not (tblsearch "LAYER" name))
+    (entmake (list '(0 . "LAYER") '(100 . "AcDbSymbolTableRecord") '(100 . "AcDbLayerTableRecord")
+                   (cons 2 name) '(70 . 0) '(62 . 7) (cons 6 lt))))
+  ;; properties through ActiveX so TrueColor/transparency/description are exact
+  (setq obj (vla-Item (vla-get-Layers (rnr:doc)) name))
+  (rnr:set-truecolor obj r g b)
+  (vla-put-Linetype obj lt)
+  (vl-catch-all-apply 'vla-put-Lineweight (list obj lw))
+  (vla-put-Plottable obj (if plot :vlax-true :vlax-false))
+  (vl-catch-all-apply 'vla-put-Description (list obj desc))
+  (if (> tr 0) (vl-catch-all-apply 'rnr:set-transparency (list name tr)))
+  name)
+
+(defun rnr:set-truecolor (obj r g b / col)
+  (setq col (vla-GetInterfaceObject *RNR-ACAD* (strcat "AutoCAD.AcCmColor." (substr (getvar "ACADVER") 1 2))))
+  (vla-SetRGB col r g b)
+  (vla-put-TrueColor obj col)
+  (vlax-release-object col))
+
+(defun rnr:set-transparency (name pct)
+  ;; -LAYER TR is the documented way to set layer transparency from LISP
+  (command "_.-LAYER" "_TR" (itoa pct) name "")
+  )
+
+(defun rnr:layers-apply (filter / n cm)
+  (setq n 0 cm (getvar "CMDECHO"))
+  (setvar "CMDECHO" 0)
+  (foreach rec *RNR-LAYERS*
+    (if (wcmatch (car rec) filter) (progn (rnr:layer-make rec) (setq n (1+ n)))))
+  (setvar "CMDECHO" cm)
+  n)
+
+(defun rnr:filter-expr (name / f)
+  (if (setq f (assoc (strcase name) *RNR-FILTERS*)) (cdr f) "*"))
+
+(defun c:RNRL-LAYERS ( / f n)
+  (rnr:start '("CMDECHO" "CLAYER"))
+  (setq f (rnr:getkw "Layers for" "ALL ARCHITECTURE STRUCTURE CIVIL MEP ANNOTATION REFERENCE" "ALL"))
+  (setq n (rnr:layers-apply (rnr:filter-expr f)))
+  (princ (strcat "\n[RNR] " (itoa n) " standard layer(s) created/updated."))
+  (rnr:end) (rnr:ok))
+
+(defun rnr:isolate (filter / expr lay name n)
+  (setq expr (rnr:filter-expr filter) n 0)
+  (vlax-for lay (vla-get-Layers (rnr:doc))
+    (setq name (vla-get-Name lay))
+    (if (and (not (wcmatch name expr)) (/= (strcase name) (strcase (getvar "CLAYER"))))
+      (progn (vla-put-Freeze lay :vlax-true) (setq n (1+ n)))
+      (vl-catch-all-apply 'vla-put-Freeze (list lay :vlax-false))))
+  (vla-Regen (rnr:doc) acActiveViewport)
+  (princ (strcat "\n[RNR] " (itoa n) " layer(s) frozen; only " filter " visible.")))
+
+(defun c:RNRL-THAW ( / lay)
+  (vlax-for lay (vla-get-Layers (rnr:doc)) (vl-catch-all-apply 'vla-put-Freeze (list lay :vlax-false)))
+  (vla-Regen (rnr:doc) acActiveViewport)
+  (princ "\n[RNR] All layers thawed.") (princ))
+
+(defun c:RNRL-ARCH () (rnr:isolate "ARCHITECTURE") (princ))
+(defun c:RNRL-STRUCT () (rnr:isolate "STRUCTURE") (princ))
+(defun c:RNRL-CIVIL () (rnr:isolate "CIVIL") (princ))
+(defun c:RNRL-RCC () (rnr:isolate "RCC") (princ))
+(defun c:RNRL-ANNO () (rnr:isolate "ANNOTATION") (princ))
+
+(defun c:RNRL-LA ( / lay rec name n c)
+  ;; audit: compare layer truecolor with standard
+  (setq n 0)
+  (vlax-for lay (vla-get-Layers (rnr:doc))
+    (setq name (vla-get-Name lay))
+    (if (setq rec (assoc name *RNR-LAYERS*))
+      (progn
+        (setq c (vla-get-TrueColor lay))
+        (if (not (and (= (vla-get-Red c) (nth 1 rec)) (= (vla-get-Green c) (nth 2 rec)) (= (vla-get-Blue c) (nth 3 rec))))
+          (progn (setq n (1+ n)) (princ (strcat "\n  [WARNING] " name ": colour differs from standard"))))
+        (if (/= (vla-get-Plottable lay) (if (nth 7 rec) :vlax-true :vlax-false))
+          (progn (setq n (1+ n)) (princ (strcat "\n  [ERROR] " name ": plot flag differs")))))
+      (if (not (member (strcase name) '("0" "DEFPOINTS")))
+        (princ (strcat "\n  [INFO] " name ": not a RooMNRooF layer")))))
+  (princ (strcat "\n[RNR] Layer audit: " (itoa n) " deviation(s)."))
+  (princ))
+(princ)

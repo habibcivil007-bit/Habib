@@ -1,0 +1,11 @@
+<Project>
+  <!-- Single place for the semantic version. Keep in sync with VERSION.txt (VerifyPackage.bat checks). -->
+  <PropertyGroup>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Company>RooMNRooF</Company>
+    <Product>RooMNRooF CAD PRO ULTIMATE</Product>
+    <Copyright>Copyright (c) RooMNRooF</Copyright>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,15 @@
+;; RooMNRooF CAD PRO linetypes (use LTSCALE/CELTSCALE or annotative MSLTSCALE)
+*RNR_GRID,Grid line ____ _ ____ _
+A,12.7,-3.175,1.5875,-3.175
+*RNR_HIDDEN,Hidden __ __ __
+A,6.35,-3.175
+*RNR_DEMO,Demolition _ _ _ _
+A,3.175,-3.175
+*RNR_BOUNDARY,Boundary ____ _ _ ____
+A,19.05,-3.175,1.5875,-3.175,1.5875,-3.175
+*RNR_JOINT,Joint __ . __ .
+A,9.525,-2.38,0,-2.38
+*RNR_UTILITY,Utility ___ . . ___
+A,12.7,-2.38,0,-2.38,0,-2.38
+*RNR_WATER,Water supply ___ __ ___
+A,12.7,-2.38,6.35,-2.38

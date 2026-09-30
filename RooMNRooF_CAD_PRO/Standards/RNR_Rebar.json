@@ -1,0 +1,73 @@
+{
+  "schema": "RooMNRooF.Rebar/1.0",
+  "note": "Unit weights = d^2/162.2 kg/m (steel density 7850 kg/m3). Laps, anchorage, bend deductions and cover are PROJECT INPUTS and must be verified by the responsible engineer against BNBC 2020 / ACI 318-19.",
+  "bars": [
+    {
+      "mark": "T8",
+      "diameter": 8,
+      "unitWeight": 0.395
+    },
+    {
+      "mark": "T10",
+      "diameter": 10,
+      "unitWeight": 0.617
+    },
+    {
+      "mark": "T12",
+      "diameter": 12,
+      "unitWeight": 0.888
+    },
+    {
+      "mark": "T16",
+      "diameter": 16,
+      "unitWeight": 1.578
+    },
+    {
+      "mark": "T20",
+      "diameter": 20,
+      "unitWeight": 2.466
+    },
+    {
+      "mark": "T25",
+      "diameter": 25,
+      "unitWeight": 3.853
+    },
+    {
+      "mark": "T32",
+      "diameter": 32,
+      "unitWeight": 6.313
+    }
+  ],
+  "shapeCodes": [
+    {
+      "code": "00",
+      "description": "Straight",
+      "formula": "A"
+    },
+    {
+      "code": "11",
+      "description": "Single 90 deg bend (L-bar)",
+      "formula": "A+B-0.5r-d"
+    },
+    {
+      "code": "21",
+      "description": "U-bar",
+      "formula": "A+B+C-r-2d"
+    },
+    {
+      "code": "51",
+      "description": "Closed link / stirrup",
+      "formula": "2(A+B)+20d"
+    },
+    {
+      "code": "41",
+      "description": "Cranked bar",
+      "formula": "A+B+C"
+    },
+    {
+      "code": "99",
+      "description": "Special - user defined",
+      "formula": "USER"
+    }
+  ]
+}

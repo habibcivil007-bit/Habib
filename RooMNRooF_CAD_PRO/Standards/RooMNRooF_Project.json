@@ -1,0 +1,66 @@
+{
+  "schema": "RooMNRooF.Project/1.0",
+  "projectName": "New Project",
+  "client": "",
+  "consultant": "",
+  "location": "Dhaka, Bangladesh",
+  "units": {
+    "length": "mm",
+    "area": "m2",
+    "volume": "m3",
+    "force": "kN",
+    "stress": "MPa",
+    "mass": "kg"
+  },
+  "standards": {
+    "references": [
+      "BNBC 2020",
+      "ACI 318-19",
+      "ASCE 7"
+    ],
+    "note": "Reference metadata only. No automatic code-compliance is claimed."
+  },
+  "colorTheme": "RNR_DEFAULT",
+  "layerStandard": "RNR_Layers.json",
+  "textStandard": "RNR_TEXT",
+  "dimensionStandard": "RNR_STRUCT",
+  "titleBlock": "STRUCTURAL",
+  "sheetSize": "A1",
+  "drawingScale": "1:100",
+  "engineering": {
+    "concreteGrade": "C25",
+    "fckMPa": null,
+    "fyMPa": null,
+    "clearCoverSlabMm": null,
+    "clearCoverBeamMm": null,
+    "clearCoverColumnMm": null,
+    "clearCoverFootingMm": null,
+    "lapFactorD": null,
+    "anchorageFactorD": null,
+    "comment": "Design values are intentionally null: they must be entered per project by the responsible engineer."
+  },
+  "boq": {
+    "areaUnits": [
+      "SQM",
+      "SFT"
+    ],
+    "volumeUnits": [
+      "CBM",
+      "CFT"
+    ],
+    "lengthUnits": [
+      "RFT",
+      "M"
+    ],
+    "massUnits": [
+      "KG",
+      "TON"
+    ]
+  },
+  "plot": {
+    "colorCtb": "acad.ctb",
+    "monoCtb": "monochrome.ctb",
+    "grayCtb": "grayscale.ctb",
+    "device": "DWG To PDF.pc3"
+  }
+}

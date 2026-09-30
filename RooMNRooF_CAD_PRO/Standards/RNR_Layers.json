@@ -1,0 +1,1571 @@
+{
+  "schema": "RooMNRooF.Layers/1.0",
+  "layers": [
+    {
+      "name": "A-WALL",
+      "description": "Walls - cut",
+      "colorId": "ARCH-WALL-CUT",
+      "rgb": [
+        230,
+        57,
+        70
+      ],
+      "aci": 13,
+      "linetype": "Continuous",
+      "lineweight": 0.5,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "wall",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-WALL-EXST",
+      "description": "Walls - existing",
+      "colorId": "EXIS-EXISTING-WALL",
+      "rgb": [
+        150,
+        150,
+        150
+      ],
+      "aci": 252,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "wall",
+      "status": "EXISTING"
+    },
+    {
+      "name": "A-WALL-DEMO",
+      "description": "Walls - demolition",
+      "colorId": "DEMO-DEMO-WALL",
+      "rgb": [
+        255,
+        77,
+        109
+      ],
+      "aci": 11,
+      "linetype": "RNR_DEMO",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "wall",
+      "status": "DEMOLITION"
+    },
+    {
+      "name": "A-DOOR",
+      "description": "Doors",
+      "colorId": "ARCH-DOOR",
+      "rgb": [
+        255,
+        183,
+        3
+      ],
+      "aci": 40,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "opening",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-WINDOW",
+      "description": "Windows",
+      "colorId": "ARCH-WINDOW",
+      "rgb": [
+        72,
+        202,
+        228
+      ],
+      "aci": 133,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "opening",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-GLAZ",
+      "description": "Glazing",
+      "colorId": "ARCH-GLAZING",
+      "rgb": [
+        144,
+        224,
+        239
+      ],
+      "aci": 141,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 20,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "glazing",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-FURN",
+      "description": "Furniture",
+      "colorId": "ARCH-FURNITURE",
+      "rgb": [
+        181,
+        131,
+        141
+      ],
+      "aci": 233,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "furniture",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-FIXTURE",
+      "description": "Sanitary / kitchen fixtures",
+      "colorId": "ARCH-FIXTURE",
+      "rgb": [
+        106,
+        153,
+        78
+      ],
+      "aci": 75,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "fixture",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-FLOR",
+      "description": "Floor finish patterns",
+      "colorId": "ARCH-FLOOR-PATTERN",
+      "rgb": [
+        221,
+        161,
+        94
+      ],
+      "aci": 33,
+      "linetype": "Continuous",
+      "lineweight": 0.13,
+      "transparency": 50,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "finish",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-CEIL",
+      "description": "Reflected ceiling",
+      "colorId": "ARCH-CEILING",
+      "rgb": [
+        188,
+        184,
+        177
+      ],
+      "aci": 9,
+      "linetype": "RNR_HIDDEN",
+      "lineweight": 0.13,
+      "transparency": 30,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "ceiling",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-ROOF",
+      "description": "Roof outline",
+      "colorId": "ARCH-ROOF",
+      "rgb": [
+        188,
+        108,
+        37
+      ],
+      "aci": 32,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "roof",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-STAIR",
+      "description": "Stairs - architectural",
+      "colorId": "ARCH-STAIR",
+      "rgb": [
+        255,
+        143,
+        171
+      ],
+      "aci": 241,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "stair",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-RAMP",
+      "description": "Ramps",
+      "colorId": "ARCH-RAMP",
+      "rgb": [
+        255,
+        179,
+        198
+      ],
+      "aci": 231,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "ramp",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-ROOM",
+      "description": "Room tags and areas",
+      "colorId": "ARCH-ROOM-TAG",
+      "rgb": [
+        155,
+        93,
+        229
+      ],
+      "aci": 193,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-TEXT",
+      "description": "Architectural text",
+      "colorId": "TEXT-BODY",
+      "rgb": [
+        230,
+        230,
+        230
+      ],
+      "aci": 254,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-DIMS",
+      "description": "Architectural dimensions",
+      "colorId": "DIME-ARCH-DIM",
+      "rgb": [
+        255,
+        159,
+        28
+      ],
+      "aci": 30,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "dimension",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-HATCH",
+      "description": "Architectural hatch",
+      "colorId": "HATC-BRICK",
+      "rgb": [
+        199,
+        81,
+        70
+      ],
+      "aci": 13,
+      "linetype": "Continuous",
+      "lineweight": 0.09,
+      "transparency": 40,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "hatch",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-ELEV",
+      "description": "Elevations",
+      "colorId": "ARCH-ELEVATION",
+      "rgb": [
+        0,
+        187,
+        249
+      ],
+      "aci": 140,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "view",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-SECT",
+      "description": "Sections",
+      "colorId": "ARCH-SECTION",
+      "rgb": [
+        241,
+        91,
+        181
+      ],
+      "aci": 223,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "view",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "A-DETAIL",
+      "description": "Details",
+      "colorId": "ARCH-DETAIL",
+      "rgb": [
+        254,
+        228,
+        64
+      ],
+      "aci": 41,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ARCHITECTURE",
+      "objectClass": "view",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-GRID",
+      "description": "Structural grid lines",
+      "colorId": "GRID-GRID-LINE",
+      "rgb": [
+        173,
+        181,
+        189
+      ],
+      "aci": 253,
+      "linetype": "RNR_GRID",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "grid",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-COL",
+      "description": "Columns",
+      "colorId": "STRU-COLUMN",
+      "rgb": [
+        214,
+        40,
+        40
+      ],
+      "aci": 22,
+      "linetype": "Continuous",
+      "lineweight": 0.5,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "column",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-COL-TEXT",
+      "description": "Column marks",
+      "colorId": "STRU-COLUMN-TEXT",
+      "rgb": [
+        247,
+        127,
+        0
+      ],
+      "aci": 30,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-BEAM",
+      "description": "Beams",
+      "colorId": "STRU-BEAM",
+      "rgb": [
+        0,
+        119,
+        182
+      ],
+      "aci": 152,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "beam",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-BEAM-HIDDEN",
+      "description": "Hidden / drop beams below slab",
+      "colorId": "STRU-BEAM-HIDDEN",
+      "rgb": [
+        0,
+        150,
+        199
+      ],
+      "aci": 142,
+      "linetype": "RNR_HIDDEN",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "beam",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-BEAM-TEXT",
+      "description": "Beam marks",
+      "colorId": "STRU-BEAM-TEXT",
+      "rgb": [
+        0,
+        180,
+        216
+      ],
+      "aci": 132,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-SLAB",
+      "description": "Slabs",
+      "colorId": "STRU-SLAB",
+      "rgb": [
+        82,
+        183,
+        136
+      ],
+      "aci": 103,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "slab",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-SLAB-OPEN",
+      "description": "Slab openings",
+      "colorId": "STRU-SLAB-OPENING",
+      "rgb": [
+        216,
+        243,
+        220
+      ],
+      "aci": 254,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "opening",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-FTG",
+      "description": "Footings",
+      "colorId": "STRU-FOOTING",
+      "rgb": [
+        153,
+        88,
+        42
+      ],
+      "aci": 27,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "foundation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-PILE",
+      "description": "Piles",
+      "colorId": "STRU-PILE",
+      "rgb": [
+        111,
+        29,
+        27
+      ],
+      "aci": 26,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "foundation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-PILECAP",
+      "description": "Pile caps",
+      "colorId": "STRU-PILE-CAP",
+      "rgb": [
+        187,
+        148,
+        87
+      ],
+      "aci": 33,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "foundation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-SW",
+      "description": "Shear walls / core walls",
+      "colorId": "STRU-SHEAR-WALL",
+      "rgb": [
+        157,
+        2,
+        8
+      ],
+      "aci": 14,
+      "linetype": "Continuous",
+      "lineweight": 0.5,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "wall",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-STIRRUP",
+      "description": "Stirrups / ties / links",
+      "colorId": "STRU-STIRRUP",
+      "rgb": [
+        255,
+        0,
+        110
+      ],
+      "aci": 230,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "rebar",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-REBAR",
+      "description": "Main reinforcement",
+      "colorId": "STRU-REBAR-MAIN",
+      "rgb": [
+        251,
+        86,
+        7
+      ],
+      "aci": 20,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "rebar",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-REBAR-DIST",
+      "description": "Distribution reinforcement",
+      "colorId": "STRU-REBAR-DIST",
+      "rgb": [
+        255,
+        190,
+        11
+      ],
+      "aci": 40,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "rebar",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-REBAR-TEXT",
+      "description": "Reinforcement notes",
+      "colorId": "STRU-REBAR-TEXT",
+      "rgb": [
+        131,
+        56,
+        236
+      ],
+      "aci": 183,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-STAIR",
+      "description": "Structural stairs",
+      "colorId": "STRU-STAIR",
+      "rgb": [
+        239,
+        71,
+        111
+      ],
+      "aci": 13,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "stair",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-RAMP",
+      "description": "Structural ramps",
+      "colorId": "STRU-RAMP",
+      "rgb": [
+        255,
+        209,
+        102
+      ],
+      "aci": 41,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "ramp",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-ROOF",
+      "description": "Roof structure",
+      "colorId": "STRU-ROOF",
+      "rgb": [
+        6,
+        214,
+        160
+      ],
+      "aci": 122,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "roof",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-TANK",
+      "description": "Water tanks",
+      "colorId": "STRU-TANK",
+      "rgb": [
+        17,
+        138,
+        178
+      ],
+      "aci": 134,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "tank",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-RWALL",
+      "description": "Retaining walls",
+      "colorId": "STRU-RETAINING-WALL",
+      "rgb": [
+        7,
+        59,
+        76
+      ],
+      "aci": 148,
+      "linetype": "Continuous",
+      "lineweight": 0.5,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "wall",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-JOINT",
+      "description": "Expansion / construction joints",
+      "colorId": "STRU-DETAIL",
+      "rgb": [
+        131,
+        197,
+        190
+      ],
+      "aci": 123,
+      "linetype": "RNR_JOINT",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "joint",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-SECTION",
+      "description": "Structural sections",
+      "colorId": "STRU-SECTION",
+      "rgb": [
+        58,
+        134,
+        255
+      ],
+      "aci": 150,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "view",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-DETAIL",
+      "description": "Structural details",
+      "colorId": "STRU-DETAIL",
+      "rgb": [
+        131,
+        197,
+        190
+      ],
+      "aci": 123,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "view",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-DIMS",
+      "description": "Structural dimensions",
+      "colorId": "DIME-STRUCT-DIM",
+      "rgb": [
+        46,
+        196,
+        182
+      ],
+      "aci": 132,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "dimension",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-TEXT",
+      "description": "Structural text",
+      "colorId": "TEXT-BODY",
+      "rgb": [
+        230,
+        230,
+        230
+      ],
+      "aci": 254,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "S-HATCH",
+      "description": "Structural hatch (concrete)",
+      "colorId": "HATC-RCC",
+      "rgb": [
+        140,
+        140,
+        160
+      ],
+      "aci": 252,
+      "linetype": "Continuous",
+      "lineweight": 0.09,
+      "transparency": 40,
+      "plot": true,
+      "discipline": "STRUCTURE",
+      "objectClass": "hatch",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-SITE",
+      "description": "Site features",
+      "colorId": "CIVI-SITE",
+      "rgb": [
+        96,
+        108,
+        56
+      ],
+      "aci": 77,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "site",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-BOUNDARY",
+      "description": "Property boundary",
+      "colorId": "CIVI-BOUNDARY",
+      "rgb": [
+        220,
+        47,
+        2
+      ],
+      "aci": 22,
+      "linetype": "RNR_BOUNDARY",
+      "lineweight": 0.5,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "boundary",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-ROAD",
+      "description": "Roads",
+      "colorId": "CIVI-ROAD",
+      "rgb": [
+        73,
+        80,
+        87
+      ],
+      "aci": 251,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "road",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-CURB",
+      "description": "Curbs",
+      "colorId": "CIVI-CURB",
+      "rgb": [
+        108,
+        117,
+        125
+      ],
+      "aci": 8,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "road",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-DRAIN",
+      "description": "Surface drains",
+      "colorId": "CIVI-DRAIN",
+      "rgb": [
+        0,
+        95,
+        115
+      ],
+      "aci": 146,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "drainage",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-GRADE",
+      "description": "Grading / spot levels",
+      "colorId": "CIVI-GRADE",
+      "rgb": [
+        148,
+        210,
+        189
+      ],
+      "aci": 253,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "grading",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-CONTOUR",
+      "description": "Contours",
+      "colorId": "CIVI-CONTOUR-MAJOR",
+      "rgb": [
+        202,
+        103,
+        2
+      ],
+      "aci": 32,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "contour",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-UTILITY",
+      "description": "Underground utilities",
+      "colorId": "CIVI-UTILITY",
+      "rgb": [
+        174,
+        32,
+        18
+      ],
+      "aci": 24,
+      "linetype": "RNR_UTILITY",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "utility",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-LANDSCAPE",
+      "description": "Landscape / hardscape",
+      "colorId": "LAND-PAVING",
+      "rgb": [
+        204,
+        213,
+        174
+      ],
+      "aci": 9,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "hardscape",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "C-TREE",
+      "description": "Trees and planting",
+      "colorId": "LAND-TREE",
+      "rgb": [
+        56,
+        176,
+        0
+      ],
+      "aci": 82,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "CIVIL",
+      "objectClass": "planting",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "P-WATER",
+      "description": "Water supply",
+      "colorId": "PLUM-WATER",
+      "rgb": [
+        0,
+        150,
+        255
+      ],
+      "aci": 150,
+      "linetype": "RNR_WATER",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "PLUMBING",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "P-DRAIN",
+      "description": "Storm drain pipe",
+      "colorId": "PLUM-DRAIN",
+      "rgb": [
+        0,
+        100,
+        0
+      ],
+      "aci": 98,
+      "linetype": "RNR_HIDDEN",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "PLUMBING",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "P-SANITARY",
+      "description": "Sanitary / soil pipe",
+      "colorId": "PLUM-SANITARY",
+      "rgb": [
+        139,
+        69,
+        19
+      ],
+      "aci": 36,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "PLUMBING",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "P-PIPE",
+      "description": "General piping",
+      "colorId": "PLUM-PIPE",
+      "rgb": [
+        70,
+        130,
+        180
+      ],
+      "aci": 145,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "PLUMBING",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "P-FIXTURE",
+      "description": "Plumbing fixtures",
+      "colorId": "PLUM-FIXTURE",
+      "rgb": [
+        100,
+        149,
+        237
+      ],
+      "aci": 153,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "PLUMBING",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "E-LIGHT",
+      "description": "Lighting",
+      "colorId": "ELEC-LIGHT",
+      "rgb": [
+        255,
+        214,
+        10
+      ],
+      "aci": 40,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ELECTRICAL",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "E-POWER",
+      "description": "Power",
+      "colorId": "ELEC-POWER",
+      "rgb": [
+        255,
+        87,
+        51
+      ],
+      "aci": 20,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ELECTRICAL",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "E-SOCKET",
+      "description": "Sockets",
+      "colorId": "ELEC-SOCKET",
+      "rgb": [
+        199,
+        0,
+        57
+      ],
+      "aci": 242,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ELECTRICAL",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "E-SWITCH",
+      "description": "Switches",
+      "colorId": "ELEC-SWITCH",
+      "rgb": [
+        144,
+        12,
+        63
+      ],
+      "aci": 234,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ELECTRICAL",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "E-CABLE",
+      "description": "Cable runs",
+      "colorId": "ELEC-CABLE",
+      "rgb": [
+        88,
+        24,
+        69
+      ],
+      "aci": 229,
+      "linetype": "RNR_HIDDEN",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ELECTRICAL",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "E-PANEL",
+      "description": "Distribution boards",
+      "colorId": "ELEC-PANEL",
+      "rgb": [
+        255,
+        195,
+        0
+      ],
+      "aci": 40,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ELECTRICAL",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "M-DUCT",
+      "description": "HVAC ducts",
+      "colorId": "HVAC-SUPPLY-DUCT",
+      "rgb": [
+        72,
+        149,
+        239
+      ],
+      "aci": 153,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "HVAC",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "M-EQUIP",
+      "description": "HVAC equipment",
+      "colorId": "HVAC-EQUIPMENT",
+      "rgb": [
+        63,
+        55,
+        201
+      ],
+      "aci": 175,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "HVAC",
+      "objectClass": "mep",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-TEXT",
+      "description": "General annotation text",
+      "colorId": "ANNO-TEXT",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "aci": 7,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-DIMS",
+      "description": "General dimensions",
+      "colorId": "DIME-ARCH-DIM",
+      "rgb": [
+        255,
+        159,
+        28
+      ],
+      "aci": 30,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "dimension",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-TAGS",
+      "description": "Tags",
+      "colorId": "ANNO-TAG",
+      "rgb": [
+        255,
+        214,
+        165
+      ],
+      "aci": 41,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-GRID",
+      "description": "Grid bubbles and labels",
+      "colorId": "GRID-GRID-BUBBLE",
+      "rgb": [
+        248,
+        249,
+        250
+      ],
+      "aci": 7,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "grid",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-NORTH",
+      "description": "North arrow",
+      "colorId": "ANNO-NORTH",
+      "rgb": [
+        202,
+        255,
+        191
+      ],
+      "aci": 254,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-LEVEL",
+      "description": "Level marks",
+      "colorId": "ANNO-LEVEL",
+      "rgb": [
+        253,
+        255,
+        182
+      ],
+      "aci": 51,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-SECTION",
+      "description": "Section marks",
+      "colorId": "ANNO-SECTION-MARK",
+      "rgb": [
+        155,
+        246,
+        255
+      ],
+      "aci": 131,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-DETAIL",
+      "description": "Detail marks",
+      "colorId": "ANNO-DETAIL-MARK",
+      "rgb": [
+        160,
+        196,
+        255
+      ],
+      "aci": 151,
+      "linetype": "Continuous",
+      "lineweight": 0.25,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-TITLE",
+      "description": "Title block",
+      "colorId": "ANNO-TITLE",
+      "rgb": [
+        255,
+        198,
+        255
+      ],
+      "aci": 7,
+      "linetype": "Continuous",
+      "lineweight": 0.35,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "titleblock",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-LEADER",
+      "description": "Leaders / multileaders",
+      "colorId": "ANNO-LEADER",
+      "rgb": [
+        255,
+        173,
+        173
+      ],
+      "aci": 21,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "annotation",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "ANNO-SCHEDULE",
+      "description": "Schedules / tables",
+      "colorId": "TEXT-NOTE",
+      "rgb": [
+        200,
+        200,
+        200
+      ],
+      "aci": 9,
+      "linetype": "Continuous",
+      "lineweight": 0.18,
+      "transparency": 0,
+      "plot": true,
+      "discipline": "ANNOTATION",
+      "objectClass": "schedule",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "XREF",
+      "description": "External references",
+      "colorId": "REFE-XREF",
+      "rgb": [
+        120,
+        120,
+        120
+      ],
+      "aci": 8,
+      "linetype": "Continuous",
+      "lineweight": 0.13,
+      "transparency": 50,
+      "plot": true,
+      "discipline": "REFERENCE",
+      "objectClass": "xref",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "XREF-ARCH",
+      "description": "Architectural xrefs",
+      "colorId": "REFE-XREF-ARCH",
+      "rgb": [
+        140,
+        110,
+        110
+      ],
+      "aci": 8,
+      "linetype": "Continuous",
+      "lineweight": 0.13,
+      "transparency": 50,
+      "plot": true,
+      "discipline": "REFERENCE",
+      "objectClass": "xref",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "XREF-STRUCT",
+      "description": "Structural xrefs",
+      "colorId": "REFE-XREF-STRUCT",
+      "rgb": [
+        110,
+        110,
+        140
+      ],
+      "aci": 8,
+      "linetype": "Continuous",
+      "lineweight": 0.13,
+      "transparency": 50,
+      "plot": true,
+      "discipline": "REFERENCE",
+      "objectClass": "xref",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "XREF-MEP",
+      "description": "MEP xrefs",
+      "colorId": "REFE-XREF-MEP",
+      "rgb": [
+        110,
+        140,
+        110
+      ],
+      "aci": 8,
+      "linetype": "Continuous",
+      "lineweight": 0.13,
+      "transparency": 50,
+      "plot": true,
+      "discipline": "REFERENCE",
+      "objectClass": "xref",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "Z-CONST",
+      "description": "Construction lines (no plot)",
+      "colorId": "REFE-CONSTRUCTION",
+      "rgb": [
+        90,
+        90,
+        90
+      ],
+      "aci": 251,
+      "linetype": "RNR_HIDDEN",
+      "lineweight": 0.09,
+      "transparency": 60,
+      "plot": false,
+      "discipline": "REFERENCE",
+      "objectClass": "construction",
+      "status": "PROPOSED"
+    },
+    {
+      "name": "Z-VPORT",
+      "description": "Viewports (no plot)",
+      "colorId": "REFE-VIEWPORT",
+      "rgb": [
+        80,
+        80,
+        80
+      ],
+      "aci": 251,
+      "linetype": "Continuous",
+      "lineweight": 0.09,
+      "transparency": 0,
+      "plot": false,
+      "discipline": "REFERENCE",
+      "objectClass": "viewport",
+      "status": "PROPOSED"
+    }
+  ]
+}

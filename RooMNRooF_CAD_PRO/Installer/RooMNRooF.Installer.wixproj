@@ -1,0 +1,19 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <!-- Per-machine MSI that installs Build\out\RooMNRooF.bundle into
+       %ProgramData%\Autodesk\ApplicationPlugins. Run Build\AssembleBundle.ps1 first. -->
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <OutputName>RooMNRooF_CAD_PRO_ULTIMATE_2.0.0_x64</OutputName>
+    <Platform>x64</Platform>
+    <OutputPath>..\Build\out\msi\</OutputPath>
+    <BundleDir>..\Build\out\RooMNRooF.bundle</BundleDir>
+    <DefineConstants>BundleDir=$(BundleDir)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Harvest the whole bundle folder (WiX v6 native file harvesting via Files element in Product.wxs). -->
+    <None Include="License.rtf" />
+  </ItemGroup>
+  <Target Name="RnrCheckBundle" BeforeTargets="Build">
+    <Error Condition="!Exists('$(BundleDir)\PackageContents.xml')" Text="Bundle not assembled. Run Build\BuildRelease.bat." />
+  </Target>
+</Project>

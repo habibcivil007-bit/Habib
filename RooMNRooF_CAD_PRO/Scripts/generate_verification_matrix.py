@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""
+Writes Documentation/VerificationMatrix.xlsx and Documentation/VerificationMatrix.md.
+
+Status vocabulary (never upgrade a status without evidence):
+  VALIDATED-OFFLINE   generated and checked by an executed script in this repo (evidence = script)
+  SOURCE-SYNTAX-OK    C# source written; tree-sitter syntax check + member-name cross-check pass;
+                      NOT compiled (no .NET SDK / AutoCAD in the authoring environment)
+  LISP-STATIC-OK      AutoLISP written; static checks pass; NOT loaded in AutoCAD
+  CONFIG-WRITTEN      build/installer config written; NOT executed
+  PENDING-WINDOWS     requires Windows + AutoCAD run to verify (manual acceptance test)
+"""
+import os
+
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+ROWS = [
+    # (ID, Area, Requirement, Implementation, Status, Evidence, AutoCAD acceptance test)
+    ("R01", "Colors", "~100 TrueColor palette", "Standards/RNR_Colors.json (114), ColorCommands RNRCOLOR, RNRL-COLORS",
+     "VALIDATED-OFFLINE", "validate_standards.py: colors checks", "RNRCOLOR lists palette; apply to object"),
+    ("R02", "Layers", "A-/S-/C-/P-/E-/M-/ANNO-/XREF/Z hierarchy", "RNR_Layers.json (87), LayerService, RNRLAYERS, RNRL-LAYERS",
+     "VALIDATED-OFFLINE", "validate_standards.py: layer checks", "RNRLAYERS in blank drawing -> 87 layers, TrueColor"),
+    ("R03", "Layers", "12 layer filters", "RNR_LayerFilters.json, LayerService filters", "VALIDATED-OFFLINE",
+     "validate_standards.py: filters", "LAYER dialog shows 12 RNR filters"),
+    ("R04", "Linetypes", "Custom linetypes", "Standards/RooMNRooF.lin (7)", "VALIDATED-OFFLINE",
+     "validate_standards.py: layers linetypes defined", "LINETYPE load RooMNRooF.lin"),
+    ("R05", "Structure", "55 member definitions", "RNR_Members.json, DrawService, RNRMEMBER + per-member commands",
+     "VALIDATED-OFFLINE", "validate_standards.py: members", "RNRMEMBER draws each type on its layer"),
+    ("R06", "Rebar", "T8-T32, d^2/162.2 weights, notation", "RNR_Rebar.json, Core/Rebar, RNRREBAR, RNRREBARNOTE, RNRL-BARWT",
+     "VALIDATED-OFFLINE", "validate_standards.py rebar; xUnit tests written (not run)", "RNRREBARNOTE -> '3-T16'"),
+    ("R07", "BBS", "BBS export CSV/XLSX/JSON", "Core/Rebar/Bbs.cs, Core/Export/Exporters.cs, RNRBBS", "SOURCE-SYNTAX-OK",
+     "syntax_check_csharp.py", "RNRBBS on sample -> 3 files open in Excel"),
+    ("R08", "Schedules", "Column/beam/footing/door/window schedules", "ScheduleService, RNRSCHEDULE; sample G-001",
+     "SOURCE-SYNTAX-OK", "syntax check; sample DXF G-001 audited", "RNRSCHEDULE inserts AutoCAD TABLE"),
+    ("R09", "BOQ", "CAD-derived BOQ estimates", "Core/Boq/Boq.cs, RNRBOQ", "SOURCE-SYNTAX-OK", "syntax check",
+     "RNRBOQ on sample -> CSV/XLSX"),
+    ("R10", "Hatches", "20 hatches + PAT files", "RNR_Hatches.json, Hatch/*.pat, HatchService, RNRMATLIB/RNRHATCH*",
+     "VALIDATED-OFFLINE", "validate_standards.py hatches + PAT syntax", "RNRMATAPPLY Brick on closed boundary"),
+    ("R11", "Blocks", "Dynamic block library", "RNR_Blocks.json (29), BlockFactory, RNRBLOCKS", "SOURCE-SYNTAX-OK",
+     "syntax check", "RNRBLOCKS creates defs; see 09_Dynamic_Block_Manual for dynamic params"),
+    ("R12", "Grid", "Grid generator", "GridGeometry (Core), RNRGRID, RNRL-GRID", "SOURCE-SYNTAX-OK",
+     "syntax check; LISP static", "RNRGRID 4x4 with bubbles & dims"),
+    ("R13", "Architecture", "Walls/doors/windows/rooms/stairs", "ArchitectureCommands, RNR_Architecture.lsp",
+     "SOURCE-SYNTAX-OK", "syntax check; check_lisp.py", "RNRWALL/RNRDOOR/RNRROOM on sample"),
+    ("R14", "Title blocks", "A0-A4 title blocks", "RNR_Styles.json sheets/titleBlocks, LayoutService, RNRTITLE",
+     "SOURCE-SYNTAX-OK", "syntax check; sample DXFs contain title block", "RNRTITLE A1 in layout"),
+    ("R15", "Plot", "Color/mono/gray plot + BW safety", "PlotService, RNRPLOTCOLOR/BW/GRAY, RNR_Plot.lsp",
+     "SOURCE-SYNTAX-OK", "syntax check", "RNRPLOTBW -> PDF, all black, lineweights kept"),
+    ("R16", "Units", "Metric/imperial units", "Core/Units/UnitConverter.cs, RNRUNITS, RNRL-UNITS", "SOURCE-SYNTAX-OK",
+     "syntax check; xUnit tests written (not run)", "RNRUNITS mm -> INSUNITS=4"),
+    ("R17", "QA", "Standards checker (no fake PASS)", "QaReport (Core), RNRQA/RNRAUDIT, RNRL-QA", "SOURCE-SYNTAX-OK",
+     "syntax check", "RNRQA on drawing with foreign layer -> FAIL listed"),
+    ("R18", "Cleanup", "Cleanup with preview + confirmation", "RNRPREVIEW/RNRCLEAN", "SOURCE-SYNTAX-OK", "syntax check",
+     "RNRCLEAN shows list; No -> nothing deleted"),
+    ("R19", "Templates", "6 DWT templates", "TemplateService RNRTEMPLATE (generated inside AutoCAD)", "PENDING-WINDOWS",
+     "No .dwt shipped: DWT must be produced by AutoCAD", "RNRTEMPLATE ALL -> 6 .dwt in Templates/"),
+    ("R20", "Project", "Project JSON", "RooMNRooF_Project.json, RNRPROJECT", "VALIDATED-OFFLINE",
+     "generated by generate_standards.py (JSON parses)", "RNRPROJECT loads/saves"),
+    ("R21", "Exchange", "ETABS/JSON structural exchange (drafting data)", "Core/Etabs/EtabsExchange.cs, RNRETABS",
+     "SOURCE-SYNTAX-OK", "syntax check", "RNRETABS export JSON"),
+    ("R22", "UI", "WPF palette panel", "UI/PanelHost.cs, UI/Browsers.cs, RNRPANEL", "SOURCE-SYNTAX-OK", "syntax check",
+     "RNRPANEL docks; buttons run commands"),
+    ("R23", "AutoLISP", "LISP command set", "AutoLISP/*.lsp (15 modules, 34 commands)", "LISP-STATIC-OK",
+     "check_lisp.py 0 problems", "APPLOAD RNR_Load.lsp; RNRL-HELP"),
+    ("R24", "Samples", "Sample 3-storey project drawings", "Samples/SampleProject/*.dxf (12) + previews",
+     "VALIDATED-OFFLINE", "ezdxf audit 0 errors; only standard layers", "Open each DXF in AutoCAD; AUDIT"),
+    ("R25", "Logging", "Logging", "Core/Logging/RnrLog.cs, RNRLOG", "SOURCE-SYNTAX-OK", "syntax check",
+     "RNRLOG opens %APPDATA%\\RooMNRooF\\Logs"),
+    ("R26", "Tests", "Unit tests", "Tests/RooMNRooF.Core.Tests (37 tests)", "SOURCE-SYNTAX-OK",
+     "written; NOT executed (no .NET SDK)", "dotnet test on Windows"),
+    ("R27", "Build", "Build pipeline", "RooMNRooF.sln, Build/BuildRelease.bat, AssembleBundle.ps1, VerifyPackage.bat",
+     "CONFIG-WRITTEN", "not executed", "Build\\BuildRelease.bat all"),
+    ("R28", "Installer", "Bundle + MSI", "Bundle/PackageContents.xml, Installer/*.wxs/.wixproj", "CONFIG-WRITTEN",
+     "XML well-formed; not built", "Install MSI; AutoCAD auto-loads plugin"),
+    ("R29", "Compile", "Plugin compiles for AutoCAD 2026/2027", "src/AutoCAD2026|2027 csproj", "PENDING-WINDOWS",
+     "No compiler available in authoring environment", "dotnet build with AutoCAD installed"),
+]
+
+HEAD = ["ID", "Area", "Requirement", "Implementation", "Status", "Evidence", "AutoCAD acceptance test", "Result (fill in)",
+        "Tester", "Date"]
+FILL = {"VALIDATED-OFFLINE": "C6EFCE", "SOURCE-SYNTAX-OK": "FFEB9C", "LISP-STATIC-OK": "FFEB9C",
+        "CONFIG-WRITTEN": "FFEB9C", "PENDING-WINDOWS": "FFC7CE"}
+
+
+def main():
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Verification"
+    ws.append(HEAD)
+    for c in ws[1]:
+        c.font = Font(bold=True, color="FFFFFF")
+        c.fill = PatternFill("solid", fgColor="1F3864")
+    for r in ROWS:
+        ws.append(list(r) + ["", "", ""])
+        ws.cell(ws.max_row, 5).fill = PatternFill("solid", fgColor=FILL[r[4]])
+    for col, w in zip("ABCDEFGHIJ", [6, 13, 38, 50, 20, 40, 45, 16, 10, 10]):
+        ws.column_dimensions[col].width = w
+    for row in ws.iter_rows(min_row=2):
+        for c in row:
+            c.alignment = Alignment(wrap_text=True, vertical="top")
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
+    g = wb.create_sheet("Release gates")
+    g.append(["Gate", "Criterion", "Status"])
+    for gate in [("G1", "validate_standards.py all PASS", "PASS (offline)"),
+                 ("G2", "check_lisp.py 0 problems", "PASS (offline)"),
+                 ("G3", "dotnet test all green", "NOT RUN"),
+                 ("G4", "Plugin builds for 2026 (and 2027 if installed) with 0 errors", "NOT RUN"),
+                 ("G5", "VerifyPackage.bat PASSED", "NOT RUN"),
+                 ("G6", "Manual AutoCAD acceptance tests R01-R29 all passed", "NOT RUN"),
+                 ("G7", "MSI install/uninstall clean on Windows 11", "NOT RUN")]:
+        g.append(list(gate))
+    g.column_dimensions["B"].width = 60
+    g.column_dimensions["C"].width = 18
+    os.makedirs(os.path.join(ROOT, "Documentation"), exist_ok=True)
+    wb.save(os.path.join(ROOT, "Documentation", "VerificationMatrix.xlsx"))
+    md = ["# Verification Matrix", "", "Generated by `Scripts/generate_verification_matrix.py`. Status legend is in the script header.",
+          "", "| ID | Area | Requirement | Status | Evidence |", "|---|---|---|---|---|"]
+    md += [f"| {r[0]} | {r[1]} | {r[2]} | {r[4]} | {r[5]} |" for r in ROWS]
+    with open(os.path.join(ROOT, "Documentation", "VerificationMatrix.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(md) + "\n")
+    print("wrote Documentation/VerificationMatrix.xlsx/.md", len(ROWS), "rows")
+
+
+if __name__ == "__main__":
+    main()

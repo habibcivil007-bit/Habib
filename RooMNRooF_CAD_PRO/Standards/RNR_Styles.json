@@ -1,0 +1,144 @@
+{
+  "schema": "RooMNRooF.Styles/1.0",
+  "textStyles": [
+    {
+      "name": "RNR_TITLE",
+      "font": "arial.ttf",
+      "height": 0,
+      "widthFactor": 1.0,
+      "annotative": true,
+      "paperHeight": 5.0
+    },
+    {
+      "name": "RNR_HEADING",
+      "font": "arial.ttf",
+      "height": 0,
+      "widthFactor": 1.0,
+      "annotative": true,
+      "paperHeight": 3.5
+    },
+    {
+      "name": "RNR_TEXT",
+      "font": "arial.ttf",
+      "height": 0,
+      "widthFactor": 0.9,
+      "annotative": true,
+      "paperHeight": 2.5
+    },
+    {
+      "name": "RNR_NOTE",
+      "font": "arialn.ttf",
+      "height": 0,
+      "widthFactor": 1.0,
+      "annotative": true,
+      "paperHeight": 2.0
+    },
+    {
+      "name": "RNR_ROMANS",
+      "font": "romans.shx",
+      "height": 0,
+      "widthFactor": 0.8,
+      "annotative": true,
+      "paperHeight": 2.5
+    }
+  ],
+  "dimStyles": [
+    {
+      "name": "RNR_ARCH",
+      "textStyle": "RNR_TEXT",
+      "textHeight": 2.5,
+      "arrow": "_ARCHTICK",
+      "arrowSize": 1.5,
+      "extOffset": 1.5,
+      "extBeyond": 1.25,
+      "decimals": 0,
+      "layer": "A-DIMS"
+    },
+    {
+      "name": "RNR_STRUCT",
+      "textStyle": "RNR_TEXT",
+      "textHeight": 2.5,
+      "arrow": "_OBLIQUE",
+      "arrowSize": 1.5,
+      "extOffset": 1.5,
+      "extBeyond": 1.25,
+      "decimals": 0,
+      "layer": "S-DIMS"
+    },
+    {
+      "name": "RNR_CIVIL",
+      "textStyle": "RNR_TEXT",
+      "textHeight": 2.5,
+      "arrow": "",
+      "arrowSize": 2.0,
+      "extOffset": 1.5,
+      "extBeyond": 1.25,
+      "decimals": 2,
+      "layer": "ANNO-DIMS"
+    }
+  ],
+  "mleaderStyles": [
+    {
+      "name": "RNR_LEADER",
+      "textStyle": "RNR_TEXT",
+      "textHeight": 2.5,
+      "arrowSize": 2.0,
+      "landingGap": 1.0
+    }
+  ],
+  "annotationScales": [
+    "1:1",
+    "1:5",
+    "1:10",
+    "1:20",
+    "1:25",
+    "1:50",
+    "1:75",
+    "1:100",
+    "1:150",
+    "1:200",
+    "1:500"
+  ],
+  "sheets": {
+    "A0": [
+      1189,
+      841
+    ],
+    "A1": [
+      841,
+      594
+    ],
+    "A2": [
+      594,
+      420
+    ],
+    "A3": [
+      420,
+      297
+    ],
+    "A4": [
+      297,
+      210
+    ]
+  },
+  "titleBlocks": [
+    "ARCHITECTURAL",
+    "STRUCTURAL",
+    "RCC",
+    "CIVIL"
+  ],
+  "titleFields": [
+    "PROJECT",
+    "CLIENT",
+    "CONSULTANT",
+    "DWGTITLE",
+    "DWGNO",
+    "REV",
+    "DATE",
+    "SCALE",
+    "DRAWN",
+    "CHECKED",
+    "APPROVED",
+    "SHEET"
+  ]
+}

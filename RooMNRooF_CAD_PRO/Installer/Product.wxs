@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- RooMNRooF CAD PRO ULTIMATE MSI (WiX v6+, uses the Files harvesting element). No registry writes: AutoCAD discovers the
+     bundle through the ApplicationPlugins folder + PackageContents.xml. -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="RooMNRooF CAD PRO ULTIMATE" Manufacturer="RooMNRooF" Version="2.0.0"
+           UpgradeCode="2F9D0C61-7B3E-4A5F-8D12-C4E6A9B1F073" Scope="perMachine" Compressed="yes">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of RooMNRooF CAD PRO ULTIMATE is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Launch Condition="VersionNT64" Message="RooMNRooF CAD PRO ULTIMATE requires 64-bit Windows." />
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="AutodeskDir" Name="Autodesk">
+        <Directory Id="PluginsDir" Name="ApplicationPlugins">
+          <Directory Id="INSTALLFOLDER" Name="RooMNRooF.bundle" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="RooMNRooF CAD PRO ULTIMATE" Level="1">
+      <ComponentGroupRef Id="BundleFiles" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="BundleFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(BundleDir)\**" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

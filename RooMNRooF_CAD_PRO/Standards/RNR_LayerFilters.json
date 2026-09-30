@@ -1,0 +1,53 @@
+{
+  "schema": "RooMNRooF.Filters/1.0",
+  "filters": [
+    {
+      "name": "ALL",
+      "expr": "*"
+    },
+    {
+      "name": "ARCHITECTURE",
+      "expr": "A-*"
+    },
+    {
+      "name": "STRUCTURE",
+      "expr": "S-*"
+    },
+    {
+      "name": "CIVIL",
+      "expr": "C-*"
+    },
+    {
+      "name": "RCC",
+      "expr": "S-COL*,S-BEAM*,S-SLAB*,S-FTG,S-PILE*,S-SW,S-STIRRUP,S-REBAR*,S-STAIR,S-TANK,S-RWALL"
+    },
+    {
+      "name": "MEP",
+      "expr": "P-*,E-*,M-*"
+    },
+    {
+      "name": "ANNOTATION",
+      "expr": "ANNO-*,*-TEXT,*-DIMS"
+    },
+    {
+      "name": "SITE",
+      "expr": "C-*"
+    },
+    {
+      "name": "REFERENCE",
+      "expr": "XREF*,Z-*"
+    },
+    {
+      "name": "EXISTING",
+      "expr": "*-EXST"
+    },
+    {
+      "name": "DEMOLITION",
+      "expr": "*-DEMO"
+    },
+    {
+      "name": "PROPOSED",
+      "expr": "~*-EXST,~*-DEMO"
+    }
+  ]
+}

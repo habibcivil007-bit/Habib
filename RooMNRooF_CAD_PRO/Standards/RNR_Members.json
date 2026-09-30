@@ -1,0 +1,2099 @@
+{
+  "schema": "RooMNRooF.Members/1.0",
+  "disclaimer": "Drafting definitions only - not structural design.",
+  "members": [
+    {
+      "no": 1,
+      "code": "COL",
+      "name": "Column",
+      "shape": "RECT",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "C",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_COL"
+    },
+    {
+      "no": 2,
+      "code": "COL-RECT",
+      "name": "Rectangular Column",
+      "shape": "RECT",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 450
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "C",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_COL_RECT"
+    },
+    {
+      "no": 3,
+      "code": "COL-SQ",
+      "name": "Square Column",
+      "shape": "RECT",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 350
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 350
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "C",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_COL_SQ"
+    },
+    {
+      "no": 4,
+      "code": "COL-CIRC",
+      "name": "Circular Column",
+      "shape": "CIRCLE",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Diameter",
+          "unit": "mm",
+          "default": 400
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "CC",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "DIAMETER",
+      "block": "RNR_COL_CIRC"
+    },
+    {
+      "no": 5,
+      "code": "COL-L",
+      "name": "L-Column",
+      "shape": "LSHAPE",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 600
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 600
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "LC",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_COL_L"
+    },
+    {
+      "no": 6,
+      "code": "COL-T",
+      "name": "T-Column",
+      "shape": "TSHAPE",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 750
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 500
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "TC",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_COL_T"
+    },
+    {
+      "no": 7,
+      "code": "COL-X",
+      "name": "Cross Column",
+      "shape": "CROSS",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 750
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 750
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "XC",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_COL_X"
+    },
+    {
+      "no": 8,
+      "code": "BM",
+      "name": "Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 450
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "B",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM"
+    },
+    {
+      "no": 9,
+      "code": "BM-PRI",
+      "name": "Primary Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 600
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 6000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "PB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM_PRI"
+    },
+    {
+      "no": 10,
+      "code": "BM-SEC",
+      "name": "Secondary Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 450
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 4500
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "SB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM_SEC"
+    },
+    {
+      "no": 11,
+      "code": "BM-EDGE",
+      "name": "Edge Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 500
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "EB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM_EDGE"
+    },
+    {
+      "no": 12,
+      "code": "BM-HID",
+      "name": "Hidden Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM-HIDDEN",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 600
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 200
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 4000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "HB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM_HID"
+    },
+    {
+      "no": 13,
+      "code": "BM-TIE",
+      "name": "Tie Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 400
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "TB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM_TIE"
+    },
+    {
+      "no": 14,
+      "code": "BM-PLINTH",
+      "name": "Plinth Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 450
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "PLB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM_PLINTH"
+    },
+    {
+      "no": 15,
+      "code": "BM-ROOF",
+      "name": "Roof Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 450
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "RB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BM_ROOF"
+    },
+    {
+      "no": 16,
+      "code": "SLB",
+      "name": "Slab",
+      "shape": "SLAB",
+      "layer": "S-SLAB",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 4000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 125
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "S",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_SLB"
+    },
+    {
+      "no": 17,
+      "code": "SLB-FLAT",
+      "name": "Flat Slab",
+      "shape": "SLAB",
+      "layer": "S-SLAB",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 7000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 7000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "FS",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_SLB_FLAT"
+    },
+    {
+      "no": 18,
+      "code": "SLB-RIB",
+      "name": "Ribbed Slab",
+      "shape": "SLAB",
+      "layer": "S-SLAB",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 7000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 6000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 75
+        },
+        {
+          "name": "RibSpacing",
+          "unit": "mm",
+          "default": 600
+        },
+        {
+          "name": "RibWidth",
+          "unit": "mm",
+          "default": 150
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "RS",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_SLB_RIB"
+    },
+    {
+      "no": 19,
+      "code": "DROP",
+      "name": "Drop Panel",
+      "shape": "SLAB",
+      "layer": "S-SLAB",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 2400
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 2400
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 150
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "DP",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_DROP"
+    },
+    {
+      "no": 20,
+      "code": "SLB-CANT",
+      "name": "Cantilever Slab",
+      "shape": "SLAB",
+      "layer": "S-SLAB",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 1200
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 4000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 150
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "CS",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_SLB_CANT"
+    },
+    {
+      "no": 21,
+      "code": "STR",
+      "name": "Stair",
+      "shape": "STAIR",
+      "layer": "S-STAIR",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1200
+        },
+        {
+          "name": "Going",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Riser",
+          "unit": "mm",
+          "default": 150
+        },
+        {
+          "name": "Steps",
+          "unit": "nos",
+          "default": 20
+        }
+      ],
+      "schedule": "STAIR",
+      "markPrefix": "ST",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "Distribution"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_STR"
+    },
+    {
+      "no": 22,
+      "code": "STR-DOG",
+      "name": "Dog-Leg Stair",
+      "shape": "STAIR",
+      "layer": "S-STAIR",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1200
+        },
+        {
+          "name": "Going",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Riser",
+          "unit": "mm",
+          "default": 150
+        },
+        {
+          "name": "Steps",
+          "unit": "nos",
+          "default": 20
+        }
+      ],
+      "schedule": "STAIR",
+      "markPrefix": "DST",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "Distribution"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_STR_DOG"
+    },
+    {
+      "no": 23,
+      "code": "STR-STRT",
+      "name": "Straight Stair",
+      "shape": "STAIR",
+      "layer": "S-STAIR",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1200
+        },
+        {
+          "name": "Going",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Riser",
+          "unit": "mm",
+          "default": 150
+        },
+        {
+          "name": "Steps",
+          "unit": "nos",
+          "default": 12
+        }
+      ],
+      "schedule": "STAIR",
+      "markPrefix": "SST",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "Distribution"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_STR_STRT"
+    },
+    {
+      "no": 24,
+      "code": "LAND",
+      "name": "Landing",
+      "shape": "LANDING",
+      "layer": "S-STAIR",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 2550
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1200
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 150
+        }
+      ],
+      "schedule": "STAIR",
+      "markPrefix": "LD",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "Distribution"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_LAND"
+    },
+    {
+      "no": 25,
+      "code": "RMP",
+      "name": "Ramp",
+      "shape": "RAMP",
+      "layer": "S-RAMP",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 6000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 3000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 200
+        },
+        {
+          "name": "RiseTotal",
+          "unit": "mm",
+          "default": 1000
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "RP",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_RMP"
+    },
+    {
+      "no": 26,
+      "code": "FTG-ISO",
+      "name": "Isolated Footing",
+      "shape": "FOOTING",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 1800
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1800
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 450
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "F",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_FTG_ISO"
+    },
+    {
+      "no": 27,
+      "code": "FTG-COMB",
+      "name": "Combined Footing",
+      "shape": "FOOTING",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 4500
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1800
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 500
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "CF",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_FTG_COMB"
+    },
+    {
+      "no": 28,
+      "code": "FTG-STRAP",
+      "name": "Strap Footing",
+      "shape": "FOOTING",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1500
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 500
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "SF",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_FTG_STRAP"
+    },
+    {
+      "no": 29,
+      "code": "RAFT",
+      "name": "Raft Footing",
+      "shape": "FOOTING",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 15000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 12000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 600
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "RF",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_RAFT"
+    },
+    {
+      "no": 30,
+      "code": "PILE",
+      "name": "Pile",
+      "shape": "PILE",
+      "layer": "S-PILE",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Diameter",
+          "unit": "mm",
+          "default": 500
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 18000
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "P",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "DIAMETER",
+      "block": "RNR_PILE"
+    },
+    {
+      "no": 31,
+      "code": "PCAP",
+      "name": "Pile Cap",
+      "shape": "PILECAP",
+      "layer": "S-PILECAP",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 1800
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1800
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 900
+        },
+        {
+          "name": "Piles",
+          "unit": "nos",
+          "default": 4
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "PC",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_PCAP"
+    },
+    {
+      "no": 32,
+      "code": "FTG-STRIP",
+      "name": "Strip Footing",
+      "shape": "FOOTING",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 6000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 900
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 300
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "STF",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_FTG_STRIP"
+    },
+    {
+      "no": 33,
+      "code": "FTG-WALL",
+      "name": "Wall Footing",
+      "shape": "FOOTING",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 6000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 750
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        }
+      ],
+      "schedule": "FOOTING",
+      "markPrefix": "WF",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "BottomX",
+        "BottomY",
+        "TopX",
+        "TopY"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_FTG_WALL"
+    },
+    {
+      "no": 34,
+      "code": "SW",
+      "name": "Shear Wall",
+      "shape": "WALL",
+      "layer": "S-SW",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 3000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "WALL",
+      "markPrefix": "SW",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "VerticalBars",
+        "HorizontalBars",
+        "Links"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_SW"
+    },
+    {
+      "no": 35,
+      "code": "RW",
+      "name": "Retaining Wall",
+      "shape": "WALL",
+      "layer": "S-RWALL",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 6000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 3000
+        }
+      ],
+      "schedule": "WALL",
+      "markPrefix": "RW",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "VerticalBars",
+        "HorizontalBars",
+        "Links"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_RW"
+    },
+    {
+      "no": 36,
+      "code": "TANK",
+      "name": "Water Tank",
+      "shape": "TANK",
+      "layer": "S-TANK",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 3000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 2500
+        },
+        {
+          "name": "WallThickness",
+          "unit": "mm",
+          "default": 200
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 2000
+        }
+      ],
+      "schedule": "TANK",
+      "markPrefix": "WT",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "WallVertical",
+        "WallHorizontal",
+        "BaseBars",
+        "CoverBars"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_TANK"
+    },
+    {
+      "no": 37,
+      "code": "TANK-UG",
+      "name": "Underground Tank",
+      "shape": "TANK",
+      "layer": "S-TANK",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 4000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 3000
+        },
+        {
+          "name": "WallThickness",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 2500
+        }
+      ],
+      "schedule": "TANK",
+      "markPrefix": "UGT",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "WallVertical",
+        "WallHorizontal",
+        "BaseBars",
+        "CoverBars"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_TANK_UG"
+    },
+    {
+      "no": 38,
+      "code": "TANK-ROOF",
+      "name": "Roof Tank",
+      "shape": "TANK",
+      "layer": "S-TANK",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 2500
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 2000
+        },
+        {
+          "name": "WallThickness",
+          "unit": "mm",
+          "default": 150
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 1500
+        }
+      ],
+      "schedule": "TANK",
+      "markPrefix": "RT",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "WallVertical",
+        "WallHorizontal",
+        "BaseBars",
+        "CoverBars"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_TANK_ROOF"
+    },
+    {
+      "no": 39,
+      "code": "PARAPET",
+      "name": "Parapet",
+      "shape": "WALL",
+      "layer": "S-ROOF",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 6000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 125
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 1000
+        }
+      ],
+      "schedule": "WALL",
+      "markPrefix": "PW",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "VerticalBars",
+        "HorizontalBars",
+        "Links"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_PARAPET"
+    },
+    {
+      "no": 40,
+      "code": "PED",
+      "name": "Pedestal",
+      "shape": "RECT",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 500
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 500
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 600
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "PD",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_PED"
+    },
+    {
+      "no": 41,
+      "code": "PLINTH",
+      "name": "Plinth",
+      "shape": "SLAB",
+      "layer": "S-FTG",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 10000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 8000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 150
+        }
+      ],
+      "schedule": "NONE",
+      "markPrefix": "PL",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_PLINTH"
+    },
+    {
+      "no": 42,
+      "code": "CORBEL",
+      "name": "Corbel",
+      "shape": "RECT",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Projection",
+          "unit": "mm",
+          "default": 400
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 500
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "CB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_CORBEL"
+    },
+    {
+      "no": 43,
+      "code": "OPEN",
+      "name": "Structural Opening",
+      "shape": "OPENING",
+      "layer": "S-SLAB-OPEN",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": null,
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 1000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1000
+        }
+      ],
+      "schedule": "NONE",
+      "markPrefix": "OP",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_OPEN"
+    },
+    {
+      "no": 44,
+      "code": "EJ",
+      "name": "Expansion Joint",
+      "shape": "JOINT",
+      "layer": "S-JOINT",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": null,
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 10000
+        },
+        {
+          "name": "Gap",
+          "unit": "mm",
+          "default": 25
+        }
+      ],
+      "schedule": "NONE",
+      "markPrefix": "EJ",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_EJ"
+    },
+    {
+      "no": 45,
+      "code": "CJ",
+      "name": "Construction Joint",
+      "shape": "JOINT",
+      "layer": "S-JOINT",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": null,
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 10000
+        },
+        {
+          "name": "Gap",
+          "unit": "mm",
+          "default": 0
+        }
+      ],
+      "schedule": "NONE",
+      "markPrefix": "CJ",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_CJ"
+    },
+    {
+      "no": 46,
+      "code": "STARTER",
+      "name": "Column Starter",
+      "shape": "STARTER",
+      "layer": "S-COL",
+      "textLayer": "S-COL-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 75
+        }
+      ],
+      "schedule": "COLUMN",
+      "markPrefix": "CS",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "TieDia",
+        "TieSpacing"
+      ],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_STARTER"
+    },
+    {
+      "no": 47,
+      "code": "BCJ",
+      "name": "Beam-Column Joint",
+      "shape": "JOINTBC",
+      "layer": "S-DETAIL",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": null,
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 300
+        }
+      ],
+      "schedule": "NONE",
+      "markPrefix": "BCJ",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [],
+      "dimensionBehavior": "NONE",
+      "block": "RNR_BCJ"
+    },
+    {
+      "no": 48,
+      "code": "WAIST",
+      "name": "Stair Waist Slab",
+      "shape": "SLAB",
+      "layer": "S-STAIR",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 3500
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1200
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 150
+        }
+      ],
+      "schedule": "STAIR",
+      "markPrefix": "WS",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBars",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_WAIST"
+    },
+    {
+      "no": 49,
+      "code": "FTIE",
+      "name": "Foundation Tie",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 400
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "FT",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_FTIE"
+    },
+    {
+      "no": 50,
+      "code": "GB",
+      "name": "Ground Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 450
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "GB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_GB"
+    },
+    {
+      "no": 51,
+      "code": "GRB",
+      "name": "Grade Beam",
+      "shape": "BEAM",
+      "layer": "S-BEAM",
+      "textLayer": "S-BEAM-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 300
+        },
+        {
+          "name": "Depth",
+          "unit": "mm",
+          "default": 600
+        },
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        }
+      ],
+      "schedule": "BEAM",
+      "markPrefix": "GRB",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "TopBars",
+        "BottomBars",
+        "ExtraBars",
+        "StirrupDia",
+        "StirrupSpacing"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_GRB"
+    },
+    {
+      "no": 52,
+      "code": "CORE",
+      "name": "Lift Core",
+      "shape": "CORE",
+      "layer": "S-SW",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 2400
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 2400
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 200
+        },
+        {
+          "name": "DoorWidth",
+          "unit": "mm",
+          "default": 1000
+        }
+      ],
+      "schedule": "WALL",
+      "markPrefix": "LC",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "VerticalBars",
+        "HorizontalBars",
+        "Links"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_CORE"
+    },
+    {
+      "no": 53,
+      "code": "BWALL",
+      "name": "Boundary Wall",
+      "shape": "WALL",
+      "layer": "S-RWALL",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 20000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 250
+        },
+        {
+          "name": "Height",
+          "unit": "mm",
+          "default": 2100
+        }
+      ],
+      "schedule": "WALL",
+      "markPrefix": "BW",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "VerticalBars",
+        "HorizontalBars",
+        "Links"
+      ],
+      "dimensionBehavior": "LENGTH_ONLY",
+      "block": "RNR_BWALL"
+    },
+    {
+      "no": 54,
+      "code": "CANOPY",
+      "name": "Canopy",
+      "shape": "SLAB",
+      "layer": "S-SLAB",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 3000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 1200
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 125
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "CN",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_CANOPY"
+    },
+    {
+      "no": 55,
+      "code": "SLB-ROOF",
+      "name": "Roof Slab",
+      "shape": "SLAB",
+      "layer": "S-ROOF",
+      "textLayer": "S-TEXT",
+      "dimLayer": "S-DIMS",
+      "hatch": "RCC",
+      "parameters": [
+        {
+          "name": "Length",
+          "unit": "mm",
+          "default": 5000
+        },
+        {
+          "name": "Width",
+          "unit": "mm",
+          "default": 4000
+        },
+        {
+          "name": "Thickness",
+          "unit": "mm",
+          "default": 125
+        }
+      ],
+      "schedule": "SLAB",
+      "markPrefix": "RS",
+      "concreteGradeDefault": "C25",
+      "rebarFields": [
+        "MainBarsX",
+        "MainBarsY",
+        "TopExtra",
+        "Distribution"
+      ],
+      "dimensionBehavior": "ALIGNED_OVERALL",
+      "block": "RNR_SLB_ROOF"
+    }
+  ]
+}

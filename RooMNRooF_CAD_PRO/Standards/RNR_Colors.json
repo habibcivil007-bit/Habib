@@ -1,0 +1,2058 @@
+{
+  "schema": "RooMNRooF.Colors/1.0",
+  "palette": "RNR_DEFAULT",
+  "colors": [
+    {
+      "id": "ARCH-WALL-CUT",
+      "category": "ARCHITECTURE",
+      "name": "Wall Cut",
+      "rgb": [
+        230,
+        57,
+        70
+      ],
+      "hex": "#E63946",
+      "aci": 13,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.5,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "wall"
+    },
+    {
+      "id": "ARCH-WALL-BEYOND",
+      "category": "ARCHITECTURE",
+      "name": "Wall Beyond",
+      "rgb": [
+        244,
+        162,
+        97
+      ],
+      "hex": "#F4A261",
+      "aci": 21,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "wall"
+    },
+    {
+      "id": "ARCH-DOOR",
+      "category": "ARCHITECTURE",
+      "name": "Door",
+      "rgb": [
+        255,
+        183,
+        3
+      ],
+      "hex": "#FFB703",
+      "aci": 40,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "opening"
+    },
+    {
+      "id": "ARCH-WINDOW",
+      "category": "ARCHITECTURE",
+      "name": "Window",
+      "rgb": [
+        72,
+        202,
+        228
+      ],
+      "hex": "#48CAE4",
+      "aci": 133,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "opening"
+    },
+    {
+      "id": "ARCH-GLAZING",
+      "category": "ARCHITECTURE",
+      "name": "Glazing",
+      "rgb": [
+        144,
+        224,
+        239
+      ],
+      "hex": "#90E0EF",
+      "aci": 141,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 20,
+      "lineweight": 0.18,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "glazing"
+    },
+    {
+      "id": "ARCH-FURNITURE",
+      "category": "ARCHITECTURE",
+      "name": "Furniture",
+      "rgb": [
+        181,
+        131,
+        141
+      ],
+      "hex": "#B5838D",
+      "aci": 233,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "furniture"
+    },
+    {
+      "id": "ARCH-FIXTURE",
+      "category": "ARCHITECTURE",
+      "name": "Fixture",
+      "rgb": [
+        106,
+        153,
+        78
+      ],
+      "hex": "#6A994E",
+      "aci": 75,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "fixture"
+    },
+    {
+      "id": "ARCH-FLOOR-PATTERN",
+      "category": "ARCHITECTURE",
+      "name": "Floor Pattern",
+      "rgb": [
+        221,
+        161,
+        94
+      ],
+      "hex": "#DDA15E",
+      "aci": 33,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.13,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "finish"
+    },
+    {
+      "id": "ARCH-CEILING",
+      "category": "ARCHITECTURE",
+      "name": "Ceiling",
+      "rgb": [
+        188,
+        184,
+        177
+      ],
+      "hex": "#BCB8B1",
+      "aci": 9,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 30,
+      "lineweight": 0.13,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "ceiling"
+    },
+    {
+      "id": "ARCH-ROOF",
+      "category": "ARCHITECTURE",
+      "name": "Roof",
+      "rgb": [
+        188,
+        108,
+        37
+      ],
+      "hex": "#BC6C25",
+      "aci": 32,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "roof"
+    },
+    {
+      "id": "ARCH-STAIR",
+      "category": "ARCHITECTURE",
+      "name": "Stair",
+      "rgb": [
+        255,
+        143,
+        171
+      ],
+      "hex": "#FF8FAB",
+      "aci": 241,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "stair"
+    },
+    {
+      "id": "ARCH-RAMP",
+      "category": "ARCHITECTURE",
+      "name": "Ramp",
+      "rgb": [
+        255,
+        179,
+        198
+      ],
+      "hex": "#FFB3C6",
+      "aci": 231,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "ramp"
+    },
+    {
+      "id": "ARCH-ROOM-TAG",
+      "category": "ARCHITECTURE",
+      "name": "Room Tag",
+      "rgb": [
+        155,
+        93,
+        229
+      ],
+      "hex": "#9B5DE5",
+      "aci": 193,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ARCH-ELEVATION",
+      "category": "ARCHITECTURE",
+      "name": "Elevation",
+      "rgb": [
+        0,
+        187,
+        249
+      ],
+      "hex": "#00BBF9",
+      "aci": 140,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "view"
+    },
+    {
+      "id": "ARCH-SECTION",
+      "category": "ARCHITECTURE",
+      "name": "Section",
+      "rgb": [
+        241,
+        91,
+        181
+      ],
+      "hex": "#F15BB5",
+      "aci": 223,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "view"
+    },
+    {
+      "id": "ARCH-DETAIL",
+      "category": "ARCHITECTURE",
+      "name": "Detail",
+      "rgb": [
+        254,
+        228,
+        64
+      ],
+      "hex": "#FEE440",
+      "aci": 41,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ARCHITECTURE",
+      "objectCategory": "view"
+    },
+    {
+      "id": "STRU-COLUMN",
+      "category": "STRUCTURE",
+      "name": "Column",
+      "rgb": [
+        214,
+        40,
+        40
+      ],
+      "hex": "#D62828",
+      "aci": 22,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.5,
+      "discipline": "STRUCTURE",
+      "objectCategory": "column"
+    },
+    {
+      "id": "STRU-COLUMN-TEXT",
+      "category": "STRUCTURE",
+      "name": "Column Text",
+      "rgb": [
+        247,
+        127,
+        0
+      ],
+      "hex": "#F77F00",
+      "aci": 30,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "STRUCTURE",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "STRU-BEAM",
+      "category": "STRUCTURE",
+      "name": "Beam",
+      "rgb": [
+        0,
+        119,
+        182
+      ],
+      "hex": "#0077B6",
+      "aci": 152,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "beam"
+    },
+    {
+      "id": "STRU-BEAM-HIDDEN",
+      "category": "STRUCTURE",
+      "name": "Beam Hidden",
+      "rgb": [
+        0,
+        150,
+        199
+      ],
+      "hex": "#0096C7",
+      "aci": 142,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "STRUCTURE",
+      "objectCategory": "beam"
+    },
+    {
+      "id": "STRU-BEAM-TEXT",
+      "category": "STRUCTURE",
+      "name": "Beam Text",
+      "rgb": [
+        0,
+        180,
+        216
+      ],
+      "hex": "#00B4D8",
+      "aci": 132,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "STRUCTURE",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "STRU-SLAB",
+      "category": "STRUCTURE",
+      "name": "Slab",
+      "rgb": [
+        82,
+        183,
+        136
+      ],
+      "hex": "#52B788",
+      "aci": 103,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "STRUCTURE",
+      "objectCategory": "slab"
+    },
+    {
+      "id": "STRU-SLAB-OPENING",
+      "category": "STRUCTURE",
+      "name": "Slab Opening",
+      "rgb": [
+        216,
+        243,
+        220
+      ],
+      "hex": "#D8F3DC",
+      "aci": 254,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "STRUCTURE",
+      "objectCategory": "opening"
+    },
+    {
+      "id": "STRU-FOOTING",
+      "category": "STRUCTURE",
+      "name": "Footing",
+      "rgb": [
+        153,
+        88,
+        42
+      ],
+      "hex": "#99582A",
+      "aci": 27,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "foundation"
+    },
+    {
+      "id": "STRU-PILE",
+      "category": "STRUCTURE",
+      "name": "Pile",
+      "rgb": [
+        111,
+        29,
+        27
+      ],
+      "hex": "#6F1D1B",
+      "aci": 26,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "foundation"
+    },
+    {
+      "id": "STRU-PILE-CAP",
+      "category": "STRUCTURE",
+      "name": "Pile Cap",
+      "rgb": [
+        187,
+        148,
+        87
+      ],
+      "hex": "#BB9457",
+      "aci": 33,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "foundation"
+    },
+    {
+      "id": "STRU-SHEAR-WALL",
+      "category": "STRUCTURE",
+      "name": "Shear Wall",
+      "rgb": [
+        157,
+        2,
+        8
+      ],
+      "hex": "#9D0208",
+      "aci": 14,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.5,
+      "discipline": "STRUCTURE",
+      "objectCategory": "wall"
+    },
+    {
+      "id": "STRU-STIRRUP",
+      "category": "STRUCTURE",
+      "name": "Stirrup",
+      "rgb": [
+        255,
+        0,
+        110
+      ],
+      "hex": "#FF006E",
+      "aci": 230,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "STRUCTURE",
+      "objectCategory": "rebar"
+    },
+    {
+      "id": "STRU-REBAR-MAIN",
+      "category": "STRUCTURE",
+      "name": "Rebar Main",
+      "rgb": [
+        251,
+        86,
+        7
+      ],
+      "hex": "#FB5607",
+      "aci": 20,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "rebar"
+    },
+    {
+      "id": "STRU-REBAR-DIST",
+      "category": "STRUCTURE",
+      "name": "Rebar Dist",
+      "rgb": [
+        255,
+        190,
+        11
+      ],
+      "hex": "#FFBE0B",
+      "aci": 40,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "STRUCTURE",
+      "objectCategory": "rebar"
+    },
+    {
+      "id": "STRU-REBAR-TEXT",
+      "category": "STRUCTURE",
+      "name": "Rebar Text",
+      "rgb": [
+        131,
+        56,
+        236
+      ],
+      "hex": "#8338EC",
+      "aci": 183,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "STRUCTURE",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "STRU-STAIR",
+      "category": "STRUCTURE",
+      "name": "Stair",
+      "rgb": [
+        239,
+        71,
+        111
+      ],
+      "hex": "#EF476F",
+      "aci": 13,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "stair"
+    },
+    {
+      "id": "STRU-RAMP",
+      "category": "STRUCTURE",
+      "name": "Ramp",
+      "rgb": [
+        255,
+        209,
+        102
+      ],
+      "hex": "#FFD166",
+      "aci": 41,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "STRUCTURE",
+      "objectCategory": "ramp"
+    },
+    {
+      "id": "STRU-ROOF",
+      "category": "STRUCTURE",
+      "name": "Roof",
+      "rgb": [
+        6,
+        214,
+        160
+      ],
+      "hex": "#06D6A0",
+      "aci": 122,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "roof"
+    },
+    {
+      "id": "STRU-TANK",
+      "category": "STRUCTURE",
+      "name": "Tank",
+      "rgb": [
+        17,
+        138,
+        178
+      ],
+      "hex": "#118AB2",
+      "aci": 134,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "tank"
+    },
+    {
+      "id": "STRU-RETAINING-WALL",
+      "category": "STRUCTURE",
+      "name": "Retaining Wall",
+      "rgb": [
+        7,
+        59,
+        76
+      ],
+      "hex": "#073B4C",
+      "aci": 148,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.5,
+      "discipline": "STRUCTURE",
+      "objectCategory": "wall"
+    },
+    {
+      "id": "STRU-SECTION",
+      "category": "STRUCTURE",
+      "name": "Section",
+      "rgb": [
+        58,
+        134,
+        255
+      ],
+      "hex": "#3A86FF",
+      "aci": 150,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "STRUCTURE",
+      "objectCategory": "view"
+    },
+    {
+      "id": "STRU-DETAIL",
+      "category": "STRUCTURE",
+      "name": "Detail",
+      "rgb": [
+        131,
+        197,
+        190
+      ],
+      "hex": "#83C5BE",
+      "aci": 123,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "STRUCTURE",
+      "objectCategory": "view"
+    },
+    {
+      "id": "CIVI-SITE",
+      "category": "CIVIL",
+      "name": "Site",
+      "rgb": [
+        96,
+        108,
+        56
+      ],
+      "hex": "#606C38",
+      "aci": 77,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "CIVIL",
+      "objectCategory": "site"
+    },
+    {
+      "id": "CIVI-BOUNDARY",
+      "category": "CIVIL",
+      "name": "Boundary",
+      "rgb": [
+        220,
+        47,
+        2
+      ],
+      "hex": "#DC2F02",
+      "aci": 22,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.5,
+      "discipline": "CIVIL",
+      "objectCategory": "boundary"
+    },
+    {
+      "id": "CIVI-ROAD",
+      "category": "CIVIL",
+      "name": "Road",
+      "rgb": [
+        73,
+        80,
+        87
+      ],
+      "hex": "#495057",
+      "aci": 251,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "CIVIL",
+      "objectCategory": "road"
+    },
+    {
+      "id": "CIVI-CURB",
+      "category": "CIVIL",
+      "name": "Curb",
+      "rgb": [
+        108,
+        117,
+        125
+      ],
+      "hex": "#6C757D",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "CIVIL",
+      "objectCategory": "road"
+    },
+    {
+      "id": "CIVI-DRAIN",
+      "category": "CIVIL",
+      "name": "Drain",
+      "rgb": [
+        0,
+        95,
+        115
+      ],
+      "hex": "#005F73",
+      "aci": 146,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "CIVIL",
+      "objectCategory": "drainage"
+    },
+    {
+      "id": "CIVI-GRADE",
+      "category": "CIVIL",
+      "name": "Grade",
+      "rgb": [
+        148,
+        210,
+        189
+      ],
+      "hex": "#94D2BD",
+      "aci": 253,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "CIVIL",
+      "objectCategory": "grading"
+    },
+    {
+      "id": "CIVI-CONTOUR-MAJOR",
+      "category": "CIVIL",
+      "name": "Contour Major",
+      "rgb": [
+        202,
+        103,
+        2
+      ],
+      "hex": "#CA6702",
+      "aci": 32,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "CIVIL",
+      "objectCategory": "contour"
+    },
+    {
+      "id": "CIVI-CONTOUR-MINOR",
+      "category": "CIVIL",
+      "name": "Contour Minor",
+      "rgb": [
+        238,
+        155,
+        0
+      ],
+      "hex": "#EE9B00",
+      "aci": 30,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 30,
+      "lineweight": 0.13,
+      "discipline": "CIVIL",
+      "objectCategory": "contour"
+    },
+    {
+      "id": "CIVI-UTILITY",
+      "category": "CIVIL",
+      "name": "Utility",
+      "rgb": [
+        174,
+        32,
+        18
+      ],
+      "hex": "#AE2012",
+      "aci": 24,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "CIVIL",
+      "objectCategory": "utility"
+    },
+    {
+      "id": "PLUM-WATER",
+      "category": "PLUMBING",
+      "name": "Water",
+      "rgb": [
+        0,
+        150,
+        255
+      ],
+      "hex": "#0096FF",
+      "aci": 150,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "PLUMBING",
+      "objectCategory": "pipe"
+    },
+    {
+      "id": "PLUM-DRAIN",
+      "category": "PLUMBING",
+      "name": "Drain",
+      "rgb": [
+        0,
+        100,
+        0
+      ],
+      "hex": "#006400",
+      "aci": 98,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "PLUMBING",
+      "objectCategory": "pipe"
+    },
+    {
+      "id": "PLUM-SANITARY",
+      "category": "PLUMBING",
+      "name": "Sanitary",
+      "rgb": [
+        139,
+        69,
+        19
+      ],
+      "hex": "#8B4513",
+      "aci": 36,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "PLUMBING",
+      "objectCategory": "pipe"
+    },
+    {
+      "id": "PLUM-PIPE",
+      "category": "PLUMBING",
+      "name": "Pipe",
+      "rgb": [
+        70,
+        130,
+        180
+      ],
+      "hex": "#4682B4",
+      "aci": 145,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "PLUMBING",
+      "objectCategory": "pipe"
+    },
+    {
+      "id": "PLUM-FIXTURE",
+      "category": "PLUMBING",
+      "name": "Fixture",
+      "rgb": [
+        100,
+        149,
+        237
+      ],
+      "hex": "#6495ED",
+      "aci": 153,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "PLUMBING",
+      "objectCategory": "fixture"
+    },
+    {
+      "id": "ELEC-LIGHT",
+      "category": "ELECTRICAL",
+      "name": "Light",
+      "rgb": [
+        255,
+        214,
+        10
+      ],
+      "hex": "#FFD60A",
+      "aci": 40,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ELECTRICAL",
+      "objectCategory": "device"
+    },
+    {
+      "id": "ELEC-POWER",
+      "category": "ELECTRICAL",
+      "name": "Power",
+      "rgb": [
+        255,
+        87,
+        51
+      ],
+      "hex": "#FF5733",
+      "aci": 20,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ELECTRICAL",
+      "objectCategory": "device"
+    },
+    {
+      "id": "ELEC-SOCKET",
+      "category": "ELECTRICAL",
+      "name": "Socket",
+      "rgb": [
+        199,
+        0,
+        57
+      ],
+      "hex": "#C70039",
+      "aci": 242,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ELECTRICAL",
+      "objectCategory": "device"
+    },
+    {
+      "id": "ELEC-SWITCH",
+      "category": "ELECTRICAL",
+      "name": "Switch",
+      "rgb": [
+        144,
+        12,
+        63
+      ],
+      "hex": "#900C3F",
+      "aci": 234,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ELECTRICAL",
+      "objectCategory": "device"
+    },
+    {
+      "id": "ELEC-CABLE",
+      "category": "ELECTRICAL",
+      "name": "Cable",
+      "rgb": [
+        88,
+        24,
+        69
+      ],
+      "hex": "#581845",
+      "aci": 229,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ELECTRICAL",
+      "objectCategory": "cable"
+    },
+    {
+      "id": "ELEC-PANEL",
+      "category": "ELECTRICAL",
+      "name": "Panel",
+      "rgb": [
+        255,
+        195,
+        0
+      ],
+      "hex": "#FFC300",
+      "aci": 40,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "ELECTRICAL",
+      "objectCategory": "equipment"
+    },
+    {
+      "id": "HVAC-SUPPLY-DUCT",
+      "category": "HVAC",
+      "name": "Supply Duct",
+      "rgb": [
+        72,
+        149,
+        239
+      ],
+      "hex": "#4895EF",
+      "aci": 153,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "HVAC",
+      "objectCategory": "duct"
+    },
+    {
+      "id": "HVAC-RETURN-DUCT",
+      "category": "HVAC",
+      "name": "Return Duct",
+      "rgb": [
+        67,
+        97,
+        238
+      ],
+      "hex": "#4361EE",
+      "aci": 173,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "HVAC",
+      "objectCategory": "duct"
+    },
+    {
+      "id": "HVAC-EQUIPMENT",
+      "category": "HVAC",
+      "name": "Equipment",
+      "rgb": [
+        63,
+        55,
+        201
+      ],
+      "hex": "#3F37C9",
+      "aci": 175,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "HVAC",
+      "objectCategory": "equipment"
+    },
+    {
+      "id": "HVAC-DIFFUSER",
+      "category": "HVAC",
+      "name": "Diffuser",
+      "rgb": [
+        76,
+        201,
+        240
+      ],
+      "hex": "#4CC9F0",
+      "aci": 133,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "HVAC",
+      "objectCategory": "device"
+    },
+    {
+      "id": "LAND-TREE",
+      "category": "LANDSCAPE",
+      "name": "Tree",
+      "rgb": [
+        56,
+        176,
+        0
+      ],
+      "hex": "#38B000",
+      "aci": 82,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "LANDSCAPE",
+      "objectCategory": "planting"
+    },
+    {
+      "id": "LAND-SHRUB",
+      "category": "LANDSCAPE",
+      "name": "Shrub",
+      "rgb": [
+        112,
+        224,
+        0
+      ],
+      "hex": "#70E000",
+      "aci": 72,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.13,
+      "discipline": "LANDSCAPE",
+      "objectCategory": "planting"
+    },
+    {
+      "id": "LAND-GRASS",
+      "category": "LANDSCAPE",
+      "name": "Grass",
+      "rgb": [
+        158,
+        240,
+        26
+      ],
+      "hex": "#9EF01A",
+      "aci": 70,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.13,
+      "discipline": "LANDSCAPE",
+      "objectCategory": "planting"
+    },
+    {
+      "id": "LAND-PAVING",
+      "category": "LANDSCAPE",
+      "name": "Paving",
+      "rgb": [
+        204,
+        213,
+        174
+      ],
+      "hex": "#CCD5AE",
+      "aci": 9,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "LANDSCAPE",
+      "objectCategory": "hardscape"
+    },
+    {
+      "id": "LAND-WATER-BODY",
+      "category": "LANDSCAPE",
+      "name": "Water Body",
+      "rgb": [
+        0,
+        180,
+        216
+      ],
+      "hex": "#00B4D8",
+      "aci": 132,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "LANDSCAPE",
+      "objectCategory": "water"
+    },
+    {
+      "id": "ANNO-TEXT",
+      "category": "ANNOTATION",
+      "name": "Text",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "hex": "#FFFFFF",
+      "aci": 7,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ANNO-TAG",
+      "category": "ANNOTATION",
+      "name": "Tag",
+      "rgb": [
+        255,
+        214,
+        165
+      ],
+      "hex": "#FFD6A5",
+      "aci": 41,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ANNO-LEVEL",
+      "category": "ANNOTATION",
+      "name": "Level",
+      "rgb": [
+        253,
+        255,
+        182
+      ],
+      "hex": "#FDFFB6",
+      "aci": 51,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ANNO-NORTH",
+      "category": "ANNOTATION",
+      "name": "North",
+      "rgb": [
+        202,
+        255,
+        191
+      ],
+      "hex": "#CAFFBF",
+      "aci": 254,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ANNO-SECTION-MARK",
+      "category": "ANNOTATION",
+      "name": "Section Mark",
+      "rgb": [
+        155,
+        246,
+        255
+      ],
+      "hex": "#9BF6FF",
+      "aci": 131,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ANNO-DETAIL-MARK",
+      "category": "ANNOTATION",
+      "name": "Detail Mark",
+      "rgb": [
+        160,
+        196,
+        255
+      ],
+      "hex": "#A0C4FF",
+      "aci": 151,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ANNO-TITLE",
+      "category": "ANNOTATION",
+      "name": "Title",
+      "rgb": [
+        255,
+        198,
+        255
+      ],
+      "hex": "#FFC6FF",
+      "aci": 7,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "ANNO-LEADER",
+      "category": "ANNOTATION",
+      "name": "Leader",
+      "rgb": [
+        255,
+        173,
+        173
+      ],
+      "hex": "#FFADAD",
+      "aci": 21,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "ANNOTATION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "TEXT-HEADING",
+      "category": "TEXT",
+      "name": "Heading",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "hex": "#FFFFFF",
+      "aci": 7,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.35,
+      "discipline": "TEXT",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "TEXT-BODY",
+      "category": "TEXT",
+      "name": "Body",
+      "rgb": [
+        230,
+        230,
+        230
+      ],
+      "hex": "#E6E6E6",
+      "aci": 254,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "TEXT",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "TEXT-NOTE",
+      "category": "TEXT",
+      "name": "Note",
+      "rgb": [
+        200,
+        200,
+        200
+      ],
+      "hex": "#C8C8C8",
+      "aci": 9,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "TEXT",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "TEXT-SMALL",
+      "category": "TEXT",
+      "name": "Small",
+      "rgb": [
+        180,
+        180,
+        180
+      ],
+      "hex": "#B4B4B4",
+      "aci": 253,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.13,
+      "discipline": "TEXT",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "DIME-ARCH-DIM",
+      "category": "DIMENSION",
+      "name": "Arch Dim",
+      "rgb": [
+        255,
+        159,
+        28
+      ],
+      "hex": "#FF9F1C",
+      "aci": 30,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "DIMENSION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "DIME-STRUCT-DIM",
+      "category": "DIMENSION",
+      "name": "Struct Dim",
+      "rgb": [
+        46,
+        196,
+        182
+      ],
+      "hex": "#2EC4B6",
+      "aci": 132,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "DIMENSION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "DIME-CIVIL-DIM",
+      "category": "DIMENSION",
+      "name": "Civil Dim",
+      "rgb": [
+        203,
+        243,
+        240
+      ],
+      "hex": "#CBF3F0",
+      "aci": 254,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "DIMENSION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "DIME-LEVEL-DIM",
+      "category": "DIMENSION",
+      "name": "Level Dim",
+      "rgb": [
+        255,
+        191,
+        105
+      ],
+      "hex": "#FFBF69",
+      "aci": 31,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "DIMENSION",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "GRID-GRID-LINE",
+      "category": "GRID",
+      "name": "Grid Line",
+      "rgb": [
+        173,
+        181,
+        189
+      ],
+      "hex": "#ADB5BD",
+      "aci": 253,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "GRID",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "GRID-GRID-BUBBLE",
+      "category": "GRID",
+      "name": "Grid Bubble",
+      "rgb": [
+        248,
+        249,
+        250
+      ],
+      "hex": "#F8F9FA",
+      "aci": 7,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "GRID",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "GRID-GRID-TEXT",
+      "category": "GRID",
+      "name": "Grid Text",
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "hex": "#FFFFFF",
+      "aci": 7,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "GRID",
+      "objectCategory": "annotation"
+    },
+    {
+      "id": "EXIS-EXISTING-WALL",
+      "category": "EXISTING",
+      "name": "Existing Wall",
+      "rgb": [
+        150,
+        150,
+        150
+      ],
+      "hex": "#969696",
+      "aci": 252,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "EXISTING",
+      "objectCategory": "general"
+    },
+    {
+      "id": "EXIS-EXISTING-STRUCT",
+      "category": "EXISTING",
+      "name": "Existing Struct",
+      "rgb": [
+        130,
+        130,
+        130
+      ],
+      "hex": "#828282",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "EXISTING",
+      "objectCategory": "general"
+    },
+    {
+      "id": "EXIS-EXISTING-SITE",
+      "category": "EXISTING",
+      "name": "Existing Site",
+      "rgb": [
+        110,
+        110,
+        110
+      ],
+      "hex": "#6E6E6E",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "EXISTING",
+      "objectCategory": "general"
+    },
+    {
+      "id": "DEMO-DEMO-WALL",
+      "category": "DEMOLITION",
+      "name": "Demo Wall",
+      "rgb": [
+        255,
+        77,
+        109
+      ],
+      "hex": "#FF4D6D",
+      "aci": 11,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "DEMOLITION",
+      "objectCategory": "general"
+    },
+    {
+      "id": "DEMO-DEMO-STRUCT",
+      "category": "DEMOLITION",
+      "name": "Demo Struct",
+      "rgb": [
+        201,
+        24,
+        74
+      ],
+      "hex": "#C9184A",
+      "aci": 242,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "DEMOLITION",
+      "objectCategory": "general"
+    },
+    {
+      "id": "DEMO-DEMO-MISC",
+      "category": "DEMOLITION",
+      "name": "Demo Misc",
+      "rgb": [
+        255,
+        117,
+        143
+      ],
+      "hex": "#FF758F",
+      "aci": 11,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.18,
+      "discipline": "DEMOLITION",
+      "objectCategory": "general"
+    },
+    {
+      "id": "PROP-NEW-WALL",
+      "category": "PROPOSED",
+      "name": "New Wall",
+      "rgb": [
+        0,
+        245,
+        212
+      ],
+      "hex": "#00F5D4",
+      "aci": 120,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.5,
+      "discipline": "PROPOSED",
+      "objectCategory": "general"
+    },
+    {
+      "id": "PROP-NEW-STRUCT",
+      "category": "PROPOSED",
+      "name": "New Struct",
+      "rgb": [
+        0,
+        187,
+        249
+      ],
+      "hex": "#00BBF9",
+      "aci": 140,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.5,
+      "discipline": "PROPOSED",
+      "objectCategory": "general"
+    },
+    {
+      "id": "PROP-NEW-MISC",
+      "category": "PROPOSED",
+      "name": "New Misc",
+      "rgb": [
+        155,
+        229,
+        100
+      ],
+      "hex": "#9BE564",
+      "aci": 73,
+      "screen": "TrueColor",
+      "plot": "BLACK",
+      "transparency": 0,
+      "lineweight": 0.25,
+      "discipline": "PROPOSED",
+      "objectCategory": "general"
+    },
+    {
+      "id": "REFE-XREF",
+      "category": "REFERENCE",
+      "name": "Xref",
+      "rgb": [
+        120,
+        120,
+        120
+      ],
+      "hex": "#787878",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.13,
+      "discipline": "REFERENCE",
+      "objectCategory": "general"
+    },
+    {
+      "id": "REFE-XREF-ARCH",
+      "category": "REFERENCE",
+      "name": "Xref Arch",
+      "rgb": [
+        140,
+        110,
+        110
+      ],
+      "hex": "#8C6E6E",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.13,
+      "discipline": "REFERENCE",
+      "objectCategory": "general"
+    },
+    {
+      "id": "REFE-XREF-STRUCT",
+      "category": "REFERENCE",
+      "name": "Xref Struct",
+      "rgb": [
+        110,
+        110,
+        140
+      ],
+      "hex": "#6E6E8C",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.13,
+      "discipline": "REFERENCE",
+      "objectCategory": "general"
+    },
+    {
+      "id": "REFE-XREF-MEP",
+      "category": "REFERENCE",
+      "name": "Xref MEP",
+      "rgb": [
+        110,
+        140,
+        110
+      ],
+      "hex": "#6E8C6E",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.13,
+      "discipline": "REFERENCE",
+      "objectCategory": "general"
+    },
+    {
+      "id": "REFE-CONSTRUCTION",
+      "category": "REFERENCE",
+      "name": "Construction",
+      "rgb": [
+        90,
+        90,
+        90
+      ],
+      "hex": "#5A5A5A",
+      "aci": 251,
+      "screen": "TrueColor",
+      "plot": "NOPLOT",
+      "transparency": 60,
+      "lineweight": 0.09,
+      "discipline": "REFERENCE",
+      "objectCategory": "general"
+    },
+    {
+      "id": "REFE-VIEWPORT",
+      "category": "REFERENCE",
+      "name": "Viewport",
+      "rgb": [
+        80,
+        80,
+        80
+      ],
+      "hex": "#505050",
+      "aci": 251,
+      "screen": "TrueColor",
+      "plot": "NOPLOT",
+      "transparency": 0,
+      "lineweight": 0.09,
+      "discipline": "REFERENCE",
+      "objectCategory": "general"
+    },
+    {
+      "id": "HATC-CONCRETE",
+      "category": "HATCH",
+      "name": "Concrete",
+      "rgb": [
+        160,
+        160,
+        160
+      ],
+      "hex": "#A0A0A0",
+      "aci": 253,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-RCC",
+      "category": "HATCH",
+      "name": "RCC",
+      "rgb": [
+        140,
+        140,
+        160
+      ],
+      "hex": "#8C8CA0",
+      "aci": 252,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-BRICK",
+      "category": "HATCH",
+      "name": "Brick",
+      "rgb": [
+        199,
+        81,
+        70
+      ],
+      "hex": "#C75146",
+      "aci": 13,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-EARTH",
+      "category": "HATCH",
+      "name": "Earth",
+      "rgb": [
+        127,
+        85,
+        57
+      ],
+      "hex": "#7F5539",
+      "aci": 27,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-SAND",
+      "category": "HATCH",
+      "name": "Sand",
+      "rgb": [
+        221,
+        184,
+        146
+      ],
+      "hex": "#DDB892",
+      "aci": 31,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-STONE",
+      "category": "HATCH",
+      "name": "Stone",
+      "rgb": [
+        176,
+        137,
+        104
+      ],
+      "hex": "#B08968",
+      "aci": 23,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-TILE",
+      "category": "HATCH",
+      "name": "Tile",
+      "rgb": [
+        230,
+        204,
+        178
+      ],
+      "hex": "#E6CCB2",
+      "aci": 254,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-WOOD",
+      "category": "HATCH",
+      "name": "Wood",
+      "rgb": [
+        156,
+        102,
+        68
+      ],
+      "hex": "#9C6644",
+      "aci": 25,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-GLASS",
+      "category": "HATCH",
+      "name": "Glass",
+      "rgb": [
+        173,
+        232,
+        244
+      ],
+      "hex": "#ADE8F4",
+      "aci": 141,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-METAL",
+      "category": "HATCH",
+      "name": "Metal",
+      "rgb": [
+        108,
+        117,
+        125
+      ],
+      "hex": "#6C757D",
+      "aci": 8,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-INSULATION",
+      "category": "HATCH",
+      "name": "Insulation",
+      "rgb": [
+        255,
+        214,
+        224
+      ],
+      "hex": "#FFD6E0",
+      "aci": 254,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 40,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-WATER",
+      "category": "HATCH",
+      "name": "Water",
+      "rgb": [
+        0,
+        150,
+        199
+      ],
+      "hex": "#0096C7",
+      "aci": 142,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    },
+    {
+      "id": "HATC-GRASS",
+      "category": "HATCH",
+      "name": "Grass",
+      "rgb": [
+        128,
+        185,
+        24
+      ],
+      "hex": "#80B918",
+      "aci": 62,
+      "screen": "TrueColor",
+      "plot": "GRAY",
+      "transparency": 50,
+      "lineweight": 0.09,
+      "discipline": "HATCH",
+      "objectCategory": "hatch"
+    }
+  ]
+}

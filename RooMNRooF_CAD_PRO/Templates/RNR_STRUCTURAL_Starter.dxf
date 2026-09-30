@@ -81,7 +81,7 @@ $MIRRTEXT
   9
 $LTSCALE
  40
-100.0
+1.0
   9
 $ATTMODE
  70
@@ -97,7 +97,7 @@ $TRACEWID
   9
 $TEXTSTYLE
   7
-OpenSans
+RNR_TEXT
   9
 $CLAYER
   8
@@ -265,7 +265,7 @@ $DIMBLK2
   9
 $DIMSTYLE
   2
-EZDXF
+RNR_STRUCT
   9
 $DIMCLRD
  70
@@ -493,7 +493,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461314.697025463
+2461314.697013889
   9
 $TDUCREATE
  40
@@ -501,7 +501,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461314.697025463
+2461314.697013889
   9
 $TDUUPDATE
  40
@@ -553,7 +553,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-1D3
+123
   9
 $SURFTAB1
  70
@@ -841,15 +841,15 @@ $PEXTMAX
   9
 $PLIMMIN
  10
-0.0
+-0.0
  20
-0.0
+-0.0
   9
 $PLIMMAX
  10
-420.0
+841.0
  20
-297.0
+594.0
   9
 $UNITMODE
  70
@@ -933,11 +933,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{2BF7936B-76FD-4624-999C-CAF4A05B8093}
+{F24907DC-0007-4FF0-AFC0-929387B10C93}
   9
 $VERSIONGUID
   2
-{65DF8400-2AF2-4719-B471-30CF7C9B1331}
+{F350C8A8-48DF-4A4A-B0EE-7079D174A847}
   9
 $EXTNAMES
 290
@@ -2503,7 +2503,7 @@ LAYER
 100
 AcDbSymbolTable
  70
-89
+48
   0
 LAYER
   5
@@ -2554,466 +2554,6 @@ Continuous
 13
 347
 21
-  0
-LAYER
-  5
-96
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-WALL
- 70
-0
- 62
-13
-420
-15087942
-  6
-Continuous
-370
-50
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Walls - cut
-  0
-LAYER
-  5
-98
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-WALL-EXST
- 70
-0
- 62
-252
-420
-9868950
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Walls - existing
-  0
-LAYER
-  5
-99
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-WALL-DEMO
- 70
-0
- 62
-11
-420
-16731501
-  6
-RNR_DEMO
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Walls - demolition
-  0
-LAYER
-  5
-9A
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-DOOR
- 70
-0
- 62
-40
-420
-16758531
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Doors
-  0
-LAYER
-  5
-9B
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-WINDOW
- 70
-0
- 62
-133
-420
-4770532
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Windows
-  0
-LAYER
-  5
-9C
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-GLAZ
- 70
-0
- 62
-141
-420
-9494767
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Glazing
-1001
-AcCmTransparency
-1071
-33554636
-  0
-LAYER
-  5
-9E
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-FURN
- 70
-0
- 62
-233
-420
-11895693
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Furniture
-  0
-LAYER
-  5
-9F
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-FIXTURE
- 70
-0
- 62
-75
-420
-6986062
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Sanitary / kitchen fixtures
-  0
-LAYER
-  5
-A0
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-FLOR
- 70
-0
- 62
-33
-420
-14524766
-  6
-Continuous
-370
-13
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Floor finish patterns
-1001
-AcCmTransparency
-1071
-33554559
-  0
-LAYER
-  5
-A1
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-CEIL
- 70
-0
- 62
-9
-420
-12368049
-  6
-RNR_HIDDEN
-370
-13
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Reflected ceiling
-1001
-AcCmTransparency
-1071
-33554610
-  0
-LAYER
-  5
-A2
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-ROOF
- 70
-0
- 62
-32
-420
-12348453
-  6
-Continuous
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Roof outline
-  0
-LAYER
-  5
-A3
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-STAIR
- 70
-0
- 62
-241
-420
-16748459
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Stairs - architectural
-  0
-LAYER
-  5
-A4
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-RAMP
- 70
-0
- 62
-231
-420
-16757702
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Ramps
-  0
-LAYER
-  5
-A5
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-ROOM
- 70
-0
- 62
-193
-420
-10182117
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Room tags and areas
   0
 LAYER
   5
@@ -3078,138 +2618,6 @@ AcAecLayerStandard
 
 1000
 Architectural dimensions
-  0
-LAYER
-  5
-A8
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-HATCH
- 70
-0
- 62
-13
-420
-13062470
-  6
-Continuous
-370
-9
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Architectural hatch
-1001
-AcCmTransparency
-1071
-33554585
-  0
-LAYER
-  5
-A9
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-ELEV
- 70
-0
- 62
-140
-420
-48121
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Elevations
-  0
-LAYER
-  5
-AA
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-SECT
- 70
-0
- 62
-223
-420
-15817653
-  6
-Continuous
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Sections
-  0
-LAYER
-  5
-AB
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-A-DETAIL
- 70
-0
- 62
-41
-420
-16704576
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Details
   0
 LAYER
   5
@@ -4078,742 +3486,6 @@ Structural hatch (concrete)
 AcCmTransparency
 1071
 33554585
-  0
-LAYER
-  5
-C7
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-SITE
- 70
-0
- 62
-77
-420
-6319160
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Site features
-  0
-LAYER
-  5
-C8
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-BOUNDARY
- 70
-0
- 62
-22
-420
-14429954
-  6
-RNR_BOUNDARY
-370
-50
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Property boundary
-  0
-LAYER
-  5
-C9
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-ROAD
- 70
-0
- 62
-251
-420
-4804695
-  6
-Continuous
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Roads
-  0
-LAYER
-  5
-CA
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-CURB
- 70
-0
- 62
-8
-420
-7107965
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Curbs
-  0
-LAYER
-  5
-CB
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-DRAIN
- 70
-0
- 62
-146
-420
-24435
-  6
-Continuous
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Surface drains
-  0
-LAYER
-  5
-CC
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-GRADE
- 70
-0
- 62
-253
-420
-9753277
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Grading / spot levels
-  0
-LAYER
-  5
-CD
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-CONTOUR
- 70
-0
- 62
-32
-420
-13264642
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Contours
-  0
-LAYER
-  5
-CE
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-UTILITY
- 70
-0
- 62
-24
-420
-11411474
-  6
-RNR_UTILITY
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Underground utilities
-  0
-LAYER
-  5
-CF
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-LANDSCAPE
- 70
-0
- 62
-9
-420
-13424046
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Landscape / hardscape
-  0
-LAYER
-  5
-D0
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-C-TREE
- 70
-0
- 62
-82
-420
-3715072
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Trees and planting
-  0
-LAYER
-  5
-D1
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-P-WATER
- 70
-0
- 62
-150
-420
-38655
-  6
-RNR_WATER
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Water supply
-  0
-LAYER
-  5
-D2
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-P-DRAIN
- 70
-0
- 62
-98
-420
-25600
-  6
-RNR_HIDDEN
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Storm drain pipe
-  0
-LAYER
-  5
-D3
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-P-SANITARY
- 70
-0
- 62
-36
-420
-9127187
-  6
-Continuous
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Sanitary / soil pipe
-  0
-LAYER
-  5
-D4
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-P-PIPE
- 70
-0
- 62
-145
-420
-4620980
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-General piping
-  0
-LAYER
-  5
-D5
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-P-FIXTURE
- 70
-0
- 62
-153
-420
-6591981
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Plumbing fixtures
-  0
-LAYER
-  5
-D6
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-E-LIGHT
- 70
-0
- 62
-40
-420
-16766474
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Lighting
-  0
-LAYER
-  5
-D7
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-E-POWER
- 70
-0
- 62
-20
-420
-16734003
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Power
-  0
-LAYER
-  5
-D8
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-E-SOCKET
- 70
-0
- 62
-242
-420
-13041721
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Sockets
-  0
-LAYER
-  5
-D9
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-E-SWITCH
- 70
-0
- 62
-234
-420
-9440319
-  6
-Continuous
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Switches
-  0
-LAYER
-  5
-DA
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-E-CABLE
- 70
-0
- 62
-229
-420
-5773381
-  6
-RNR_HIDDEN
-370
-18
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Cable runs
-  0
-LAYER
-  5
-DB
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-E-PANEL
- 70
-0
- 62
-40
-420
-16761600
-  6
-Continuous
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-Distribution boards
-  0
-LAYER
-  5
-DC
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-M-DUCT
- 70
-0
- 62
-153
-420
-4756975
-  6
-Continuous
-370
-25
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-HVAC ducts
-  0
-LAYER
-  5
-DD
-330
-1
-100
-AcDbSymbolTableRecord
-100
-AcDbLayerTableRecord
-  2
-M-EQUIP
- 70
-0
- 62
-175
-420
-4143049
-  6
-Continuous
-370
-35
-390
-13
-347
-21
-1001
-AcAecLayerStandard
-1000
-
-1000
-HVAC equipment
   0
 LAYER
   5
@@ -6351,7 +5023,7 @@ AcCmTransparency
   0
 APPID
   5
-1D0
+120
 330
 3
 100
@@ -6365,7 +5037,7 @@ HATCHBACKGROUNDCOLOR
   0
 APPID
   5
-1D1
+121
 330
 3
 100
@@ -6407,7 +5079,7 @@ Standard
  70
 0
  40
-1.0
+100.0
  41
 2.5
  42
@@ -6543,7 +5215,7 @@ EZDXF
  70
 0
  40
-1.0
+100.0
  41
 0.175
  42
@@ -6683,7 +5355,7 @@ EZ_M_100_H25_CM
  70
 0
  40
-1.0
+100.0
  41
 0.25
  42
@@ -6821,7 +5493,7 @@ EZ_M_50_H25_CM
  70
 0
  40
-1.0
+100.0
  41
 0.125
  42
@@ -6959,7 +5631,7 @@ EZ_M_25_H25_CM
  70
 0
  40
-1.0
+100.0
  41
 0.0625
  42
@@ -7097,7 +5769,7 @@ EZ_M_20_H25_CM
  70
 0
  40
-1.0
+100.0
  41
 0.05
  42
@@ -7235,7 +5907,7 @@ EZ_M_10_H25_CM
  70
 0
  40
-1.0
+100.0
  41
 0.025
  42
@@ -7373,7 +6045,7 @@ EZ_M_5_H25_CM
  70
 0
  40
-1.0
+100.0
  41
 0.0125
  42
@@ -7511,7 +6183,7 @@ EZ_M_1_H25_CM
  70
 0
  40
-1.0
+100.0
  41
 0.0025
  42
@@ -7649,7 +6321,7 @@ EZ_RADIUS
  70
 0
  40
-1.0
+100.0
  41
 0.25
  42
@@ -7789,7 +6461,7 @@ EZ_RADIUS_INSIDE
  70
 0
  40
-1.0
+100.0
  41
 0.25
  42
@@ -7929,7 +6601,7 @@ EZ_CURVED
  70
 0
  40
-1.0
+100.0
  41
 0.25
  42
@@ -8481,7 +7153,7 @@ BLOCK_RECORD
 100
 AcDbSymbolTable
  70
-14
+5
   0
 BLOCK_RECORD
   5
@@ -8496,26 +7168,6 @@ AcDbBlockTableRecord
 *Model_Space
 340
 1A
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-1B
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*Paper_Space
-340
-1E
  70
 0
 280
@@ -8585,7 +7237,7 @@ _CLOSEDBLANK
   0
 BLOCK_RECORD
   5
-141
+F2
 330
 9
 100
@@ -8593,169 +7245,9 @@ AcDbSymbolTableRecord
 100
 AcDbBlockTableRecord
   2
-*D1
+*Paper_Space
 340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-146
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-_OBLIQUE
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-154
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D2
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-163
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D3
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-172
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D4
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-181
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D5
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-190
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D6
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-19F
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D7
-340
-0
- 70
-0
-280
-1
-281
-0
-  0
-BLOCK_RECORD
-  5
-1AE
-330
-9
-100
-AcDbSymbolTableRecord
-100
-AcDbBlockTableRecord
-  2
-*D8
-340
-0
+F5
  70
 0
 280
@@ -8802,44 +7294,6 @@ ENDBLK
 19
 330
 17
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-1C
-330
-1B
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*Paper_Space
- 70
-0
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*Paper_Space
-  1
-
-  0
-ENDBLK
-  5
-1D
-330
-1B
 100
 AcDbEntity
   8
@@ -9065,9 +7519,9 @@ AcDbBlockEnd
   0
 BLOCK
   5
-142
+F3
 330
-141
+F2
 100
 AcDbEntity
   8
@@ -9075,245 +7529,7 @@ AcDbEntity
 100
 AcDbBlockBegin
   2
-*D1
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D1
-  1
-
-  0
-LINE
-  5
-144
-330
-141
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-9.184850993605149e-15
- 20
-13150.0
- 30
-0.0
- 11
-7.654042494670958e-15
- 21
-13125.0
- 31
-0.0
-  0
-LINE
-  5
-145
-330
-141
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-4500.0
- 20
-13150.0
- 30
-0.0
- 11
-4500.0
- 21
-13125.0
- 31
-0.0
-  0
-INSERT
-  5
-14A
-330
-141
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-0.0
- 20
-13000.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-INSERT
-  5
-14C
-330
-141
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-4500.0
- 20
-13000.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-LINE
-  5
-14E
-330
-141
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-0.0
- 20
-13000.0
- 30
-0.0
- 11
-4500.0
- 21
-13000.0
- 31
-0.0
-  0
-MTEXT
-  5
-14F
-330
-141
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
-2250.0
- 20
-13205.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-4500
-  7
-RNR_TEXT
-  0
-POINT
-  5
-150
-330
-141
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-0.0
- 20
-13000.0
- 30
-0.0
-  0
-POINT
-  5
-151
-330
-141
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-0.0
- 20
-13000.0
- 30
-0.0
-  0
-POINT
-  5
-152
-330
-141
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-4500.0
- 20
-13000.0
- 30
-0.0
-  0
-ENDBLK
-  5
-143
-330
-141
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-147
-330
-146
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-_OBLIQUE
+*Paper_Space
  70
 0
  10
@@ -9323,1733 +7539,15 @@ _OBLIQUE
  30
 0.0
   3
-_OBLIQUE
+*Paper_Space
   1
 
   0
-LINE
-  5
-149
-330
-146
-100
-AcDbEntity
-  8
-0
-  6
-BYBLOCK
- 62
-0
-100
-AcDbLine
- 10
--0.5
- 20
--0.5
- 30
-0.0
- 11
-0.5
- 21
-0.5
- 31
-0.0
-  0
 ENDBLK
   5
-148
+F4
 330
-146
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-155
-330
-154
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D2
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D2
-  1
-
-  0
-LINE
-  5
-157
-330
-154
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-4500.0
- 20
-13150.0
- 30
-0.0
- 11
-4500.0
- 21
-13125.0
- 31
-0.0
-  0
-LINE
-  5
-158
-330
-154
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-8500.0
- 20
-13150.0
- 30
-0.0
- 11
-8500.0
- 21
-13125.0
- 31
-0.0
-  0
-INSERT
-  5
-159
-330
-154
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-4500.0
- 20
-13000.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-INSERT
-  5
-15B
-330
-154
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-8500.0
- 20
-13000.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-LINE
-  5
-15D
-330
-154
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-4500.0
- 20
-13000.0
- 30
-0.0
- 11
-8500.0
- 21
-13000.0
- 31
-0.0
-  0
-MTEXT
-  5
-15E
-330
-154
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
-6500.0
- 20
-13205.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-4000
-  7
-RNR_TEXT
-  0
-POINT
-  5
-15F
-330
-154
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-4500.0
- 20
-13000.0
- 30
-0.0
-  0
-POINT
-  5
-160
-330
-154
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-4500.0
- 20
-13000.0
- 30
-0.0
-  0
-POINT
-  5
-161
-330
-154
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-8500.0
- 20
-13000.0
- 30
-0.0
-  0
-ENDBLK
-  5
-156
-330
-154
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-164
-330
-163
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D3
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D3
-  1
-
-  0
-LINE
-  5
-166
-330
-163
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-8500.0
- 20
-13150.0
- 30
-0.0
- 11
-8500.0
- 21
-13125.0
- 31
-0.0
-  0
-LINE
-  5
-167
-330
-163
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-13000.0
- 20
-13150.0
- 30
-0.0
- 11
-13000.0
- 21
-13125.0
- 31
-0.0
-  0
-INSERT
-  5
-168
-330
-163
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-8500.0
- 20
-13000.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-INSERT
-  5
-16A
-330
-163
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-13000.0
- 20
-13000.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-LINE
-  5
-16C
-330
-163
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-8500.0
- 20
-13000.0
- 30
-0.0
- 11
-13000.0
- 21
-13000.0
- 31
-0.0
-  0
-MTEXT
-  5
-16D
-330
-163
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
-10750.0
- 20
-13205.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-4500
-  7
-RNR_TEXT
-  0
-POINT
-  5
-16E
-330
-163
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-8500.0
- 20
-13000.0
- 30
-0.0
-  0
-POINT
-  5
-16F
-330
-163
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-8500.0
- 20
-13000.0
- 30
-0.0
-  0
-POINT
-  5
-170
-330
-163
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-13000.0
- 20
-13000.0
- 30
-0.0
-  0
-ENDBLK
-  5
-165
-330
-163
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-173
-330
-172
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D4
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D4
-  1
-
-  0
-LINE
-  5
-175
-330
-172
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-0.0
- 20
-13150.0
- 30
-0.0
- 11
-0.0
- 21
-13825.0
- 31
-0.0
-  0
-LINE
-  5
-176
-330
-172
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-13000.0
- 20
-13150.0
- 30
-0.0
- 11
-13000.0
- 21
-13825.0
- 31
-0.0
-  0
-INSERT
-  5
-177
-330
-172
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-0.0
- 20
-13700.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-INSERT
-  5
-179
-330
-172
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
-13000.0
- 20
-13700.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
-  0
-LINE
-  5
-17B
-330
-172
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
-0.0
- 20
-13700.0
- 30
-0.0
- 11
-13000.0
- 21
-13700.0
- 31
-0.0
-  0
-MTEXT
-  5
-17C
-330
-172
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
-6500.0
- 20
-13905.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-13000
-  7
-RNR_TEXT
-  0
-POINT
-  5
-17D
-330
-172
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-0.0
- 20
-13700.0
- 30
-0.0
-  0
-POINT
-  5
-17E
-330
-172
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-0.0
- 20
-13000.0
- 30
-0.0
-  0
-POINT
-  5
-17F
-330
-172
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
-13000.0
- 20
-13000.0
- 30
-0.0
-  0
-ENDBLK
-  5
-174
-330
-172
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-182
-330
-181
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D5
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D5
-  1
-
-  0
-LINE
-  5
-184
-330
-181
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-1.8369701987210297e-14
- 30
-0.0
- 11
--1625.0
- 21
-1.5308084989341916e-14
- 31
-0.0
-  0
-LINE
-  5
-185
-330
-181
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-4200.0
- 30
-0.0
- 11
--1625.0
- 21
-4200.0
- 31
-0.0
-  0
-INSERT
-  5
-186
-330
-181
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--1500.0
- 20
-0.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-INSERT
-  5
-188
-330
-181
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-LINE
-  5
-18A
-330
-181
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1500.0
- 20
-0.0
- 30
-0.0
- 11
--1500.0
- 21
-4200.0
- 31
-0.0
-  0
-MTEXT
-  5
-18B
-330
-181
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
--1705.0
- 20
-2100.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-4200
-  7
-RNR_TEXT
- 50
-90.0
-  0
-POINT
-  5
-18C
-330
-181
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-0.0
- 30
-0.0
-  0
-POINT
-  5
-18D
-330
-181
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-0.0
- 30
-0.0
-  0
-POINT
-  5
-18E
-330
-181
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
-  0
-ENDBLK
-  5
-183
-330
-181
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-191
-330
-190
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D6
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D6
-  1
-
-  0
-LINE
-  5
-193
-330
-190
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-4200.0
- 30
-0.0
- 11
--1625.0
- 21
-4200.0
- 31
-0.0
-  0
-LINE
-  5
-194
-330
-190
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-7700.0
- 30
-0.0
- 11
--1625.0
- 21
-7700.0
- 31
-0.0
-  0
-INSERT
-  5
-195
-330
-190
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-INSERT
-  5
-197
-330
-190
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-LINE
-  5
-199
-330
-190
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
- 11
--1500.0
- 21
-7700.0
- 31
-0.0
-  0
-MTEXT
-  5
-19A
-330
-190
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
--1705.0
- 20
-5950.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-3500
-  7
-RNR_TEXT
- 50
-90.0
-  0
-POINT
-  5
-19B
-330
-190
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
-  0
-POINT
-  5
-19C
-330
-190
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
-  0
-POINT
-  5
-19D
-330
-190
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
-  0
-ENDBLK
-  5
-192
-330
-190
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-1A0
-330
-19F
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D7
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D7
-  1
-
-  0
-LINE
-  5
-1A2
-330
-19F
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-7700.0
- 30
-0.0
- 11
--1625.0
- 21
-7700.0
- 31
-0.0
-  0
-LINE
-  5
-1A3
-330
-19F
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-11500.0
- 30
-0.0
- 11
--1625.0
- 21
-11500.0
- 31
-0.0
-  0
-INSERT
-  5
-1A4
-330
-19F
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-INSERT
-  5
-1A6
-330
-19F
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--1500.0
- 20
-11500.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-LINE
-  5
-1A8
-330
-19F
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
- 11
--1500.0
- 21
-11500.0
- 31
-0.0
-  0
-MTEXT
-  5
-1A9
-330
-19F
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
--1705.0
- 20
-9600.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-3800
-  7
-RNR_TEXT
- 50
-90.0
-  0
-POINT
-  5
-1AA
-330
-19F
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
-  0
-POINT
-  5
-1AB
-330
-19F
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
-  0
-POINT
-  5
-1AC
-330
-19F
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-11500.0
- 30
-0.0
-  0
-ENDBLK
-  5
-1A1
-330
-19F
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockEnd
-  0
-BLOCK
-  5
-1AF
-330
-1AE
-100
-AcDbEntity
-  8
-0
-100
-AcDbBlockBegin
-  2
-*D8
- 70
-1
- 10
-0.0
- 20
-0.0
- 30
-0.0
-  3
-*D8
-  1
-
-  0
-LINE
-  5
-1B1
-330
-1AE
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-0.0
- 30
-0.0
- 11
--2325.0
- 21
-0.0
- 31
-0.0
-  0
-LINE
-  5
-1B2
-330
-1AE
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--1650.0
- 20
-11500.0
- 30
-0.0
- 11
--2325.0
- 21
-11500.0
- 31
-0.0
-  0
-INSERT
-  5
-1B3
-330
-1AE
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--2200.0
- 20
-0.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-INSERT
-  5
-1B5
-330
-1AE
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbBlockReference
-  2
-_OBLIQUE
- 10
--2200.0
- 20
-11500.0
- 30
-0.0
- 41
-300.0
- 42
-300.0
- 50
-90.0
-  0
-LINE
-  5
-1B7
-330
-1AE
-100
-AcDbEntity
-  8
-0
-100
-AcDbLine
- 10
--2200.0
- 20
-0.0
- 30
-0.0
- 11
--2200.0
- 21
-11500.0
- 31
-0.0
-  0
-MTEXT
-  5
-1B8
-330
-1AE
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbMText
- 10
--2405.0
- 20
-5750.0
- 30
-0.0
- 40
-250.0
- 71
-5
-  1
-11500
-  7
-RNR_TEXT
- 50
-90.0
-  0
-POINT
-  5
-1B9
-330
-1AE
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--2200.0
- 20
-0.0
- 30
-0.0
-  0
-POINT
-  5
-1BA
-330
-1AE
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-0.0
- 30
-0.0
-  0
-POINT
-  5
-1BB
-330
-1AE
-100
-AcDbEntity
-  8
-Defpoints
-100
-AcDbPoint
- 10
--1500.0
- 20
-11500.0
- 30
-0.0
-  0
-ENDBLK
-  5
-1B0
-330
-1AE
+F2
 100
 AcDbEntity
   8
@@ -11063,13 +7561,145 @@ SECTION
   2
 ENTITIES
   0
-LWPOLYLINE
+TEXT
   5
-F2
+11F
 330
 17
 100
 AcDbEntity
+  8
+Z-CONST
+100
+AcDbText
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+ 40
+250.0
+  1
+RooMNRooF STRUCTURAL starter - draw at 1:1 in mm; plot 1:100
+  7
+RNR_TEXT
+100
+AcDbText
+  0
+VIEWPORT
+  5
+F6
+330
+F2
+100
+AcDbEntity
+ 67
+1
+  8
+VIEWPORTS
+100
+AcDbViewport
+ 10
+420.5
+ 20
+297.0
+ 30
+0.0
+ 40
+925.1
+ 41
+653.4000000000001
+ 68
+1
+ 69
+1
+ 12
+420.5
+ 22
+297.0
+ 13
+0.0
+ 23
+0.0
+ 14
+10.0
+ 24
+10.0
+ 15
+10.0
+ 25
+10.0
+ 16
+0.0
+ 26
+0.0
+ 36
+1.0
+ 17
+0.0
+ 27
+0.0
+ 37
+0.0
+ 42
+50.0
+ 43
+0.0
+ 44
+0.0
+ 45
+653.4000000000001
+ 50
+0.0
+ 51
+0.0
+ 72
+100
+ 90
+557088
+  1
+
+281
+0
+ 71
+0
+ 74
+0
+110
+0.0
+120
+0.0
+130
+0.0
+111
+1.0
+121
+0.0
+131
+0.0
+112
+0.0
+122
+1.0
+132
+0.0
+ 79
+0
+146
+0.0
+282
+0
+  0
+LWPOLYLINE
+  5
+F7
+330
+F2
+100
+AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
@@ -11079,29 +7709,31 @@ AcDbPolyline
  70
 1
  10
--10000.0
+0.0
  20
--10000.0
+0.0
  10
-32000.0
+841.0
  20
--10000.0
+0.0
  10
-32000.0
+841.0
  20
-19700.0
+594.0
  10
--10000.0
+0.0
  20
-19700.0
+594.0
   0
 LWPOLYLINE
   5
-F3
+F8
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 370
@@ -11113,29 +7745,31 @@ AcDbPolyline
  70
 1
  10
--8000.0
+20.0
  20
--9000.0
+10.0
  10
-31000.0
+831.0
  20
--9000.0
+10.0
  10
-31000.0
+831.0
  20
-18700.0
+584.0
  10
--8000.0
+20.0
  20
-18700.0
+584.0
   0
 LWPOLYLINE
   5
-F4
+F9
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 370
@@ -11147,281 +7781,111 @@ AcDbPolyline
  70
 1
  10
-13000.0
+651.0
  20
--9000.0
+10.0
  10
-31000.0
+831.0
  20
--9000.0
+10.0
  10
-31000.0
+831.0
  20
--2000.0
+80.0
  10
-13000.0
+651.0
  20
--2000.0
+80.0
   0
 LINE
   5
-F5
+FA
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbLine
  10
-13000.0
+651.0
  20
--3000.0
+70.0
  30
 0.0
  11
-31000.0
+831.0
  21
--3000.0
+70.0
  31
 0.0
   0
 TEXT
   5
-F6
+FB
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13200.0
+653.0
  20
--2250.0
+77.5
  30
 0.0
  40
-180.0
+1.8
   1
 PROJECT
   7
 RNR_TEXT
  11
-13200.0
+653.0
  21
--2250.0
+77.5
  31
 0.0
 100
 AcDbText
-  0
-TEXT
-  5
-F7
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbText
- 10
-16200.0
- 20
--2850.0
- 30
-0.0
- 40
-300.0
-  1
-RooMNRooF SAMPLE RESIDENCE, DHAKA
-  7
-RNR_TEXT
- 11
-16200.0
- 21
--2850.0
- 31
-0.0
-100
-AcDbText
-  0
-LINE
-  5
-F8
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbLine
- 10
-13000.0
- 20
--4000.0
- 30
-0.0
- 11
-31000.0
- 21
--4000.0
- 31
-0.0
-  0
-TEXT
-  5
-F9
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbText
- 10
-13200.0
- 20
--3250.0
- 30
-0.0
- 40
-180.0
-  1
-CLIENT
-  7
-RNR_TEXT
- 11
-13200.0
- 21
--3250.0
- 31
-0.0
-100
-AcDbText
-  0
-TEXT
-  5
-FA
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbText
- 10
-16200.0
- 20
--3850.0
- 30
-0.0
- 40
-300.0
-  1
-SAMPLE CLIENT
-  7
-RNR_TEXT
- 11
-16200.0
- 21
--3850.0
- 31
-0.0
-100
-AcDbText
-  0
-LINE
-  5
-FB
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbLine
- 10
-13000.0
- 20
--5000.0
- 30
-0.0
- 11
-31000.0
- 21
--5000.0
- 31
-0.0
   0
 TEXT
   5
 FC
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13200.0
+683.0
  20
--4250.0
+71.5
  30
 0.0
  40
-180.0
+3.0
   1
-CONSULTANT
+<PROJECT NAME>
   7
 RNR_TEXT
  11
-13200.0
+683.0
  21
--4250.0
- 31
-0.0
-100
-AcDbText
-  0
-TEXT
-  5
-FD
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbText
- 10
-16200.0
- 20
--4850.0
- 30
-0.0
- 40
-300.0
-  1
-RooMNRooF CAD PRO (SAMPLE)
-  7
-RNR_TEXT
- 11
-16200.0
- 21
--4850.0
+71.5
  31
 0.0
 100
@@ -11429,55 +7893,153 @@ AcDbText
   0
 LINE
   5
-FE
+FD
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbLine
  10
-13000.0
+651.0
  20
--6000.0
+60.0
  30
 0.0
  11
-31000.0
+831.0
  21
--6000.0
+60.0
  31
 0.0
+  0
+TEXT
+  5
+FE
+330
+F2
+100
+AcDbEntity
+ 67
+1
+  8
+ANNO-TITLE
+100
+AcDbText
+ 10
+653.0
+ 20
+67.5
+ 30
+0.0
+ 40
+1.8
+  1
+CLIENT
+  7
+RNR_TEXT
+ 11
+653.0
+ 21
+67.5
+ 31
+0.0
+100
+AcDbText
   0
 TEXT
   5
 FF
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13200.0
+683.0
  20
--5250.0
+61.5
  30
 0.0
  40
-180.0
+3.0
   1
-DRAWING TITLE
+<CLIENT>
   7
 RNR_TEXT
  11
-13200.0
+683.0
  21
--5250.0
+61.5
+ 31
+0.0
+100
+AcDbText
+  0
+LINE
+  5
+100
+330
+F2
+100
+AcDbEntity
+ 67
+1
+  8
+ANNO-TITLE
+100
+AcDbLine
+ 10
+651.0
+ 20
+50.0
+ 30
+0.0
+ 11
+831.0
+ 21
+50.0
+ 31
+0.0
+  0
+TEXT
+  5
+101
+330
+F2
+100
+AcDbEntity
+ 67
+1
+  8
+ANNO-TITLE
+100
+AcDbText
+ 10
+653.0
+ 20
+57.5
+ 30
+0.0
+ 40
+1.8
+  1
+CONSULTANT
+  7
+RNR_TEXT
+ 11
+653.0
+ 21
+57.5
  31
 0.0
 100
@@ -11485,319 +8047,265 @@ AcDbText
   0
 TEXT
   5
-100
+102
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-16200.0
+683.0
  20
--5850.0
+51.5
  30
 0.0
  40
-300.0
+3.0
   1
-ROOF PLAN
+<CONSULTANT>
   7
 RNR_TEXT
  11
-16200.0
+683.0
  21
--5850.0
+51.5
  31
 0.0
 100
 AcDbText
-  0
-LINE
-  5
-101
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbLine
- 10
-19000.0
- 20
--9000.0
- 30
-0.0
- 11
-19000.0
- 21
--6000.0
- 31
-0.0
-  0
-LINE
-  5
-102
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TITLE
-100
-AcDbLine
- 10
-25000.0
- 20
--9000.0
- 30
-0.0
- 11
-25000.0
- 21
--6000.0
- 31
-0.0
   0
 LINE
   5
 103
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbLine
  10
-13000.0
+651.0
  20
--8000.0
+40.0
  30
 0.0
  11
-31000.0
+831.0
  21
--8000.0
+40.0
  31
 0.0
   0
-LINE
+TEXT
   5
 104
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
-AcDbLine
+AcDbText
  10
-13000.0
+653.0
  20
--7000.0
+47.5
  30
 0.0
+ 40
+1.8
+  1
+DRAWING TITLE
+  7
+RNR_TEXT
  11
-31000.0
+653.0
  21
--7000.0
+47.5
  31
 0.0
+100
+AcDbText
   0
 TEXT
   5
 105
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13150.0
+683.0
  20
--6230.0
+41.5
  30
 0.0
  40
-180.0
+3.0
   1
-DWG NO
+STRUCTURAL DRAWING TITLE
   7
 RNR_TEXT
  11
-13150.0
+683.0
  21
--6230.0
+41.5
  31
 0.0
 100
 AcDbText
   0
-TEXT
+LINE
   5
 106
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
-AcDbText
+AcDbLine
  10
-13150.0
+711.0
  20
--6880.0
+10.0
  30
 0.0
- 40
-250.0
-  1
-A-104
-  7
-RNR_TEXT
  11
-13150.0
+711.0
  21
--6880.0
+40.0
  31
 0.0
-100
-AcDbText
   0
-TEXT
+LINE
   5
 107
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
-AcDbText
+AcDbLine
  10
-19150.0
+771.0
  20
--6230.0
+10.0
  30
 0.0
- 40
-180.0
-  1
-REV
-  7
-RNR_TEXT
  11
-19150.0
+771.0
  21
--6230.0
+40.0
  31
 0.0
-100
-AcDbText
   0
-TEXT
+LINE
   5
 108
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
-AcDbText
+AcDbLine
  10
-19150.0
+651.0
  20
--6880.0
+20.0
  30
 0.0
- 40
-250.0
-  1
-P0
-  7
-RNR_TEXT
  11
-19150.0
+831.0
  21
--6880.0
+20.0
  31
 0.0
-100
-AcDbText
   0
-TEXT
+LINE
   5
 109
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
-AcDbText
+AcDbLine
  10
-25150.0
+651.0
  20
--6230.0
+30.0
  30
 0.0
- 40
-180.0
-  1
-SHEET
-  7
-RNR_TEXT
  11
-25150.0
+831.0
  21
--6230.0
+30.0
  31
 0.0
-100
-AcDbText
   0
 TEXT
   5
 10A
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-25150.0
+652.5
  20
--6880.0
+37.7
  30
 0.0
  40
-250.0
+1.8
   1
-A3
+DWG NO
   7
 RNR_TEXT
  11
-25150.0
+652.5
  21
--6880.0
+37.7
  31
 0.0
 100
@@ -11807,29 +8315,31 @@ TEXT
   5
 10B
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13150.0
+652.5
  20
--7230.0
+31.2
  30
 0.0
  40
-180.0
+2.5
   1
-DATE
+S-000
   7
 RNR_TEXT
  11
-13150.0
+652.5
  21
--7230.0
+31.2
  31
 0.0
 100
@@ -11839,29 +8349,31 @@ TEXT
   5
 10C
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13150.0
+712.5
  20
--7880.0
+37.7
  30
 0.0
  40
-250.0
+1.8
   1
-SAMPLE
+REV
   7
 RNR_TEXT
  11
-13150.0
+712.5
  21
--7880.0
+37.7
  31
 0.0
 100
@@ -11871,29 +8383,31 @@ TEXT
   5
 10D
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-19150.0
+712.5
  20
--7230.0
+31.2
  30
 0.0
  40
-180.0
+2.5
   1
-SCALE
+P0
   7
 RNR_TEXT
  11
-19150.0
+712.5
  21
--7230.0
+31.2
  31
 0.0
 100
@@ -11903,29 +8417,31 @@ TEXT
   5
 10E
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-19150.0
+772.5
  20
--7880.0
+37.7
  30
 0.0
  40
-250.0
+1.8
   1
-1:100
+SHEET
   7
 RNR_TEXT
  11
-19150.0
+772.5
  21
--7880.0
+37.7
  31
 0.0
 100
@@ -11935,29 +8451,31 @@ TEXT
   5
 10F
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-25150.0
+772.5
  20
--7230.0
+31.2
  30
 0.0
  40
-180.0
+2.5
   1
-DRAWN
+A1
   7
 RNR_TEXT
  11
-25150.0
+772.5
  21
--7230.0
+31.2
  31
 0.0
 100
@@ -11967,29 +8485,31 @@ TEXT
   5
 110
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-25150.0
+652.5
  20
--7880.0
+27.7
  30
 0.0
  40
-250.0
+1.8
   1
-RNR
+DATE
   7
 RNR_TEXT
  11
-25150.0
+652.5
  21
--7880.0
+27.7
  31
 0.0
 100
@@ -11999,29 +8519,31 @@ TEXT
   5
 111
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13150.0
+652.5
  20
--8230.0
+21.2
  30
 0.0
  40
-180.0
+2.5
   1
-CHECKED
+-
   7
 RNR_TEXT
  11
-13150.0
+652.5
  21
--8230.0
+21.2
  31
 0.0
 100
@@ -12031,29 +8553,31 @@ TEXT
   5
 112
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13150.0
+712.5
  20
--8880.0
+27.7
  30
 0.0
  40
-250.0
+1.8
   1
--
+SCALE
   7
 RNR_TEXT
  11
-13150.0
+712.5
  21
--8880.0
+27.7
  31
 0.0
 100
@@ -12063,29 +8587,31 @@ TEXT
   5
 113
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-19150.0
+712.5
  20
--8230.0
+21.2
  30
 0.0
  40
-180.0
+2.5
   1
-APPROVED
+1:100
   7
 RNR_TEXT
  11
-19150.0
+712.5
  21
--8230.0
+21.2
  31
 0.0
 100
@@ -12095,29 +8621,31 @@ TEXT
   5
 114
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-19150.0
+772.5
  20
--8880.0
+27.7
  30
 0.0
  40
-250.0
+1.8
   1
--
+DRAWN
   7
 RNR_TEXT
  11
-19150.0
+772.5
  21
--8880.0
+27.7
  31
 0.0
 100
@@ -12127,29 +8655,31 @@ TEXT
   5
 115
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-25150.0
+772.5
  20
--8230.0
+21.2
  30
 0.0
  40
-180.0
+2.5
   1
-STATUS
+RNR
   7
 RNR_TEXT
  11
-25150.0
+772.5
  21
--8230.0
+21.2
  31
 0.0
 100
@@ -12159,29 +8689,31 @@ TEXT
   5
 116
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-25150.0
+652.5
  20
--8880.0
+17.7
  30
 0.0
  40
-180.0
+1.8
   1
-SAMPLE - NOT FOR CONSTRUCTION
+CHECKED
   7
 RNR_TEXT
  11
-25150.0
+652.5
  21
--8880.0
+17.7
  31
 0.0
 100
@@ -12191,2247 +8723,339 @@ TEXT
   5
 117
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
 ANNO-TITLE
 100
 AcDbText
  10
-13000.0
+652.5
  20
--1700.0
+11.2
  30
 0.0
  40
-180.0
+2.5
   1
-ARCHITECTURAL | CAD drafting sample. Engineering content subject to review by the responsible engineer.
+-
   7
 RNR_TEXT
  11
-13000.0
+652.5
  21
--1700.0
+11.2
  31
 0.0
 100
 AcDbText
   0
-LINE
+TEXT
   5
 118
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
-S-GRID
+ANNO-TITLE
 100
-AcDbLine
+AcDbText
  10
-0.0
+712.5
  20
--1500.0
- 30
-0.0
- 11
-0.0
- 21
-13000.0
- 31
-0.0
-  0
-CIRCLE
-  5
-119
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-0.0
- 20
-13500.0
+17.7
  30
 0.0
  40
-500.0
+1.8
+  1
+APPROVED
+  7
+RNR_TEXT
+ 11
+712.5
+ 21
+17.7
+ 31
+0.0
+100
+AcDbText
+  0
+TEXT
+  5
+119
+330
+F2
+100
+AcDbEntity
+ 67
+1
+  8
+ANNO-TITLE
+100
+AcDbText
+ 10
+712.5
+ 20
+11.2
+ 30
+0.0
+ 40
+2.5
+  1
+-
+  7
+RNR_TEXT
+ 11
+712.5
+ 21
+11.2
+ 31
+0.0
+100
+AcDbText
   0
 TEXT
   5
 11A
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
-ANNO-GRID
+ANNO-TITLE
 100
 AcDbText
  10
-0.0
+772.5
  20
-13500.0
+17.7
  30
 0.0
  40
-400.0
+1.8
   1
-A
+STATUS
   7
 RNR_TEXT
- 72
-1
  11
-0.0
+772.5
  21
-13500.0
+17.7
  31
 0.0
 100
 AcDbText
- 73
-2
   0
-CIRCLE
+TEXT
   5
 11B
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
-ANNO-GRID
+ANNO-TITLE
 100
-AcDbCircle
+AcDbText
  10
-0.0
+772.5
  20
--2000.0
+11.2
  30
 0.0
  40
-500.0
+1.8
+  1
+PRELIMINARY
+  7
+RNR_TEXT
+ 11
+772.5
+ 21
+11.2
+ 31
+0.0
+100
+AcDbText
   0
 TEXT
   5
 11C
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
-ANNO-GRID
+ANNO-TITLE
 100
 AcDbText
  10
-0.0
+651.0
  20
--2000.0
+83.0
  30
 0.0
  40
-400.0
+1.8
   1
-A
+STRUCTURAL | CAD drafting sample. Engineering content subject to review by the responsible engineer.
   7
 RNR_TEXT
- 72
-1
  11
-0.0
+651.0
  21
--2000.0
+83.0
  31
 0.0
 100
 AcDbText
- 73
-2
   0
-LINE
+VIEWPORT
   5
 11D
 330
-17
+F2
 100
 AcDbEntity
+ 67
+1
   8
-S-GRID
+Z-VPORT
 100
-AcDbLine
+AcDbViewport
  10
-4500.0
+335.5
  20
--1500.0
+297.0
  30
 0.0
- 11
-4500.0
- 21
-13000.0
- 31
+ 40
+621.0
+ 41
+564.0
+ 68
+2
+ 69
+3
+ 12
+31050.0
+ 22
+28200.0
+ 13
 0.0
+ 23
+0.0
+ 14
+10.0
+ 24
+10.0
+ 15
+10.0
+ 25
+10.0
+ 16
+0.0
+ 26
+0.0
+ 36
+1.0
+ 17
+0.0
+ 27
+0.0
+ 37
+0.0
+ 42
+50.0
+ 43
+0.0
+ 44
+0.0
+ 45
+56400.0
+ 50
+0.0
+ 51
+0.0
+ 72
+100
+ 90
+0
+  1
+
+281
+0
+ 71
+0
+ 74
+0
+110
+0.0
+120
+0.0
+130
+0.0
+111
+1.0
+121
+0.0
+131
+0.0
+112
+0.0
+122
+1.0
+132
+0.0
+ 79
+0
+146
+0.0
+282
+0
   0
-CIRCLE
+TEXT
   5
 11E
 330
-17
+F2
 100
 AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-4500.0
- 20
-13500.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-11F
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-4500.0
- 20
-13500.0
- 30
-0.0
- 40
-400.0
-  1
-B
-  7
-RNR_TEXT
- 72
+ 67
 1
- 11
-4500.0
- 21
-13500.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-120
-330
-17
-100
-AcDbEntity
   8
-ANNO-GRID
-100
-AcDbCircle
- 10
-4500.0
- 20
--2000.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-121
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
+Z-VPORT
 100
 AcDbText
  10
-4500.0
+27.0
  20
--2000.0
+17.0
  30
 0.0
  40
-400.0
+2.0
   1
-B
-  7
-RNR_TEXT
- 72
-1
- 11
-4500.0
- 21
--2000.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LINE
-  5
-122
-330
-17
-100
-AcDbEntity
-  8
-S-GRID
-100
-AcDbLine
- 10
-8500.0
- 20
--1500.0
- 30
-0.0
- 11
-8500.0
- 21
-13000.0
- 31
-0.0
-  0
-CIRCLE
-  5
-123
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-8500.0
- 20
-13500.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-124
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-8500.0
- 20
-13500.0
- 30
-0.0
- 40
-400.0
-  1
-C
-  7
-RNR_TEXT
- 72
-1
- 11
-8500.0
- 21
-13500.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-125
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-8500.0
- 20
--2000.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-126
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-8500.0
- 20
--2000.0
- 30
-0.0
- 40
-400.0
-  1
-C
-  7
-RNR_TEXT
- 72
-1
- 11
-8500.0
- 21
--2000.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LINE
-  5
-127
-330
-17
-100
-AcDbEntity
-  8
-S-GRID
-100
-AcDbLine
- 10
-13000.0
- 20
--1500.0
- 30
-0.0
- 11
-13000.0
- 21
-13000.0
- 31
-0.0
-  0
-CIRCLE
-  5
-128
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-13000.0
- 20
-13500.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-129
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-13000.0
- 20
-13500.0
- 30
-0.0
- 40
-400.0
-  1
-D
-  7
-RNR_TEXT
- 72
-1
- 11
-13000.0
- 21
-13500.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-12A
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-13000.0
- 20
--2000.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-12B
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-13000.0
- 20
--2000.0
- 30
-0.0
- 40
-400.0
-  1
-D
-  7
-RNR_TEXT
- 72
-1
- 11
-13000.0
- 21
--2000.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LINE
-  5
-12C
-330
-17
-100
-AcDbEntity
-  8
-S-GRID
-100
-AcDbLine
- 10
--1500.0
- 20
-0.0
- 30
-0.0
- 11
-14500.0
- 21
-0.0
- 31
-0.0
-  0
-CIRCLE
-  5
-12D
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
--2000.0
- 20
-0.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-12E
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
--2000.0
- 20
-0.0
- 30
-0.0
- 40
-400.0
-  1
-1
-  7
-RNR_TEXT
- 72
-1
- 11
--2000.0
- 21
-0.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-12F
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-15000.0
- 20
-0.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-130
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-15000.0
- 20
-0.0
- 30
-0.0
- 40
-400.0
-  1
-1
-  7
-RNR_TEXT
- 72
-1
- 11
-15000.0
- 21
-0.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LINE
-  5
-131
-330
-17
-100
-AcDbEntity
-  8
-S-GRID
-100
-AcDbLine
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
- 11
-14500.0
- 21
-4200.0
- 31
-0.0
-  0
-CIRCLE
-  5
-132
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
--2000.0
- 20
-4200.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-133
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
--2000.0
- 20
-4200.0
- 30
-0.0
- 40
-400.0
-  1
-2
-  7
-RNR_TEXT
- 72
-1
- 11
--2000.0
- 21
-4200.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-134
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-15000.0
- 20
-4200.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-135
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-15000.0
- 20
-4200.0
- 30
-0.0
- 40
-400.0
-  1
-2
-  7
-RNR_TEXT
- 72
-1
- 11
-15000.0
- 21
-4200.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LINE
-  5
-136
-330
-17
-100
-AcDbEntity
-  8
-S-GRID
-100
-AcDbLine
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
- 11
-14500.0
- 21
-7700.0
- 31
-0.0
-  0
-CIRCLE
-  5
-137
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
--2000.0
- 20
-7700.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-138
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
--2000.0
- 20
-7700.0
- 30
-0.0
- 40
-400.0
-  1
-3
-  7
-RNR_TEXT
- 72
-1
- 11
--2000.0
- 21
-7700.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-139
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-15000.0
- 20
-7700.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-13A
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-15000.0
- 20
-7700.0
- 30
-0.0
- 40
-400.0
-  1
-3
-  7
-RNR_TEXT
- 72
-1
- 11
-15000.0
- 21
-7700.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LINE
-  5
-13B
-330
-17
-100
-AcDbEntity
-  8
-S-GRID
-100
-AcDbLine
- 10
--1500.0
- 20
-11500.0
- 30
-0.0
- 11
-14500.0
- 21
-11500.0
- 31
-0.0
-  0
-CIRCLE
-  5
-13C
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
--2000.0
- 20
-11500.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-13D
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
--2000.0
- 20
-11500.0
- 30
-0.0
- 40
-400.0
-  1
-4
-  7
-RNR_TEXT
- 72
-1
- 11
--2000.0
- 21
-11500.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-13E
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbCircle
- 10
-15000.0
- 20
-11500.0
- 30
-0.0
- 40
-500.0
-  0
-TEXT
-  5
-13F
-330
-17
-100
-AcDbEntity
-  8
-ANNO-GRID
-100
-AcDbText
- 10
-15000.0
- 20
-11500.0
- 30
-0.0
- 40
-400.0
-  1
-4
-  7
-RNR_TEXT
- 72
-1
- 11
-15000.0
- 21
-11500.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-DIMENSION
-  5
-140
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D1
-  3
-RNR_STRUCT
- 10
-0.0
- 20
-13000.0
- 30
-0.0
- 11
-2250.0
- 21
-13205.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
-0.0
- 23
-13000.0
- 33
-0.0
- 14
-4500.0
- 24
-13000.0
- 34
-0.0
- 50
-0.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-DIMENSION
-  5
-153
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D2
-  3
-RNR_STRUCT
- 10
-4500.0
- 20
-13000.0
- 30
-0.0
- 11
-6500.0
- 21
-13205.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
-4500.0
- 23
-13000.0
- 33
-0.0
- 14
-8500.0
- 24
-13000.0
- 34
-0.0
- 50
-0.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-DIMENSION
-  5
-162
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D3
-  3
-RNR_STRUCT
- 10
-8500.0
- 20
-13000.0
- 30
-0.0
- 11
-10750.0
- 21
-13205.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
-8500.0
- 23
-13000.0
- 33
-0.0
- 14
-13000.0
- 24
-13000.0
- 34
-0.0
- 50
-0.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-DIMENSION
-  5
-171
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D4
-  3
-RNR_STRUCT
- 10
-0.0
- 20
-13700.0
- 30
-0.0
- 11
-6500.0
- 21
-13905.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
-0.0
- 23
-13000.0
- 33
-0.0
- 14
-13000.0
- 24
-13000.0
- 34
-0.0
- 50
-0.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-DIMENSION
-  5
-180
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D5
-  3
-RNR_STRUCT
- 10
--1500.0
- 20
-0.0
- 30
-0.0
- 11
--1705.0
- 21
-2100.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
--1500.0
- 23
-0.0
- 33
-0.0
- 14
--1500.0
- 24
-4200.0
- 34
-0.0
- 50
-90.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-DIMENSION
-  5
-18F
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D6
-  3
-RNR_STRUCT
- 10
--1500.0
- 20
-4200.0
- 30
-0.0
- 11
--1705.0
- 21
-5950.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
--1500.0
- 23
-4200.0
- 33
-0.0
- 14
--1500.0
- 24
-7700.0
- 34
-0.0
- 50
-90.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-DIMENSION
-  5
-19E
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D7
-  3
-RNR_STRUCT
- 10
--1500.0
- 20
-7700.0
- 30
-0.0
- 11
--1705.0
- 21
-9600.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
--1500.0
- 23
-7700.0
- 33
-0.0
- 14
--1500.0
- 24
-11500.0
- 34
-0.0
- 50
-90.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-DIMENSION
-  5
-1AD
-330
-17
-100
-AcDbEntity
-  8
-ANNO-DIMS
-100
-AcDbDimension
-280
-0
-  2
-*D8
-  3
-RNR_STRUCT
- 10
--2200.0
- 20
-0.0
- 30
-0.0
- 11
--2405.0
- 21
-5750.0
- 31
-0.0
- 70
-32
- 71
-5
-  1
-<>
-100
-AcDbAlignedDimension
- 13
--1500.0
- 23
-0.0
- 33
-0.0
- 14
--1500.0
- 24
-11500.0
- 34
-0.0
- 50
-90.0
-100
-AcDbRotatedDimension
-1001
-ACAD
-1000
-DSTYLE
-1002
-{
-1070
-40
-1040
-100.0
-1002
-}
-  0
-LWPOLYLINE
-  5
-1BC
-330
-17
-100
-AcDbEntity
-  8
-A-ROOF
-100
-AcDbPolyline
- 90
-4
- 70
-1
- 10
--125.0
- 20
--125.0
- 10
-13125.0
- 20
--125.0
- 10
-13125.0
- 20
-11625.0
- 10
--125.0
- 20
-11625.0
-  0
-LWPOLYLINE
-  5
-1BD
-330
-17
-100
-AcDbEntity
-  8
-A-ROOF
-100
-AcDbPolyline
- 90
-4
- 70
-1
- 10
-125.0
- 20
-125.0
- 10
-12875.0
- 20
-125.0
- 10
-12875.0
- 20
-11375.0
- 10
-125.0
- 20
-11375.0
-  0
-TEXT
-  5
-1BE
-330
-17
-100
-AcDbEntity
-  8
-A-TEXT
-100
-AcDbText
- 10
-6500.0
- 20
-12100.0
- 30
-0.0
- 40
-250.0
-  1
-125 PARAPET WALL 1000 HIGH
-  7
-RNR_TEXT
- 72
-1
- 11
-6500.0
- 21
-12100.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LWPOLYLINE
-  5
-1BF
-330
-17
-100
-AcDbEntity
-  8
-A-ROOF
-100
-AcDbPolyline
- 90
-4
- 70
-1
- 10
-4500.0
- 20
-4200.0
- 10
-8500.0
- 20
-4200.0
- 10
-8500.0
- 20
-7700.0
- 10
-4500.0
- 20
-7700.0
-  0
-TEXT
-  5
-1C0
-330
-17
-100
-AcDbEntity
-  8
-A-TEXT
-100
-AcDbText
- 10
-6500.0
- 20
-5950.0
- 30
-0.0
- 40
-250.0
-  1
-STAIR COVER (MUMTY)
-  7
-RNR_TEXT
- 72
-1
- 11
-6500.0
- 21
-5950.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-LWPOLYLINE
-  5
-1C1
-330
-17
-100
-AcDbEntity
-  8
-S-TANK
-100
-AcDbPolyline
- 90
-4
- 70
-1
- 10
-9300.0
- 20
-8500.0
- 10
-11800.0
- 20
-8500.0
- 10
-11800.0
- 20
-10500.0
- 10
-9300.0
- 20
-10500.0
-  0
-TEXT
-  5
-1C2
-330
-17
-100
-AcDbEntity
-  8
-A-TEXT
-100
-AcDbText
- 10
-10550.0
- 20
-9500.0
- 30
-0.0
- 40
-220.00000000000003
-  1
-OVERHEAD WATER TANK
-  7
-RNR_TEXT
- 72
-1
- 11
-10550.0
- 21
-9500.0
- 31
-0.0
-100
-AcDbText
- 73
-2
-  0
-CIRCLE
-  5
-1C3
-330
-17
-100
-AcDbEntity
-  8
-P-DRAIN
-100
-AcDbCircle
- 10
-600.0
- 20
-600.0
- 30
-0.0
- 40
-120.0
-  0
-TEXT
-  5
-1C4
-330
-17
-100
-AcDbEntity
-  8
-P-DRAIN
-100
-AcDbText
- 10
-850.0
- 20
-600.0
- 30
-0.0
- 40
-200.0
-  1
-RWP 100
+VIEWPORT 1:100
   7
 RNR_TEXT
  11
-850.0
+27.0
  21
-600.0
- 31
-0.0
-100
-AcDbText
-  0
-CIRCLE
-  5
-1C5
-330
-17
-100
-AcDbEntity
-  8
-P-DRAIN
-100
-AcDbCircle
- 10
-12400.0
- 20
-600.0
- 30
-0.0
- 40
-120.0
-  0
-TEXT
-  5
-1C6
-330
-17
-100
-AcDbEntity
-  8
-P-DRAIN
-100
-AcDbText
- 10
-12650.0
- 20
-600.0
- 30
-0.0
- 40
-200.0
-  1
-RWP 100
-  7
-RNR_TEXT
- 11
-12650.0
- 21
-600.0
- 31
-0.0
-100
-AcDbText
-  0
-LWPOLYLINE
-  5
-1C7
-330
-17
-100
-AcDbEntity
-  8
-A-ROOF
-100
-AcDbPolyline
- 90
-2
- 70
-0
- 10
-3000.0
- 20
-10000.0
- 10
-3000.0
- 20
-1500.0
-  0
-LWPOLYLINE
-  5
-1C8
-330
-17
-100
-AcDbEntity
-  8
-A-ROOF
-100
-AcDbPolyline
- 90
-3
- 70
-0
- 10
-2850.0
- 20
-1800.0
- 10
-3000.0
- 20
-1500.0
- 10
-3150.0
- 20
-1800.0
-  0
-TEXT
-  5
-1C9
-330
-17
-100
-AcDbEntity
-  8
-A-TEXT
-100
-AcDbText
- 10
-3200.0
- 20
-5750.0
- 30
-0.0
- 40
-200.0
-  1
-SLOPE 1:100
- 50
-90.0
-  7
-RNR_TEXT
- 11
-3200.0
- 21
-5750.0
- 31
-0.0
-100
-AcDbText
-  0
-LWPOLYLINE
-  5
-1CA
-330
-17
-100
-AcDbEntity
-  8
-A-ROOF
-100
-AcDbPolyline
- 90
-2
- 70
-0
- 10
-10000.0
- 20
-10000.0
- 10
-10000.0
- 20
-1500.0
-  0
-LWPOLYLINE
-  5
-1CB
-330
-17
-100
-AcDbEntity
-  8
-A-ROOF
-100
-AcDbPolyline
- 90
-3
- 70
-0
- 10
-9850.0
- 20
-1800.0
- 10
-10000.0
- 20
-1500.0
- 10
-10150.0
- 20
-1800.0
-  0
-TEXT
-  5
-1CC
-330
-17
-100
-AcDbEntity
-  8
-A-TEXT
-100
-AcDbText
- 10
-10200.0
- 20
-5750.0
- 30
-0.0
- 40
-200.0
-  1
-SLOPE 1:100
- 50
-90.0
-  7
-RNR_TEXT
- 11
-10200.0
- 21
-5750.0
- 31
-0.0
-100
-AcDbText
-  0
-TEXT
-  5
-1CD
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TEXT
-100
-AcDbText
- 10
-0.0
- 20
--4000.0
- 30
-0.0
- 40
-500.0
-  1
-ROOF PLAN
-  7
-RNR_HEADING
- 11
-0.0
- 21
--4000.0
- 31
-0.0
-100
-AcDbText
-  0
-LINE
-  5
-1CE
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TEXT
-370
-50
-100
-AcDbLine
- 10
-0.0
- 20
--4250.0
- 30
-0.0
- 11
-3780.0
- 21
--4250.0
- 31
-0.0
-  0
-TEXT
-  5
-1CF
-330
-17
-100
-AcDbEntity
-  8
-ANNO-TEXT
-100
-AcDbText
- 10
-0.0
- 20
--4800.0
- 30
-0.0
- 40
-250.0
-  1
-SCALE 1:100
-  7
-RNR_TEXT
- 11
-0.0
- 21
--4800.0
+17.0
  31
 0.0
 100
@@ -14535,9 +9159,9 @@ Model
 350
 1A
   3
-Layout1
+A1-STRUCTURAL
 350
-1E
+F5
   0
 DICTIONARY
   5
@@ -14876,130 +9500,6 @@ Model
 1
 330
 17
-  0
-LAYOUT
-  5
-1E
-330
-D
-100
-AcDbPlotSettings
-  1
-
-  4
-A3
-  6
-
- 40
-7.5
- 41
-20.0
- 42
-7.5
- 43
-20.0
- 44
-420.0
- 45
-297.0
- 46
-0.0
- 47
-0.0
- 48
-0.0
- 49
-0.0
-140
-0.0
-141
-0.0
-142
-1.0
-143
-1.0
- 70
-0
- 72
-1
- 73
-0
- 74
-5
-  7
-
- 75
-16
- 76
-0
- 77
-2
- 78
-300
-147
-1.0
-148
-0.0
-149
-0.0
-100
-AcDbLayout
-  1
-Layout1
- 70
-1
- 71
-1
- 10
-0.0
- 20
-0.0
- 11
-420.0
- 21
-297.0
- 12
-0.0
- 22
-0.0
- 32
-0.0
- 14
-1e+20
- 24
-1e+20
- 34
-1e+20
- 15
--1e+20
- 25
--1e+20
- 35
--1e+20
-146
-0.0
- 13
-0.0
- 23
-0.0
- 33
-0.0
- 16
-1.0
- 26
-0.0
- 36
-0.0
- 17
-0.0
- 27
-1.0
- 37
-0.0
- 76
-1
-330
-1B
   0
 MATERIAL
   5
@@ -15527,7 +10027,7 @@ CREATED_BY_EZDXF
   3
 WRITTEN_BY_EZDXF
 350
-1D2
+122
   0
 DICTIONARYVAR
   5
@@ -15539,7 +10039,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-09-30T16:43:43.224243+00:00
+1.4.4 @ 2026-09-30T16:43:42.640148+00:00
   0
 VISUALSTYLE
   5
@@ -22091,9 +16591,137 @@ strokes_ogs.tif
 176
 1
   0
+LAYOUT
+  5
+F5
+330
+D
+100
+AcDbPlotSettings
+  1
+
+  2
+DWG To PDF.pc3
+  4
+ezdxf_(841.00_x_594.00_MM)
+  6
+
+ 40
+0.0
+ 41
+0.0
+ 42
+0.0
+ 43
+0.0
+ 44
+841.0
+ 45
+594.0
+ 46
+0.0
+ 47
+0.0
+ 48
+0.0
+ 49
+0.0
+140
+0.0
+141
+0.0
+142
+1.0
+143
+1.0
+ 70
+672
+ 72
+1
+ 73
+0
+ 74
+5
+  7
+
+ 75
+16
+ 76
+0
+ 77
+2
+ 78
+300
+147
+1.0
+148
+0.0
+149
+0.0
+100
+AcDbLayout
+  1
+A1-STRUCTURAL
+ 70
+1
+ 71
+3
+ 10
+-0.0
+ 20
+-0.0
+ 11
+841.0
+ 21
+594.0
+ 12
+0.0
+ 22
+0.0
+ 32
+0.0
+ 14
+1e+20
+ 24
+1e+20
+ 34
+1e+20
+ 15
+-1e+20
+ 25
+-1e+20
+ 35
+-1e+20
+146
+0.0
+ 13
+0.0
+ 23
+0.0
+ 33
+0.0
+ 16
+1.0
+ 26
+0.0
+ 36
+0.0
+ 17
+0.0
+ 27
+1.0
+ 37
+0.0
+ 76
+1
+330
+F2
+331
+F6
+  0
 DICTIONARYVAR
   5
-1D2
+122
 330
 2D
 100
@@ -22101,7 +16729,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-09-30T16:43:43.235836+00:00
+1.4.4 @ 2026-09-30T16:43:42.649298+00:00
   0
 ENDSEC
   0

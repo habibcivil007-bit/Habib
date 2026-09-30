@@ -40,6 +40,9 @@ Run `RNRL-SELFTEST`. The expected result is **7 PASS, 0 FAIL** and `Commands def
 | 19 | `RNRPLOT-BW` / `-GRAY` / `-COLOR` | from a layout | PDF created; BW prints everything black with lineweights kept |
 | 20 | Open `Contents\Samples\SampleProject\*.dxf`, then run `AUDIT` | | 0 errors in each of the 12 files |
 
+| 21 | Open `Contents\Templates\RNR_ARCHITECTURAL_Starter.dxf` | | A1 layout with title block and a 1:100 viewport; architecture and annotation layers only |
+| 22 | In that file, run `SAVEAS` and choose *AutoCAD Drawing Template (*.dwt)* | | creates your own RNR_ARCHITECTURAL.dwt; `NEW` from it keeps the layers and styles |
+
 ### A4. Uninstall check
 Close AutoCAD and run `Uninstall.bat`. The bundle folder is removed and AutoCAD starts without the RNR message.
 

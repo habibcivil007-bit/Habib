@@ -58,7 +58,8 @@ Regenerate data: `python Scripts/generate_standards.py`, `python Scripts/generat
 | Core library C# | SOURCE — syntax OK, NOT compiled | `syntax_check_csharp.py` 0 errors |
 | Plugin C# (~70 commands, WPF palette) | SOURCE — syntax + member-name cross-check OK, NOT compiled | tree-sitter check; no .NET SDK / AutoCAD available |
 | xUnit tests (37) | WRITTEN — NOT RUN | requires `dotnet test` |
-| DWT templates (6) | NOT SHIPPED — generated in AutoCAD by `RNRTEMPLATE` | by design (valid per AutoCAD version) |
+| DWT templates | 7 DXF starter files shipped (convert with SAVEAS .dwt); native .dwt via `RNRTEMPLATE` | `generate_templates.py`, ezdxf audit 0 errors |
+| Block library (29) | DXF + LISP entmake definitions (`RNRL-BLOCKS`) | `generate_block_library.py`, audit 0 errors, entity counts match |
 | Dynamic block parameters | MANUAL STEP | API limitation, see `09_Dynamic_Block_Manual.md` |
 | LISP Edition zip (ready to install) | PACKAGED — manifest XML valid, not tested in AutoCAD | `Scripts/package_lisp_edition.py` |
 | Bundle manifest / WiX MSI | CONFIG WRITTEN — NOT BUILT | XML well-formed |

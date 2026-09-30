@@ -118,7 +118,8 @@ check("AutoLISP RNR_Data: every layer present", all(f'"{n}"' in lsp for n in nam
 # ---- sample DXF
 try:
     import ezdxf
-    dxfs = sorted(glob.glob(os.path.join(ROOT, "Samples", "**", "*.dxf"), recursive=True))
+    dxfs = sorted(glob.glob(os.path.join(ROOT, "Samples", "**", "*.dxf"), recursive=True)
+                  + glob.glob(os.path.join(ROOT, "Templates", "*.dxf")) + glob.glob(os.path.join(ROOT, "Blocks", "*.dxf")))
     errs = []
     for d in dxfs:
         doc = ezdxf.readfile(d)
@@ -127,7 +128,7 @@ try:
         foreign = used - set(names) - {"0"}
         if a.has_errors or foreign:
             errs.append(f"{os.path.basename(d)} errors={len(a.errors)} foreign={sorted(foreign)}")
-    check(f"sample DXF: {len(dxfs)} files audit clean, only standard layers", dxfs and not errs, "; ".join(errs))
+    check(f"sample/template/block DXF: {len(dxfs)} files audit clean, only standard layers", dxfs and not errs, "; ".join(errs))
 except ImportError:
     check("sample DXF: ezdxf installed", False, "pip install ezdxf")
 

@@ -188,7 +188,7 @@ class Pen:
                 self.text(str(c), (x + cw * j + cw / 2, y - rh * (i + 2.5)), 2.2, layer)
         return W, H
 
-    def title_block(self, x, y, sheet, title, dwgno, scale_txt, discipline):
+    def title_block(self, x, y, sheet, title, dwgno, scale_txt, discipline, project=None):
         """Model-space title block frame at 1:self.s (A-size sheet)."""
         sw, sh = STYLES["sheets"][sheet]
         s = self.s
@@ -199,14 +199,16 @@ class Pen:
         self.rect(bx, by, bw, bh, "ANNO-TITLE", lineweight=50)
         rows = [("PROJECT", "RooMNRooF SAMPLE RESIDENCE, DHAKA"), ("CLIENT", "SAMPLE CLIENT"),
                 ("CONSULTANT", "RooMNRooF CAD PRO (SAMPLE)"), ("DRAWING TITLE", title)]
+        if project is not None:
+            rows = [("PROJECT", project[0]), ("CLIENT", project[1]), ("CONSULTANT", project[2]), ("DRAWING TITLE", title)]
         rh = bh / 7
         for i, (k, v) in enumerate(rows):
             yy = by + bh - rh * (i + 1)
             self.line((bx, yy), (bx + bw, yy), "ANNO-TITLE")
             self.text(k, (bx + 2 * s, yy + rh - 2.5 * s), 1.8, "ANNO-TITLE", align="LEFT")
             self.text(v, (bx + 32 * s, yy + 1.5 * s), 3.0, "ANNO-TITLE", align="LEFT")
-        grid = [("DWG NO", dwgno), ("REV", "P0"), ("SHEET", sheet), ("DATE", "SAMPLE"), ("SCALE", scale_txt),
-                ("DRAWN", "RNR"), ("CHECKED", "-"), ("APPROVED", "-"), ("STATUS", "SAMPLE - NOT FOR CONSTRUCTION")]
+        grid = [("DWG NO", dwgno), ("REV", "P0"), ("SHEET", sheet), ("DATE", "SAMPLE" if project is None else "-"), ("SCALE", scale_txt),
+                ("DRAWN", "RNR"), ("CHECKED", "-"), ("APPROVED", "-"), ("STATUS", "SAMPLE - NOT FOR CONSTRUCTION" if project is None else "PRELIMINARY")]
         for i in range(1, 3):
             self.line((bx + bw * i / 3, by), (bx + bw * i / 3, by + 3 * rh), "ANNO-TITLE")
         for i in range(1, 3):

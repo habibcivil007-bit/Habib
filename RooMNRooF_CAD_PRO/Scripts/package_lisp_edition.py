@@ -103,6 +103,8 @@ INCLUDED
   Contents\\Hatch      custom PAT hatch patterns (on the support path after install)
   Contents\\Standards  JSON standards + RooMNRooF.lin
   Contents\\Blocks     RNR_Blocks.dxf - 29-block library (also built into the LISP code)
+  Contents\\Templates  7 starter drawings (MASTER, ARCHITECTURAL, STRUCTURAL, RCC, CIVIL, SITE, MEP):
+                       open one, then SAVEAS "AutoCAD Drawing Template (*.dwt)" to make your own .dwt
   Contents\\Samples    12 sample DXF drawings (3-storey residence)
   Contents\\Documentation
 
@@ -134,6 +136,7 @@ def main():
     shutil.copytree(os.path.join(ROOT, "Standards"), os.path.join(c, "Standards"))
     shutil.copytree(os.path.join(ROOT, "Samples"), os.path.join(c, "Samples"))
     shutil.copytree(os.path.join(ROOT, "Blocks"), os.path.join(c, "Blocks"))
+    shutil.copytree(os.path.join(ROOT, "Templates"), os.path.join(c, "Templates"))
     shutil.copytree(os.path.join(ROOT, "Documentation"), os.path.join(c, "Documentation"))
     # AutoCAD expects CRLF-friendly text; LISP/PAT/LIN files are ASCII
     for d, _, fs in os.walk(c):

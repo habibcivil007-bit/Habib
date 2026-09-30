@@ -7,10 +7,16 @@
 (vl-load-com)
 
 (defun rnr:this-dir (/ f)
-  ;; folder of RNR_Load.lsp: prefer the support-path location
-  (if (setq f (findfile "RNR_Load.lsp"))
-    (vl-filename-directory f)
-    (getvar "DWGPREFIX")))
+  ;; folder of RNR_Load.lsp: support path first, then the standard bundle locations
+  (cond
+    ((setq f (findfile "RNR_Load.lsp")) (vl-filename-directory f))
+    ((setq f (findfile (strcat (getenv "APPDATA")
+               "\\Autodesk\\ApplicationPlugins\\RooMNRooF.bundle\\Contents\\AutoLISP\\RNR_Load.lsp")))
+     (vl-filename-directory f))
+    ((setq f (findfile (strcat (getenv "ProgramData")
+               "\\Autodesk\\ApplicationPlugins\\RooMNRooF.bundle\\Contents\\AutoLISP\\RNR_Load.lsp")))
+     (vl-filename-directory f))
+    (T (getvar "DWGPREFIX"))))
 
 (setq *RNR-DIR* (rnr:this-dir))
 (setq *RNR-VERSION* "2.0.0")

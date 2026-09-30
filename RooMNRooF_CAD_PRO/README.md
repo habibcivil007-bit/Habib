@@ -11,6 +11,13 @@ tailored to Bangladesh practice (BNBC 2020 / ACI 318-19 / ASCE 7 referenced as p
 > No DLL or MSI is included. The C# code was **not compiled** and nothing was **run inside AutoCAD** in
 > the authoring environment. Build on Windows following `Documentation/06_Build_And_Release.md`.
 
+## Ready-to-install download
+`Release/RooMNRooF_CAD_PRO_2.0.0_LISP_Edition.zip`: extract it, run `Install.bat`, start AutoCAD, then type `RNRL-HELP`.
+It contains the AutoLISP edition (34 commands, standards, hatches, linetypes, samples). No compiler is needed.
+The full C# edition (MSI) has to be compiled on Windows. You can use `Build\BuildRelease.bat` locally, or copy
+`ci/roomnroof-release.yml` to `.github/workflows/` so GitHub Actions builds the MSI using Autodesk's `AutoCAD.NET`
+NuGet reference assemblies.
+
 ## Repository layout
 | Path | Content |
 |---|---|
@@ -53,6 +60,7 @@ Regenerate data: `python Scripts/generate_standards.py`, `python Scripts/generat
 | xUnit tests (37) | WRITTEN — NOT RUN | requires `dotnet test` |
 | DWT templates (6) | NOT SHIPPED — generated in AutoCAD by `RNRTEMPLATE` | by design (valid per AutoCAD version) |
 | Dynamic block parameters | MANUAL STEP | API limitation, see `09_Dynamic_Block_Manual.md` |
+| LISP Edition zip (ready to install) | PACKAGED — manifest XML valid, not tested in AutoCAD | `Scripts/package_lisp_edition.py` |
 | Bundle manifest / WiX MSI | CONFIG WRITTEN — NOT BUILT | XML well-formed |
 | Build scripts | WRITTEN — NOT EXECUTED | Windows-only |
 | AutoCAD 2026/2027 functional testing | NOT DONE | manual checklist in `07_Test_Plan.md` / `VerificationMatrix.xlsx` |

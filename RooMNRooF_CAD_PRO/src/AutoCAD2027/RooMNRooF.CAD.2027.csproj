@@ -31,12 +31,18 @@
   <ItemGroup>
     <ProjectReference Include="..\Shared\RooMNRooF.Core\RooMNRooF.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <!-- Local AutoCAD install is preferred; otherwise (CI / no AutoCAD) the official Autodesk
+       "AutoCAD.NET" NuGet reference assemblies are used. Runtime assets are never copied. -->
+  <PropertyGroup>
+    <UseAcadNuGet Condition="'$(UseAcadNuGet)'=='' And !Exists('$(AcadDir)\acdbmgd.dll')">true</UseAcadNuGet>
+    <AcadNuGetVersion Condition="'$(AcadNuGetVersion)'==''">26.0.*</AcadNuGetVersion>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(UseAcadNuGet)'!='true'">
     <Reference Include="AcCoreMgd"><HintPath>$(AcadDir)\accoremgd.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="AcDbMgd"><HintPath>$(AcadDir)\acdbmgd.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="AcMgd"><HintPath>$(AcadDir)\acmgd.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
-  <Target Name="RnrCheckAcad" BeforeTargets="ResolveAssemblyReferences">
-    <Error Condition="!Exists('$(AcadDir)\acdbmgd.dll')" Text="AutoCAD 2027 not found at '$(AcadDir)'. Install AutoCAD 2027 or pass /p:AcadDir=..." />
-  </Target>
+  <ItemGroup Condition="'$(UseAcadNuGet)'=='true'">
+    <PackageReference Include="AutoCAD.NET" Version="$(AcadNuGetVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

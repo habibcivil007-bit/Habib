@@ -23,7 +23,7 @@
 
   <Fragment>
     <ComponentGroup Id="BundleFiles" Directory="INSTALLFOLDER">
-      <Files Include="$(BundleDir)\**" />
+      <Files Include="$(var.BundleDir)\**" />
     </ComponentGroup>
   </Fragment>
 </Wix>

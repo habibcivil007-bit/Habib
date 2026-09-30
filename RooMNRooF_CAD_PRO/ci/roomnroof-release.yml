@@ -1,0 +1,56 @@
+name: RooMNRooF CAD PRO - build installer
+
+on:
+  push:
+    branches: [ "arena/01a0f2be-habib" ]
+    paths: [ "RooMNRooF_CAD_PRO/**", ".github/workflows/roomnroof-release.yml" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: RooMNRooF_CAD_PRO
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python tools
+        run: pip install ezdxf openpyxl
+      - name: Validate standards / LISP
+        run: |
+          python Scripts/validate_standards.py
+          python Scripts/check_lisp.py
+      - name: Core unit tests
+        run: dotnet test Tests/RooMNRooF.Core.Tests/RooMNRooF.Core.Tests.csproj -c Release --logger "console;verbosity=normal"
+      - name: Build plugin AutoCAD 2026
+        run: dotnet build src/AutoCAD2026/RooMNRooF.CAD.2026.csproj -c Release -p:UseAcadNuGet=true
+      - name: Build plugin AutoCAD 2027
+        id: b2027
+        continue-on-error: true
+        run: dotnet build src/AutoCAD2027/RooMNRooF.CAD.2027.csproj -c Release -p:UseAcadNuGet=true
+      - name: Assemble bundle
+        run: |
+          $v = "2026"
+          if ("${{ steps.b2027.outcome }}" -eq "success") { $v = "2026 2027" }
+          ./Build/AssembleBundle.ps1 -Versions $v
+          Get-ChildItem -Recurse Build/out/RooMNRooF.bundle/Contents/Win64 | Select-Object FullName, Length
+      - name: Verify package
+        shell: cmd
+        run: call Build\VerifyPackage.bat
+      - name: Build MSI
+        run: dotnet build Installer/RooMNRooF.Installer.wixproj -c Release
+      - name: Zip bundle
+        run: Compress-Archive -Path Build/out/RooMNRooF.bundle -DestinationPath Build/out/RooMNRooF.bundle.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RooMNRooF_CAD_PRO_ULTIMATE_2.0.0
+          path: |
+            RooMNRooF_CAD_PRO/Build/out/msi/*.msi
+            RooMNRooF_CAD_PRO/Build/out/RooMNRooF.bundle.zip

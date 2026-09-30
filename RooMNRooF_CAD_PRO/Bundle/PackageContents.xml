@@ -18,8 +18,7 @@
     AppNameSpace="com.roomnroof.cadpro"
     Author="RooMNRooF"
     ProductCode="{6E1B3F2A-8C4D-4B7A-9E21-5A0C7D3F9B10}"
-    UpgradeCode="{2F9D0C61-7B3E-4A5F-8D12-C4E6A9B1F073}"
-    HelpFile="./Contents/Documentation/README.html">
+    UpgradeCode="{2F9D0C61-7B3E-4A5F-8D12-C4E6A9B1F073}">
   <CompanyDetails Name="RooMNRooF" Url="" Email="" />
   <RuntimeRequirements OS="Win64" Platform="AutoCAD" SeriesMin="R25.1" SeriesMax="R26.0" />
   <Components Description="AutoCAD 2026">

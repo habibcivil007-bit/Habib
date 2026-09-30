@@ -11,6 +11,8 @@ tailored to Bangladesh practice (BNBC 2020 / ACI 318-19 / ASCE 7 referenced as p
 > No DLL or MSI is included. The C# code was **not compiled** and nothing was **run inside AutoCAD** in
 > the authoring environment. Build on Windows following `Documentation/06_Build_And_Release.md`.
 
+**New here? Read [`Documentation/00_START_HERE.md`](Documentation/00_START_HERE.md): download → build → install → verify.**
+
 ## Ready-to-install download
 `Release/RooMNRooF_CAD_PRO_2.0.0_LISP_Edition.zip`: extract it, run `Install.bat`, start AutoCAD, then type `RNRL-HELP`.
 It contains the AutoLISP edition (34 commands, standards, hatches, linetypes, samples). No compiler is needed.

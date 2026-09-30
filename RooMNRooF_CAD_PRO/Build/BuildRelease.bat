@@ -25,20 +25,21 @@ dotnet test Tests\RooMNRooF.Core.Tests\RooMNRooF.Core.Tests.csproj -c Release ||
 
 echo [4/7] Building plugins ...
 set BUILT=
+set FAILED=
 if /I "%TARGET%"=="2026" goto :b26
 if /I "%TARGET%"=="2027" goto :b27
 :b26
-if exist "C:\Program Files\Autodesk\AutoCAD 2026\acdbmgd.dll" (
-  dotnet build src\AutoCAD2026\RooMNRooF.CAD.2026.csproj -c Release || goto :fail
-  set BUILT=%BUILT% 2026
-) else ( echo     AutoCAD 2026 not installed - skipped )
+REM Uses local AutoCAD 2026 DLLs when installed, otherwise Autodesk's AutoCAD.NET NuGet reference assemblies.
+dotnet build src\AutoCAD2026\RooMNRooF.CAD.2026.csproj -c Release
+if errorlevel 1 ( echo     AutoCAD 2026 plugin build FAILED - see errors above & set FAILED=%FAILED% 2026 ) else ( set BUILT=%BUILT% 2026 )
 if /I "%TARGET%"=="2026" goto :bundle
 :b27
-if exist "C:\Program Files\Autodesk\AutoCAD 2027\acdbmgd.dll" (
-  dotnet build src\AutoCAD2027\RooMNRooF.CAD.2027.csproj -c Release || goto :fail
-  set BUILT=%BUILT% 2027
-) else ( echo     AutoCAD 2027 not installed - skipped )
+REM Uses local AutoCAD 2027 DLLs when installed, otherwise Autodesk's AutoCAD.NET NuGet reference assemblies.
+dotnet build src\AutoCAD2027\RooMNRooF.CAD.2027.csproj -c Release
+if errorlevel 1 ( echo     AutoCAD 2027 plugin build FAILED - see errors above & set FAILED=%FAILED% 2027 ) else ( set BUILT=%BUILT% 2027 )
 :bundle
+if /I not "%TARGET%"=="all" if not "%FAILED%"=="" goto :fail
+if not "%FAILED%"=="" echo *** WARNING: plugin build failed for:%FAILED% - continuing with:%BUILT% ***
 if "%BUILT%"=="" ( echo No AutoCAD version was built. & goto :fail )
 
 echo [5/7] Assembling RooMNRooF.bundle ...

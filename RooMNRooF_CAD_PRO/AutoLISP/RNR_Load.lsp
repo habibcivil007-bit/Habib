@@ -31,7 +31,7 @@
 
 (foreach m '("RNR_Data" "RNR_Utilities" "RNR_Layers" "RNR_Colors" "RNR_Units" "RNR_Grid"
              "RNR_Architecture" "RNR_Structural" "RNR_Rebar" "RNR_Hatch" "RNR_Blocks"
-             "RNR_Annotation" "RNR_QA" "RNR_Plot")
+             "RNR_Annotation" "RNR_QA" "RNR_Plot" "RNR_SelfTest")
   (rnr:load-module m))
 
 (princ (strcat "\n[RNR] RooMNRooF AutoLISP " *RNR-VERSION* " loaded. Type RNRL-HELP for LISP commands."))

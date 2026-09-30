@@ -60,7 +60,7 @@ xcopy "%SRC%" "%DST%\" /E /I /Y /Q >nul || ( echo Copy failed. & pause & exit /b
 echo.
 echo Installed to: %DST%
 echo Start AutoCAD. If a security prompt appears for RNR_Load.lsp choose "Always Load".
-echo Then type RNRL-HELP.
+echo Then type RNRL-SELFTEST to verify, and RNRL-HELP for the command list.
 pause
 """
 
@@ -82,20 +82,21 @@ INSTALL
   2. Extract this zip, double-click Install.bat.
   3. Start AutoCAD (2021 or newer, 64-bit). Choose "Always Load" if AutoCAD asks about RNR_Load.lsp
      (or add %APPDATA%\\Autodesk\\ApplicationPlugins to Options > Files > Trusted Locations).
-  4. Type RNRL-HELP.
+  4. Type RNRL-SELFTEST (expect 0 FAIL), then RNRL-HELP.
+     Full checklist: Contents\\Documentation\\10_Install_And_Verify.md
 
   Manual alternative: APPLOAD  ->  RooMNRooF.bundle\\Contents\\AutoLISP\\RNR_Load.lsp
 
 UNINSTALL
   Run Uninstall.bat (removes only the bundle folder).
 
-COMMANDS (34)
+COMMANDS (35)
   Layers/standards: RNRL-LAYERS RNRL-ARCH RNRL-STRUCT RNRL-CIVIL RNRL-ANNO RNRL-RCC RNRL-LA RNRL-THAW
                     RNRL-COLORS RNRL-COLORAPPLY RNRL-BYLAYER RNRL-UNITS RNRL-STYLES
   Drafting:         RNRL-GRID RNRL-WALL RNRL-DOOR RNRL-WINDOW RNRL-ROOM RNRL-COLUMN RNRL-BEAM RNRL-FOOTING
   Rebar/hatch:      RNRL-REBAR RNRL-BARWT RNRL-HATCH
   Blocks/annotation:RNRL-INSERT RNRL-BLOCKLIST RNRL-TAG RNRL-LEVEL RNRL-NORTH
-  QA/plot:          RNRL-QA RNRPLOT-BW RNRPLOT-COLOR RNRPLOT-GRAY   Help: RNRL-HELP
+  QA/plot:          RNRL-QA RNRPLOT-BW RNRPLOT-COLOR RNRPLOT-GRAY   Help: RNRL-HELP  Check: RNRL-SELFTEST
 
 INCLUDED
   Contents\\AutoLISP   15 LISP modules

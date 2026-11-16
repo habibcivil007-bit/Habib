@@ -1,98 +1,155 @@
-# RooMNRooF PRO 2D AutoCAD Standard
+# RooMNRooF PRO 2D AutoCAD Standard — 3.0 PRO SUITE
 
-`RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern consultant 2D CAD standard. It creates a consistent visual system rather than only a list of layers: brand colours, lineweight hierarchy, modern font fallback, annotation symbols, dimension and multileader styles, sheet graphics and production helpers.
+`RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
+consultant 2D CAD standard. It creates a consistent visual system rather than only a
+list of layers: brand colours, lineweight hierarchy, modern font fallback, rich text /
+dimension / multileader styles, annotation symbols, sheet graphics and a full production
+suite (scale, grids, areas, stamps, revisions, notes, hatch library, layer control,
+QA, page setup and publishing).
 
-## What was upgraded in PRO 2.0
+Version string inside the LISP: `*RMR-VERSION* = "3.0 PRO SUITE"`.
 
-- Modern visual palette: deep ink, terracotta, teal, gold, sand, blue, slate and soft presentation fills.
-- Font stack with automatic fallback: Montserrat, Aptos, Arial, Calibri, Segoe UI, Romans, Simplex and TXT.
-- Additional professional layers for glass, fills, room tags, keynotes, levels, revisions and issue stamps.
-- `RMR-MLEADER` multileader style with branded gold lines and custom chevron arrowhead.
-- Reusable symbol library:
-  - `RMR-NORTH-ARROW`
-  - `RMR-DETAIL-BUBBLE`
-  - `RMR-KEYNOTE-BUBBLE`
-  - `RMR-LEVEL-DATUM`
-- Ready-made commands for realistic plan annotation: room tags, details, keynotes, levels, revisions, north arrow and multileaders.
-- Lineweight display, viewport linetype scaling, visual retention and metric precision settings.
-- A0-A4 sheet frame and branded title block generator.
-- Colour / layer legend generator.
-- Normal `RMR-MASTER` runs preserve existing office styles. `RMR-PRO-SETUP` explicitly refreshes only the RMR-owned text styles to the PRO font stack.
+## Package contents
+
+| File | Purpose |
+| --- | --- |
+| `RooMNRooF_Master.lsp` | The complete AutoLISP application (generator + production suite). |
+| `README.md` | This document. |
+| `preview/RooMNRooF_PRO_Standard_Preview.dxf` | A1 preview sheet generated from the shipped palette data (open in AutoCAD or any DXF viewer). |
+| `preview/RooMNRooF_PRO_Standard_Preview.png` | Rendered A1 preview sheet (dark presentation ground). |
+| `preview/RooMNRooF_PRO_Plan_Detail.png` | Zoomed 1:50 sample apartment plan from the same sheet. |
+| `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
+| `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
+
+The binary `.DWT` template is intentionally **not** shipped: it can only be produced
+inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 
 ## Install and generate the master
 
 1. Open a blank metric AutoCAD drawing.
-2. Run `APPLOAD`.
-3. Load `RooMNRooF_Master.lsp`.
-4. Run:
+2. `APPLOAD` → load `RooMNRooF_Master.lsp`.
+3. Run `RMR-MASTER` (or `RMR-PRO-SETUP` for a first-time / refresh install).
+4. Optional: run `RMR-SAVE-TEMPLATE` to write `RooMNRooF_PRO_Standard.dwt` next to the
+   drawing (or into the AutoCAD template folder when writable).
 
-   ```text
-   RMR-PRO-SETUP
-   ```
+`RMR-MASTER` is idempotent and preserves existing office styles. `RMR-PRO-SETUP`
+additionally refreshes the RMR-owned text styles to the PRO font stack; set
+`*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-   `RMR-MASTER` is also available and performs the same standard build.
+## Command reference (31 commands)
 
-5. Place a sheet with `RMR-SHEET`.
-6. Place the colour legend with `RMR-LEGEND`.
-7. Use `RMR-SAVE-TEMPLATE` to save the configured drawing as `RooMNRooF_PRO_Master.dwt`.
-
-## PRO commands
-
-| Command | Result |
+### Setup, palette and templates
+| Command | What it does |
 | --- | --- |
-| `RMR-PRO-SETUP` | Builds the complete PRO standard, symbol library and multileader style. |
-| `RMR-MASTER` | Rebuilds the standard in the active drawing. |
-| `RMR-SETLAYER` | Lists a discipline and sets the current layer. |
-| `RMR-SHEET` | Draws an A0-A4 sheet frame and modern RooMNRooF title block. |
-| `RMR-LEGEND` | Draws a true-colour layer and lineweight legend. |
-| `RMR-NORTH` | Inserts a modern north arrow symbol. |
-| `RMR-ROOMTAG` | Draws a room number, room name and area tag. |
-| `RMR-KEYNOTE` | Draws a numbered keynote bubble. |
-| `RMR-DETAIL` | Draws a detail bubble with detail number and sheet reference. |
-| `RMR-LEVEL` | Draws a level / datum marker. |
-| `RMR-REVISION` | Draws a revision triangle with issue text. |
-| `RMR-MLEADER` | Starts a branded multileader using `RMR-MLEADER`. |
-| `RMR-SAVE-TEMPLATE` | Saves the active configured drawing as a `.DWT`. |
-| `RMR-PALETTE` | Prints the palette and command guide. |
+| `RMR-MASTER` | Grouped launcher: builds/updates the full standard and offers the production tools. |
+| `RMR-PRO-SETUP` | Full PRO build: layers, true colours, linetypes, text styles, dim styles, MLeader style, symbol blocks, standards variables. |
+| `RMR-SAVE-TEMPLATE` | Saves the current drawing as the reusable `.DWT` template. |
+| `RMR-PALETTE` | Interactive palette editor: list groups, edit layer colour/linetype/lineweight/description, add layers, dump the palette. |
+| `RMR-EXPORT-PALETTE` | Writes the live palette to a `;`-delimited CSV (8 fields per row). |
+| `RMR-IMPORT-PALETTE` | Reads a palette CSV back in and rebuilds the standard from it. |
+| `RMR-LAYGROUP` | Freeze/Thaw/Off/On/Lock/Unlock a whole layer group (protects the current layer). |
+| `RMR-SETLAYER` | Quick set-current-layer by wildcard-filtered pick list. |
 
-## Layer system
+### Annotation and presentation
+| Command | What it does |
+| --- | --- |
+| `RMR-ROOMTAG` | Scale-aware room tag (number, name, m² + ft²) on `RMR-A-ROOM`. |
+| `RMR-KEYNOTE` | Gold chevron leader + numbered keynote bubble. |
+| `RMR-MLEADER` | Branded multileader using the `RMR-MLEADER` style. |
+| `RMR-DETAIL` | Detail callout bubble (mark + sheet reference). |
+| `RMR-LEVEL` | Level datum marker with formatted ± level text. |
+| `RMR-NORTH` | Inserts/rotates the `RMR-NORTH-ARROW` block. |
+| `RMR-REVISION` | Revision cloud tag (triangle marker + rev letter). |
+| `RMR-REVTABLE` | Revision history table with branded header row. |
+| `RMR-STAMP` | Rotatable double-border issue stamp (rev, date, auto-fitted label). |
+| `RMR-NOTES` | Numbered general notes as wrapped MTEXT paragraphs. |
+| `RMR-LEGEND` | Colour / layer / linetype legend generator. |
+| `RMR-SHEET` | A0–A4 sheet frame, border and branded title block. |
+| `RMR-SCALEBAR` | Graphic scale bar for the active drawing scale. |
+| `RMR-KEYPLAN` | Mini key plan box with north arrow and outline. |
 
-- `RMR-M-...` - Main Theme: walls, doors, windows, finishes, glass, fills and grids.
-- `RMR-F-...` - Furniture: furniture, casework, fixtures, equipment and overhead lines.
-- `RMR-S-...` - Structural: columns, beams, slabs, foundations, rebar and grids.
-- `RMR-P-...` - Plumbing: supply, drain, vent, fixtures, equipment and annotations.
-- `RMR-A-...` - Annotation: text, dimensions, leaders, arrows, room tags, keynotes, levels, revisions and frames.
-- `RMR-PRES-...` - Presentation: title block, keynotes, north arrow and issue graphics.
-- `RMR-00-...` - Control: no-plot and external reference layers.
+### Production suite
+| Command | What it does |
+| --- | --- |
+| `RMR-SCALE` | Sets the drawing scale by keyword (1:20 … 1:200), model or layout annotation space; syncs `DIMSCALE`, `CELTSCALE`, `LTSCALE`, `MSLTSCALE`, `PSLTSCALE` and the scale label. |
+| `RMR-GRID` | Structural grid lines with lettered/numbered bubbles (skips I and O, then AA, AB…). |
+| `RMR-AREA` | Computes room areas (closed boundary pick) and builds the m²/ft² area schedule table. |
+| `RMR-HATCHLIB` / `RMR-HATCH` | 12-material hatch library; hatch a closed area by material keyword. |
+| `RMR-COUNT` | Block takeoff by name and layer, optional CSV export, console report. |
+| `RMR-CHECK` | Drawing QA pass (`ssget "X"` audit of layers/linetypes/styles/text) with PASS/REVIEW verdict, optional `.txt` report. |
+| `RMR-PAGESETUP` | Named page setup with brand plot device, plot style and paper size. |
+| `RMR-PUBLISH` | Writes a `.dsd` sheet set for one-click PDF publish of the drawing. |
 
-All named layers use true RGB colour values and millimetre lineweights. The file retains ACI 7 as a safe fallback for older display / plotting workflows.
+All annotation commands ask for the symbol scale once per session and honour
+`*RMR-ANNO-SCALE*` / `*RMR-ANNO-SPACE*` (model vs layout annotation).
 
-## Add a personal group palette
+## Editing the palette (group-wise, future-proof)
 
-At the top of the LISP, append an item to `*RMR-LAYER-SPECS*`:
+All visual data lives in plain editable tables near the top of the LISP:
 
-```lisp
-("RMR-X-ITEM" "MY GROUP" (R G B) "Continuous" 18 "My layer description")
+- `*RMR-LAYER-SPECS*` — `("LayerName" "Group" (R G B) "Linetype" Lineweight "Description")`
+- `*RMR-TEXT-STYLES*` — `(name font width oblique description)`
+- `*RMR-DIMSTYLE-SPECS*` — `(name textheight arrowsize description)`
+- `*RMR-MLEADER-SPECS*` — multileader style definitions
+- `*RMR-BRAND-*` — INK / TERRACOTTA / TEAL / GOLD / SAND / BLUE / SLATE RGB triples
+- `*RMR-HATCH-SPECS*`, `*RMR-STAMP-SPECS*`, `*RMR-NOTES*`, `*RMR-PAPER-SPECS*`,
+  `*RMR-SCALE-SPECS*`, `*RMR-GRID-LETTERS*`, plot/publish defaults
+
+Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
+Annotation, Presentation**. Add a row (or a whole new group) and every generator,
+legend, layer-group command and the preview tool pick it up automatically. For
+non-LISP workflows use `RMR-EXPORT-PALETTE` / `RMR-IMPORT-PALETTE` (CSV round-trip).
+
+Layer descriptions are stored the AutoCAD-native way: XDATA under
+`AcAecLayerStandard` plus the COM `Description` property where ActiveX exists, so they
+show up in the Layer Properties Manager.
+
+## Production workflow cheat-sheet
+
+```text
+RMR-PRO-SETUP        ; once per office / template
+RMR-SHEET  A1        ; frame + title block
+RMR-SCALE  1:50 LAYOUT
+RMR-GRID             ; structural bubbles
+RMR-HATCH            ; materials
+RMR-ROOMTAG          ; room tags with areas
+RMR-AREA             ; area schedule
+RMR-KEYNOTE RMR-LEVEL RMR-DETAIL RMR-NORTH
+RMR-NOTES  RMR-REVTABLE  RMR-STAMP
+RMR-CHECK            ; QA before issue
+RMR-PAGESETUP  RMR-PUBLISH
+RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ```
 
-Then run `RMR-PRO-SETUP` again. Use RGB values from `0` to `255` and standard linetypes such as `Continuous`, `CENTER`, `HIDDEN`, `DASHED`, `DOT` or `PHANTOM`.
+## Preview sheet and QA tooling
 
-## Font customization
+`tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
+values) and rebuilds the A1 preview sheet: sample 1:50 apartment plan with walls,
+doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
+keynotes, level datum, section marker, north arrow, scale bar, area schedule,
+revision table, layer palette legend, text-style samples, symbol gallery, the
+12-material hatch strip, general notes and the command panel. Regenerate with:
 
-The preferred PRO styles are configured near the top of the LISP:
+```bash
+python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
+./.venv-rmr/bin/python autocad/tools/make_preview_dxf.py
+```
 
-- `RMR-TITLE` and `RMR-HEAD` - Montserrat SemiBold
-- `RMR-SUBHEAD` - Montserrat Regular
-- `RMR-BODY` and `RMR-NOTE` - Aptos
-- `RMR-NUMBER` - Montserrat SemiBold
-- `RMR-LABEL` - Aptos
-- `RMR-MARK` - Roboto Mono
+`tools/rmr_lint.py` statically checks the LISP before every delivery (string
+termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
+undeclared `setq`, unknown function calls, quoted-symbol references and unset global
+variables). Current state: **PASS**, 0 findings.
 
-The generator falls back automatically when a font is not installed. To force an office font, replace the font file names in `*RMR-TEXT-STYLES*`.
+```bash
+python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
+```
 
-## Production notes
+## Notes and limitations
 
-- The generator is metric: `INSUNITS=4`, decimal dimensions, millimetre lineweights and A-series sheet sizes.
-- `RMR-SHEET` is a drafting aid. For production, place the frame/title block in paper space and use viewports at the required scale.
-- AutoLISP cannot generate a binary `.DWT` in this repository. Run `RMR-SAVE-TEMPLATE` inside AutoCAD after setup.
-- The source file is intentionally idempotent. It does not overwrite existing named text styles, blocks or dimension styles; this protects office customizations.
+- Requires full AutoCAD 2018+ (ActiveX paths degrade gracefully on AutoCAD LT /
+  restricted environments; hatch, COM styling and plotting are wrapped in
+  `vl-catch-all-apply` and report failures instead of crashing).
+- Plot device / plot style names (`*RMR-PLOT-DEVICE*`, `*RMR-PLOT-STYLE*`) must exist on
+  the machine that plots; defaults fall back to `DWG To PDF.pc3` and `monochrome.ctb`.
+- The `.DWT` is produced in AutoCAD via `RMR-SAVE-TEMPLATE`; this package ships the
+  generator, documentation and previews only.

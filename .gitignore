@@ -23,3 +23,7 @@ npm-debug.log*
 # yalc
 .yalc
 yalc.lock
+
+# RooMNRooF CAD tooling
+.venv-rmr/
+autocad/preview/*.dxf

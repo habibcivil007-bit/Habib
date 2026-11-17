@@ -157,6 +157,12 @@ def load_lisp_data():
         "walls": _extract_form(src, "*RMR-WALL-SPECS*"),
         "finishes": _extract_form(src, "*RMR-FINISH-SPECS*"),
         "sheets": _extract_form(src, "*RMR-SHEET-LIST*"),
+        "levels": _extract_form(src, "*RMR-LEVEL-SPECS*"),
+        # dotted pairs arrive as [number, ".", text]
+        "keynotes": [(item[0], item[2]) if len(item) > 2 else (item[0], "")
+                     for item in _extract_form(src, "*RMR-KEYNOTES*")],
+        "cities": [(item[0], item[1])
+                   for item in _extract_form(src, "*RMR-SUN-CITIES*")],
     }
 
 
@@ -1837,6 +1843,322 @@ def build_delivery():
 
 
 # --------------------------------------------------------------------------- #
+# 10. site and services sheet (6.0): solar study, falls and drainage,
+#     parking, tiling setout, RCP, level schedule, keynotes, report.
+# --------------------------------------------------------------------------- #
+
+def _solar_alt(lat, dec, hour):
+    import math
+    v = math.sin(lat) * math.sin(dec) + math.cos(lat) * math.cos(dec) * math.cos(hour)
+    return math.asin(max(-1.0, min(1.0, v)))
+
+
+def _solar_az(lat, dec, hour, alt):
+    import math
+    ca = math.cos(alt)
+    v = 0.0 if abs(ca) < 1e-6 else (math.sin(dec) * math.cos(lat)
+                                    - math.cos(dec) * math.sin(lat) * math.cos(hour)) / ca
+    a = math.acos(max(-1.0, min(1.0, v)))
+    return (2 * math.pi - a) if hour > 0 else a
+
+
+def _sun_path_points(centre, limit, lat_deg, dec_deg, steps=48):
+    import math
+    lat, dec = math.radians(lat_deg), math.radians(dec_deg)
+    pts = []
+    for i in range(steps + 1):
+        hour = -math.pi + (2 * math.pi * i / steps)
+        alt = _solar_alt(lat, dec, hour)
+        if alt <= 0:
+            continue
+        az = _solar_az(lat, dec, hour, alt)
+        r = limit * (90.0 - math.degrees(alt)) / 90.0
+        pts.append((centre[0] + r * math.sin(az), centre[1] + r * math.cos(az)))
+    return pts
+
+
+def draw_site_sunpath(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h, "SOLAR STUDY  |  RMR-SUNPATH")
+
+    centre = (x + 96.0, y + 68.0)
+    limit = 52.0
+    lat = 23.81                     # Dhaka, the user's reference latitude
+
+    sh.circle(centre, limit, "RMR-A-FRAME", SLATE)
+    for ring in (30.0, 60.0):
+        sh.circle(centre, limit * (90.0 - ring) / 90.0, "RMR-00-REF", SLATE)
+    for i in range(4):
+        a = math.radians(i * 90.0)
+        sh.line(centre, (centre[0] + limit * math.sin(a), centre[1] + limit * math.cos(a)),
+                "RMR-00-REF", SLATE)
+    for i, tag in enumerate(("N", "E", "S", "W")):
+        a = math.radians(i * 90.0)
+        sh.text((centre[0] + limit * 1.14 * math.sin(a) - 1.4,
+                 centre[1] + limit * 1.14 * math.cos(a) - 1.2), tag, 3.0,
+                "RMR-NUMBER", "RMR-A-TEXT", INK)
+
+    for name, dec in (("SUMMER", 23.45), ("EQUINOX", 0.0), ("WINTER", -23.45)):
+        pts = _sun_path_points(centre, limit, lat, dec)
+        if len(pts) > 1:
+            sh.poly(pts, [0.0] * len(pts), False, "RMR-A-ARROW", GOLD)
+        k = {"SUMMER": 0.60, "EQUINOX": 0.40, "WINTER": 0.20}[name]
+        a = math.radians(-45.0)
+        sh.text((centre[0] + limit * k * math.sin(a), centre[1] + limit * k * math.cos(a)),
+                name, 2.2, "RMR-LABEL", "RMR-A-TEXT", GOLD)
+
+    for hh in (6, 9, 12, 15, 18):
+        hour = math.radians((hh - 12) * 15.0)
+        alt = _solar_alt(math.radians(lat), 0.0, hour)
+        if alt > -1e-9:
+            az = _solar_az(math.radians(lat), 0.0, hour, alt)
+            # sit the label just inside the equinox curve it belongs to
+            r = limit * (90.0 - math.degrees(alt)) / 90.0 * 0.82
+            sh.text((centre[0] + r * math.sin(az) - 2.0,
+                     centre[1] + r * math.cos(az) - 1.0),
+                    "%dh" % hh, 1.8, "RMR-LABEL", "RMR-A-TEXT", SLATE)
+
+    lx = x + 176.0
+    ly = ty - 4.0
+    sh.text((lx, ly), "NOON ALTITUDE", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 4.6
+    for name, dec in (("SUMMER", 23.45), ("EQUINOX", 0.0), ("WINTER", -23.45)):
+        alt = math.degrees(_solar_alt(math.radians(lat), math.radians(dec), 0.0))
+        sh.text((lx, ly), name, 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((lx + 34.0, ly), "%.1f deg" % alt, 2.0, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+        ly -= 4.2
+    ly -= 2.0
+    sh.text((lx, ly), "LATITUDE %.2f" % lat, 2.0, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 4.4
+    sh.text((lx, ly), "*RMR-SUN-CITIES*", 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    ly -= 4.0
+    for city, city_lat in DATA["cities"][:6]:
+        sh.text((lx, ly), city, 1.8, "RMR-BODY", "RMR-A-TEXT", INK)
+        sh.text((lx + 30.0, ly), "%.2f" % float(city_lat), 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 3.6
+
+
+def draw_site_drainage(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h, "FALLS AND DRAINAGE  |  RMR-FALL / RMR-DRAIN")
+
+    # fall arrow
+    fy = ty - 14.0
+    p1, p2 = (x + 12.0, fy), (x + 92.0, fy - 16.0)
+    sh.line(p1, p2, "RMR-P-DRAIN", BLUE)
+    sh.tri((p2[0] - 6.0, p2[1] + 1.6), 6.0, "RMR-P-DRAIN", BLUE)
+    sh.text((x + 12.0, fy + 4.0), "FALL 1:80  (200mm OVER 16000mm)", 2.0,
+            "RMR-LABEL", "RMR-P-ANNO", BLUE)
+    sh.text((x + 12.0, fy - 22.0), "RMR-FALL draws the arrow, the gradient and the",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, fy - 25.4), "drop calculated from the picked run.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # drainage run
+    dy = fy - 40.0
+    sh.text((x + 12.0, dy), "RMR-DRAIN  drainage run", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    run = [(x + 16.0, dy - 14.0), (x + 76.0, dy - 14.0), (x + 76.0, dy - 40.0),
+           (x + 128.0, dy - 40.0)]
+    sh.poly(run, [0.0] * len(run), False, "RMR-P-DRAIN", BLUE)
+    levels = ("IL 1.500", "IL 1.250", "IL 1.125", "IL 1.000")
+    for i, (pt, level) in enumerate(zip(run, levels)):
+        sh.circle(pt, 3.0, "RMR-P-FIXTURE", BLUE)
+        sh.text((pt[0] + 4.0, pt[1] + 1.0), "MH%02d  %s" % (i + 1, level), 1.9,
+                "RMR-LABEL", "RMR-P-ANNO", BLUE)
+    sh.text((x + 12.0, dy - 52.0),
+            "Invert levels fall automatically along the picked run at 1:x.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_site_parking(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h, "PARKING LAYOUT  |  RMR-PARK")
+
+    def bays(ox, oy, count, rot, bw, bd, scale):
+        import math
+        a = math.radians(rot)
+        ux, uy = math.cos(a) * scale, math.sin(a) * scale
+        nx, ny = -uy, ux
+        for i in range(count):
+            # ux/uy/nx/ny already include the scale, so bay width is nx * bw
+            c = (ox + nx * i * bw, oy + ny * i * bw)
+            pts = [c,
+                   (c[0] + ux * bd, c[1] + uy * bd),
+                   (c[0] + ux * bd + nx * bw, c[1] + uy * bd + ny * bw),
+                   (c[0] + nx * bw, c[1] + ny * bw)]
+            sh.poly(pts, [0.0] * 4, True, "RMR-M-WALL", SLATE)
+            sh.text((c[0] + ux * bd * 0.45 + nx * bw * 0.5 - 1.0,
+                     c[1] + uy * bd * 0.45 + ny * bw * 0.5 - 1.0),
+                    str(i + 1), 2.4, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+
+    k = 0.0042                      # mm -> sheet units
+    bays(x + 18.0, y + 22.0, 4, 90.0, 2500.0, 5000.0, k)
+    sh.text((x + 18.0, y + 14.0), "4 BAYS AT 90 DEG  |  2500 x 5000mm  |  AISLE 6000mm",
+            2.0, "RMR-LABEL", "RMR-A-TEXT", SLATE)
+    bays(x + 150.0, y + 30.0, 3, 60.0, 2500.0, 5000.0, k * 0.85)
+    sh.text((x + 150.0, y + 22.0), "60 DEG BAYS", 2.0, "RMR-LABEL", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ty - 4.0), "90 / 60 / 45 degree bays, numbered, with the aisle",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ty - 7.4), "set back behind the row.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_site_tiling(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "TILING SETOUT  |  RMR-TILE")
+
+    rx, ry = x + 16.0, y + 16.0
+    rw, rh = 120.0, 86.0
+    sh.rect((rx, ry), rw, rh, "RMR-M-FINISH", TEAL)
+    cols, rows = 8, 6
+    for i in range(1, cols):
+        sh.line((rx + rw * i / cols, ry), (rx + rw * i / cols, ry + rh),
+                "RMR-M-FINISH", TEAL)
+    for j in range(1, rows):
+        sh.line((rx, ry + rh * j / rows), (rx + rw, ry + rh * j / rows),
+                "RMR-M-FINISH", TEAL)
+    sh.text((rx, ry - 5.0),
+            "8 x 6 = 48 TILES  |  WITH 10% WASTE ORDER 53 TILES", 1.9,
+            "RMR-LABEL", "RMR-M-FINISH", TEAL)
+    sh.text((x + 12.0, ty - 4.0), "RMR-TILE draws the setout grid on RMR-M-FINISH and",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ty - 7.4), "reports the tile count with a cutting allowance.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ty - 12.0), "Grid lines are capped at 80 per direction so large",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ty - 15.4), "rooms stay light.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_site_rcp(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "REFLECTED CEILING PLAN  |  RMR-RCP")
+
+    rx, ry = x + 16.0, y + 16.0
+    rw, rh = 120.0, 86.0
+    sh.rect((rx, ry), rw, rh, "RMR-M-CEILING", SAND)
+    cols, rows = 8, 6
+    for i in range(1, cols):
+        sh.line((rx + rw * i / cols, ry), (rx + rw * i / cols, ry + rh),
+                "RMR-M-CEILING", SAND)
+    for j in range(1, rows):
+        sh.line((rx, ry + rh * j / rows), (rx + rw, ry + rh * j / rows),
+                "RMR-M-CEILING", SAND)
+    count = 0
+    for i in range(4):
+        for j in range(3):
+            cx = rx + rw * (i + 0.5) / 4.0
+            cy = ry + rh * (j + 0.5) / 3.0
+            sh.circle((cx, cy), 2.4, "RMR-M-CEILING", GOLD)
+            sh.line((cx - 3.4, cy), (cx + 3.4, cy), "RMR-M-CEILING", GOLD)
+            sh.line((cx, cy - 3.4), (cx, cy + 3.4), "RMR-M-CEILING", GOLD)
+            count += 1
+    sh.text((rx, ry - 5.0), "GRID 600mm  |  %d LIGHT FITTINGS AT 1200mm" % count, 1.9,
+            "RMR-LABEL", "RMR-M-CEILING", SAND)
+    sh.text((x + 12.0, ty - 4.0), "RMR-RCP lays out the ceiling module on RMR-M-CEILING",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ty - 7.4), "and places fittings at the spacing you choose.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_site_levels(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "LEVEL SCHEDULE  |  RMR-LEVELSCHED")
+    rows = [(r[0], "%s mm" % int(float(r[1])), r[2]) for r in DATA["levels"]]
+    _table(sh, x + 6.0, ty - 8.0, ("LEVEL", "HEIGHT", "DESCRIPTION"),
+           [26.0, 34.0, 120.0], rows, text=2.0)
+    sh.text((x + 6.0, y + 4.0), "Rows come from *RMR-LEVEL-SPECS*", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+
+
+def draw_site_keynotes(sh):
+    x, y, w, h = 20.0, 74.0, 400.0, 158.0
+    ty = _panel(sh, x, y, w, h, "KEYNOTE LEGEND  |  RMR-KEYLIB  |  *RMR-KEYNOTES*")
+
+    ly = ty - 4.0
+    colw = 188.0
+    half = (len(DATA["keynotes"]) + 1) // 2
+    for col, group in enumerate((DATA["keynotes"][:half], DATA["keynotes"][half:])):
+        gx = x + 6.0 + col * colw
+        gy = ly
+        for number, text in group:
+            sh.circle((gx + 3.0, gy + 1.2), 2.6, "RMR-A-KEYNOTE", GOLD)
+            sh.text((gx + 3.0, gy + 1.2), number, 2.0, "RMR-NUMBER", "RMR-A-KEYNOTE",
+                    INK, align="middle")
+            body = text if len(text) <= 46 else text[:45] + "."
+            sh.text((gx + 8.0, gy), body, 1.8, "RMR-BODY", "RMR-A-TEXT", SLATE)
+            gy -= 5.0
+
+
+def draw_site_report(sh):
+    x, y, w, h = 430.0, 74.0, 386.0, 158.0
+    ty = _panel(sh, x, y, w, h, "STANDARD REPORT AND LAYER AUDIT")
+
+    lx = x + 6.0
+    ly = ty - 4.0
+    sh.text((lx, ly), "RMR-REPORT  printable standard report", 2.2, "RMR-MARK",
+            "RMR-A-TEXT", TEAL)
+    ly -= 5.0
+    sample = [
+        "==============================================================",
+        "RooMNRooF %s - STANDARD REPORT" % VERSION,
+        "Generated %s" % project("DATE"),
+        "==============================================================",
+        "",
+        "PROJECT DATA",
+        "  CLIENT = %s" % project("CLIENT"),
+        "  PROJECT = %s" % project("PROJECT"),
+        "  JOB = %s   DWGNO = %s   REV = %s" % (project("JOB"), project("DWGNO"), project("REV")),
+        "",
+        "LAYER PALETTE",
+        "  [MAIN THEME]",
+        "    RMR-M-WALL  |  RGB 198,93,72  |  Continuous  |  0.35mm  |  Primary walls",
+        "    RMR-M-DOOR  |  RGB 214,163,76  |  Continuous  |  0.18mm  |  Doors and swings",
+        "  [FURNITURE]",
+        "    RMR-F-FURN  |  RGB 31,42,51  |  Continuous  |  0.18mm  |  Loose furniture",
+        "",
+        "WALL TYPES   LEVELS   KEYNOTES   DRAWING REGISTER   GENERAL NOTES",
+        "==============================================================",
+    ]
+    for line in sample:
+        if line:
+            sh.text((lx + 2.0, ly), line[:62], 1.75, "RMR-BODY", "RMR-A-TEXT", SLATE)
+        ly -= 3.1
+
+    ly -= 2.0
+    sh.text((lx, ly), "RMR-STRAY  objects on non-standard layers", 2.2, "RMR-MARK",
+            "RMR-A-TEXT", TEAL)
+    ly -= 5.0
+    for line in ("Reports every layer that is not in *RMR-LAYER-SPECS*,",
+                 "ignoring xrefs, layer 0 and Defpoints, then optionally",
+                 "moves the objects onto a standard layer."):
+        sh.text((lx + 2.0, ly), line, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 3.6
+
+
+def build_site():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "SITE AND SERVICES SHEET"
+    SHEET_SUBTITLE = "SOLAR STUDY, DRAINAGE, PARKING, SETOUT, RCP, LEVELS AND KEYNOTES"
+    SHEET_NOTE = ("The 6.0 site and services suite: drawing the information a "
+                  "coordinated set needs around the plan.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_site_sunpath(sh)
+    draw_site_drainage(sh)
+    draw_site_parking(sh)
+    draw_site_tiling(sh)
+    draw_site_rcp(sh)
+    draw_site_levels(sh)
+    draw_site_keynotes(sh)
+    draw_site_report(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -1939,6 +2261,17 @@ def main():
         print("Delivery PNG render skipped:", exc)
     print("walls: %d | finishes: %d | sheets: %d"
           % (len(DATA["walls"]), len(DATA["finishes"]), len(DATA["sheets"])))
+    site = build_site()
+    site_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Site_Services_Suite.dxf")
+    site.saveas(site_path)
+    print("DXF  :", site_path, os.path.getsize(site_path), "bytes")
+    try:
+        print("PNG  :", render_png(site, os.path.join(OUT_DIR, "RooMNRooF_PRO_Site_Services_Suite.png"),
+                                   dpi=150))
+    except Exception as exc:
+        print("Site PNG render skipped:", exc)
+    print("levels: %d | keynotes: %d | cities: %d"
+          % (len(DATA["levels"]), len(DATA["keynotes"]), len(DATA["cities"])))
     return 0
 
 

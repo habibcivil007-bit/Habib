@@ -22,8 +22,8 @@ from collections import Counter, defaultdict
 OPERATORS = set("""+ - * / = /= < > <= >= 1+ 1- . t nil""".split())
 
 BUILTINS = set("""
-abs alert and angle append apply ascii assoc atan atof atoi boole boundp
-caddr cadddr cadr
+abs acos alert and angle append apply ascii asin assoc atan atof atoi boole
+boundp caddr cadddr cadr
 car cdddr cddr cdr chr close command command-s cond cons cos cosh cvunit defun
 defun-q distof
 distance end-list endcons entdel entget entmake entmakex entmod entnext entsel

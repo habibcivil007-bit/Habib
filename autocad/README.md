@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 5.0 DELIVERY SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 6.0 SITE AND SERVICES SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -11,9 +11,12 @@ parametric symbol library, door schedules, text find/replace, live fields, proje
 data files and timestamped backups) plus the 5.0 delivery suite (parametric walls
 and stairs, linear takeoff, bill of materials, room finishes and drawing registers,
 xref register, transmittal records, layer states, ByLayer standardisation, drawing
-clean-up and project-driven drawing properties).
+clean-up and project-driven drawing properties) plus the 6.0 site and services
+suite (solar study diagrams, falls and drainage runs, parking and tiling setout,
+reflected ceiling plans, level and keynote libraries, a printable standard report
+and a stray-layer audit).
 
-Version string inside the LISP: `*RMR-VERSION* = "5.0 DELIVERY SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "6.0 SITE AND SERVICES SUITE"`.
 
 ## Package contents
 
@@ -28,6 +31,8 @@ Version string inside the LISP: `*RMR-VERSION* = "5.0 DELIVERY SUITE"`.
 | `preview/RooMNRooF_PRO_Studio_Suite.png` | Rendered studio-suite sheet. |
 | `preview/RooMNRooF_PRO_Delivery_Suite.dxf` | A1 sheet showing the 5.0 delivery suite: parametric walls and stair, takeoff, bill of materials, finishes, register, transmittal, xrefs and housekeeping. |
 | `preview/RooMNRooF_PRO_Delivery_Suite.png` | Rendered delivery-suite sheet. |
+| `preview/RooMNRooF_PRO_Site_Services_Suite.dxf` | A1 sheet showing the 6.0 site and services suite: solar study, drainage, parking, tiling setout, RCP, level schedule, keynote legend and report excerpt. |
+| `preview/RooMNRooF_PRO_Site_Services_Suite.png` | Rendered site and services sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 
@@ -46,7 +51,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (57 commands)
+## Command reference (67 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -114,6 +119,21 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-DWGPROPS` | Writes title, subject, author, category, keywords and comments from `*RMR-PROJECT*` into the drawing properties. |
 
 
+### Site and services (new in 6.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-SUNPATH` | Solar study diagram for a chosen latitude: horizon circle, altitude rings, summer / equinox / winter declination curves, hour marks, N-E-S-W and the three noon altitudes. |
+| `RMR-FALL` | Fall arrow between two points with the gradient label and the drop calculated over the picked run (1:40 / 1:60 / 1:80 / 1:100 / 1:120). |
+| `RMR-DRAIN` | Drainage run along a picked path: pipes, numbered manholes and invert levels that fall automatically at the chosen gradient. |
+| `RMR-PARK` | Parametric parking row: bay width, depth, count, aisle and 90 / 60 / 45 degree bay angle, with numbered bays and a summary label. |
+| `RMR-TILE` | Tiling setout grid with tile count and waste allowance; reports how many tiles to order. |
+| `RMR-RCP` | Reflected ceiling plan: ceiling grid module plus light fittings at a chosen spacing, with a fitting count. |
+| `RMR-LEVELSCHED` | Level schedule from the editable `*RMR-LEVEL-SPECS*` table. |
+| `RMR-KEYLIB` | Keynote legend drawn straight from the editable `*RMR-KEYNOTES*` library. |
+| `RMR-REPORT` | Writes a printable text report of the entire standard: project data, layers by group, text and dimension styles, hatch library, wall types, levels, keynotes, drawing register and notes. |
+| `RMR-STRAY` | Audits the drawing for objects on layers that are not in `*RMR-LAYER-SPECS*` (ignoring xrefs, layer 0 and Defpoints) and can move them onto a standard layer. |
+
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -148,6 +168,9 @@ All visual data lives in plain editable tables near the top of the LISP:
 - `*RMR-FINISH-SPECS*` — room finishes: `(Room Floor Skirting Wall Ceiling Notes)`
 - `*RMR-SHEET-LIST*` — drawing register / transmittal rows:
   `(SheetNumber Title Scale Revision Status)`
+- `*RMR-LEVEL-SPECS*` — level schedule rows: `(Level Height_mm Description)`
+- `*RMR-KEYNOTES*` — keynote library: `(Number Text)`
+- `*RMR-SUN-CITIES*` — reference latitudes for `RMR-SUNPATH`: `(City Latitude)`
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -183,8 +206,12 @@ RMR-FINDTEXT         ; global wording fixes
 RMR-PROJECT FILLTITLE ; push project data into every title block
 RMR-LAYERSTATE SAVE / RMR-STANDARDIZE  ; freeze a state, force BYLAYER
 RMR-CLEAN  RMR-DWGPROPS      ; clean up and stamp the properties
+RMR-STRAY  RMR-REPORT        ; audit layers, print the standard
 RMR-CHECK            ; QA before issue
 RMR-PAGESETUP  RMR-PUBLISH
+RMR-SUNPATH  RMR-FALL  RMR-DRAIN   ; site studies
+RMR-PARK  RMR-TILE  RMR-RCP        ; setout and services
+RMR-LEVELSCHED  RMR-KEYLIB         ; schedules and legends
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -200,7 +227,11 @@ cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-d
 panel — and `RooMNRooF_PRO_Delivery_Suite.dxf`, which previews the 5.0 delivery
 suite: a mitred parametric wall plan, a 16-riser stair, the takeoff readout and
 bill of materials, the finishes schedule, drawing register, transmittal record,
-xref register and the housekeeping panel. The standard sheet contains: sample 1:50 apartment plan with walls,
+xref register and the housekeeping panel — and
+`RooMNRooF_PRO_Site_Services_Suite.dxf`, which previews the 6.0 site and services
+suite: the solar study diagram, a drainage run with invert levels, parking bays,
+a tiling setout, a reflected ceiling plan, the level schedule, the keynote legend
+and a report excerpt. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -214,8 +245,8 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (190,775 bytes / 4,849 lines, 180 defuns,
-57 commands).
+variables). Current state: **PASS**, 0 findings (223,238 bytes / 5,617 lines, 196 defuns,
+67 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -223,6 +254,11 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 
 ## Notes and limitations
 
+- `RMR-SUNPATH` uses the standard solar position formulae (declination,
+  hour angle, altitude and azimuth); noon altitude equals `90 - |latitude -
+  declination|`, and southern latitudes put the noon sun in the north.
+- `RMR-TILE` and `RMR-RCP` cap setout lines at 80 per direction so very large
+  rooms cannot flood the drawing with geometry.
 - `RMR-WALL` mitres corners by bisecting the offset; extremely sharp corners are
   clamped to four times the offset so geometry can never run away.
 - `RMR-LAYERSTATE` uses its own `.rms` text format instead of the `-LAYERSTATE`

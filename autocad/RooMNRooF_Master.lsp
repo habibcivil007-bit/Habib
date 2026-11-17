@@ -1,6 +1,6 @@
 ;;; -----------------------------------------------------------------------------
 ;;; RooMNRooF Master 2D CAD Standard
-;;; Version 5.0 DELIVERY SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
+;;; Version 6.0 SITE AND SERVICES SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
 ;;;
 ;;; Purpose
 ;;;   Builds a complete, colour-led 2D consultant standard in the active drawing.
@@ -18,6 +18,10 @@
 ;;;   takeoff, bill of materials, room finishes and drawing registers, an xref
 ;;;   register, transmittal records, layer states, ByLayer standardisation,
 ;;;   drawing clean-up and drawing properties driven by the project data.
+;;;   Version 6.0 adds the site and services suite: solar study diagrams, fall
+;;;   and drainage runs, parking and tiling setout, reflected ceiling plans,
+;;;   level and keynote libraries, a printable standard report and a stray
+;;;   layer audit.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -84,6 +88,18 @@
 ;;;   RMR-STANDARDIZE  Force colour, linetype and lineweight to BYLAYER
 ;;;   RMR-CLEAN        Repeated purge plus audit, then optional standardise
 ;;;   RMR-DWGPROPS     Write drawing properties from *RMR-PROJECT*
+;;;
+;;; Site and services commands
+;;;   RMR-SUNPATH     Solar study diagram: latitude, declination curves, hours
+;;;   RMR-FALL        Fall arrow with gradient label and calculated drop
+;;;   RMR-DRAIN       Drainage run with manholes, pipes and invert levels
+;;;   RMR-PARK        Parametric parking bay layout (90 / 60 / 45 degrees)
+;;;   RMR-TILE        Tiling setout grid with tile count and waste allowance
+;;;   RMR-RCP         Reflected ceiling plan: grid and light fittings
+;;;   RMR-LEVELSCHED  Level schedule from *RMR-LEVEL-SPECS*
+;;;   RMR-KEYLIB      Keynote legend from *RMR-KEYNOTES*
+;;;   RMR-REPORT      Printable report of the whole standard
+;;;   RMR-STRAY       Audit objects sitting on non-standard layers
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
@@ -232,7 +248,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "5.0 DELIVERY SUITE")
+(setq *RMR-VERSION* "6.0 SITE AND SERVICES SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1448,6 +1464,8 @@
   (princ "\nPalette:  RMR-EXPORT-PALETTE, RMR-IMPORT-PALETTE, RMR-SAVE-TEMPLATE")
   (princ "\nDeliver:  RMR-WALL, RMR-STAIR, RMR-LENGTH, RMR-BOM, RMR-FINISHES, RMR-SHEETREG, RMR-XREFLIST, RMR-TRANSMITTAL")
   (princ "\nHousekeeping: RMR-LAYERSTATE, RMR-STANDARDIZE, RMR-CLEAN, RMR-DWGPROPS")
+  (princ "\nSite:   RMR-SUNPATH, RMR-FALL, RMR-DRAIN, RMR-PARK, RMR-TILE, RMR-RCP")
+  (princ "\nData:   RMR-LEVELSCHED, RMR-KEYLIB, RMR-REPORT, RMR-STRAY")
   (princ)
 )
 
@@ -2914,6 +2932,18 @@
   (princ "\n  RMR-CLEAN          Repeated purge + audit, then optional standardise")
   (princ "\n  RMR-DWGPROPS       Drawing properties from *RMR-PROJECT*")
   (princ "\n")
+  (princ "\n Site and services")
+  (princ "\n  RMR-SUNPATH        Solar study diagram for a chosen latitude")
+  (princ "\n  RMR-FALL           Fall arrow, gradient label and drop in mm")
+  (princ "\n  RMR-DRAIN          Drainage run with manholes and invert levels")
+  (princ "\n  RMR-PARK           Parking row: 90 / 60 / 45 degree bays")
+  (princ "\n  RMR-TILE           Tiling setout grid, tile count and waste")
+  (princ "\n  RMR-RCP            Reflected ceiling grid and light fittings")
+  (princ "\n  RMR-LEVELSCHED     Level schedule from *RMR-LEVEL-SPECS*")
+  (princ "\n  RMR-KEYLIB         Keynote legend from *RMR-KEYNOTES*")
+  (princ "\n  RMR-REPORT         Printable report of the whole standard")
+  (princ "\n  RMR-STRAY          Audit objects on non-standard layers")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -2929,6 +2959,9 @@
   (princ "\n  *RMR-WALL-SPECS*     wall types, thickness and target layer")
   (princ "\n  *RMR-FINISH-SPECS*   room finish schedule rows")
   (princ "\n  *RMR-SHEET-LIST*     drawing register and transmittal rows")
+  (princ "\n  *RMR-LEVEL-SPECS*    level schedule rows")
+  (princ "\n  *RMR-KEYNOTES*       keynote library entries")
+  (princ "\n  *RMR-SUN-CITIES*     reference latitudes for RMR-SUNPATH")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -4838,6 +4871,741 @@
         )
       )
     )
+  )
+  (princ)
+)
+
+;;; =====================================================================
+;;; PRO 6.0 SITE AND SERVICES SUITE
+;;; Solar study diagrams, falls and drainage, parking and tiling setout,
+;;; reflected ceiling plans, level and keynote libraries, a printable
+;;; standard report and a stray-layer audit.
+;;; =====================================================================
+
+;;; Level schedule: (Level Height_mm Description)
+(setq *RMR-LEVEL-SPECS*
+ '(
+    ("L00"     0 "Ground floor finished level")
+    ("L01"  3300 "First floor finished level")
+    ("L02"  6600 "Second floor finished level")
+    ("L03"  9900 "Third floor finished level")
+    ("ROOF" 20100 "Roof finish level")
+    ("PARAPET" 21500 "Top of parapet")
+  )
+)
+
+;;; Keynote library: (Number Text)
+(setq *RMR-KEYNOTES*
+ '(
+    ("01" "100mm blockwork partition, plastered and painted both faces")
+    ("02" "Floor waste with 1:80 fall to trapped gully")
+    ("03" "Acoustic sealant to partition head and perimeter")
+    ("04" "Waterproof tanking to wet areas, 150mm above finished floor")
+    ("05" "Porcelain floor tile on 25mm cement sand screed")
+    ("06" "Skirting to match floor finish, 100mm high")
+    ("07" "Gypsum board ceiling on concealed suspension grid")
+    ("08" "Fire rated door assembly, 60/60/60, with intumescent seals")
+    ("09" "Insulated external wall: blockwork, cavity, insulation, render")
+    ("10" "Double glazed unit, low-E coating, U-value 1.6 W/m2K")
+    ("11" "Reinforced concrete slab, 200mm thick, mesh reinforced")
+    ("12" "Aluminium rainwater downpipe, 100mm diameter, painted")
+  )
+)
+
+;;; Reference latitudes: (City Latitude_degrees)
+(setq *RMR-SUN-CITIES*
+ '(
+    ("DHAKA"     23.81)
+    ("DUBAI"     25.20)
+    ("SINGAPORE"  1.35)
+    ("LONDON"    51.51)
+    ("NEW YORK"  40.71)
+    ("SYDNEY"   -33.87)
+  )
+)
+
+(setq *RMR-SUN-DECLINATIONS*
+ '(
+    ("SUMMER"  23.45)
+    ("EQUINOX"  0.00)
+    ("WINTER" -23.45)
+  )
+)
+
+;;; --- solar geometry ------------------------------------------------------
+(defun RMR:Radians (deg) (* deg (/ pi 180.0)))
+(defun RMR:Degrees (rad) (* rad (/ 180.0 pi)))
+
+(defun RMR:SolarAltitude (lat dec hour / value)
+  ;; lat, dec and hour are in radians. Returns the solar altitude in radians.
+  (setq value (+ (* (sin lat) (sin dec))
+                 (* (cos lat) (cos dec) (cos hour))))
+  (setq value (max -1.0 (min 1.0 value)))
+  (asin value)
+)
+
+(defun RMR:SolarAzimuth (lat dec hour alt / value cosalt az)
+  ;; Azimuth in radians measured clockwise from north. hour < 0 is morning.
+  (setq cosalt (cos alt))
+  (if (< (abs cosalt) 0.000001)
+    (setq value 0.0)
+    (progn
+      (setq value (/ (- (* (sin dec) (cos lat))
+                        (* (cos dec) (sin lat) (cos hour)))
+                     cosalt))
+      (setq value (max -1.0 (min 1.0 value)))
+    )
+  )
+  (setq az (acos value))
+  (if (> hour 0.0) (setq az (- (* 2.0 pi) az)))
+  az
+)
+
+(defun C:RMR-SUNPATH (/ spec lat limit centre kw dec hour alt az pt
+                      points index value hh)
+  (RMR:EnsureReady)
+  (setq kw (RMR:PromptKeyword
+             "Reference latitude"
+             (strcat (RMR:KeywordBar (RMR:KeywordList *RMR-SUN-CITIES*)) " OTHER")
+             "DHAKA"))
+  (if kw
+    (progn
+      (if (= kw "OTHER")
+        (progn
+          (setq lat (getreal "\nLatitude in degrees (negative is south) <23.81>: "))
+          (if (not lat) (setq lat 23.81))
+        )
+        (progn
+          (setq spec (RMR:TableSpec kw *RMR-SUN-CITIES*))
+          (setq lat (nth 1 spec))
+        )
+      )
+      (setq centre (getpoint "\nCentre of the sun-path diagram: "))
+      (if centre
+        (progn
+          (setq limit (RMR:PromptReal "Horizon circle radius" 60.0))
+          (setq lat (RMR:Radians lat))
+          (setq value (RMR:Scaled 1.0))
+          (RMR:Circle centre limit "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+          ;; cardinal marks and 30 degree altitude rings
+          (foreach label-index '(0 1 2 3)
+            (setq az (* label-index (/ pi 2.0)))
+            (RMR:Line centre (RMR:Polar centre az limit) "RMR-00-REF" *RMR-BRAND-SLATE*)
+          )
+          (foreach ring '(30.0 60.0)
+            (RMR:Circle centre (* limit (/ (- 90.0 ring) 90.0))
+                        "RMR-00-REF" *RMR-BRAND-SLATE*)
+          )
+          ;; declination curves
+          (foreach spec *RMR-SUN-DECLINATIONS*
+            (setq dec (RMR:Radians (nth 1 spec)))
+            (setq points nil)
+            (setq hour (- pi 0.0001))
+            (while (<= hour pi)
+              (setq alt (RMR:SolarAltitude lat dec hour))
+              (if (> alt 0.0)
+                (progn
+                  (setq az (RMR:SolarAzimuth lat dec hour alt))
+                  (setq points (append points (list (RMR:Polar centre az (* limit (/ (- 90.0 (RMR:Degrees alt)) 90.0))))))
+                )
+              )
+              (setq hour (+ hour (/ pi 24.0)))
+            )
+            (if (> (length points) 1)
+              (RMR:PolyLine points nil nil "RMR-A-ARROW" *RMR-BRAND-GOLD*)
+            )
+            (setq index (if (= (nth 0 spec) "SUMMER") 0.62
+                          (if (= (nth 0 spec) "EQUINOX") 0.42 0.22)))
+            (RMR:Text (RMR:Polar centre (RMR:Radians -45.0) (* limit index))
+                      (nth 0 spec) (* 2.4 value) "RMR-LABEL"
+                      "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+          )
+          ;; hour marks around the horizon for the equinox
+          (foreach hh '(6 9 12 15 18)
+            (setq hour (RMR:Radians (* (- hh 12.0) 15.0)))
+            (setq dec 0.0)
+            (setq alt (RMR:SolarAltitude lat dec hour))
+            (if (> alt -0.000001)
+              (progn
+                (setq az (RMR:SolarAzimuth lat dec hour alt))
+                (setq pt (RMR:Polar centre az (* limit 1.05)))
+                (RMR:Text (list (car pt) (cadr pt)) (strcat (itoa hh) "h")
+                          (* 2.0 value) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+              )
+            )
+          )
+          (foreach label-index '(0 1 2 3)
+            (setq az (* label-index (/ pi 2.0)))
+            (RMR:Text (RMR:Polar centre az (* limit 1.10))
+                      (nth label-index '("N" "E" "S" "W"))
+                      (* 3.0 value) "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          )
+          ;; noon altitudes reported in the corner
+          (setq index 0)
+          (foreach spec *RMR-SUN-DECLINATIONS*
+            (setq dec (RMR:Radians (nth 1 spec)))
+            (setq alt (RMR:SolarAltitude lat dec 0.0))
+            (RMR:Text (RMR:PT+ centre (- limit) (- limit (* index 4.0) 12.0))
+                      (strcat (nth 0 spec) " NOON ALTITUDE " (RMR:Num (RMR:Degrees alt) 1) " DEG")
+                      (* 2.2 value) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+            (setq index (1+ index))
+          )
+          (RMR:Text (RMR:PT+ centre (- limit) (+ limit 8.0))
+                    (strcat "SOLAR STUDY  |  LATITUDE " (RMR:Num (RMR:Degrees lat) 2) " DEG")
+                    (* 3.4 value) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (princ (strcat "\nSun-path diagram drawn at latitude "
+                         (RMR:Num (RMR:Degrees lat) 2) " degrees."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- falls and drainage ---------------------------------------------------
+(defun C:RMR-FALL (/ p1 p2 kw gradient run drop s mid ang ux uy label)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p1 (getpoint "\nHigh point of the fall: "))
+  (if p1
+    (progn
+      (setq p2 (getpoint p1 "\nLow point of the fall: "))
+      (if p2
+        (progn
+          (setq kw (RMR:PromptKeyword "Gradient"
+                                      (RMR:KeywordBar "40 60 80 100 120") "80"))
+          (if kw
+            (progn
+              (setq gradient (atof kw))
+              (setq run (distance p1 p2))
+              (setq drop (if (> gradient 0.0) (/ run gradient) 0.0))
+              (setq ang (angle p1 p2))
+              (setq ux (cos ang))
+              (setq uy (sin ang))
+              (RMR:Line p1 p2 "RMR-P-DRAIN" *RMR-BRAND-BLUE*)
+              (RMR:SolidTri p2 (- ux) (- uy) (* 4.0 s) "RMR-P-DRAIN" *RMR-BRAND-BLUE*)
+              (setq mid (list (/ (+ (car p1) (car p2)) 2.0)
+                              (/ (+ (cadr p1) (cadr p2)) 2.0)))
+              (setq label (strcat "FALL 1:" kw "  (" (RMR:Num drop 0) "mm OVER "
+                                  (RMR:Num run 0) "mm)"))
+              (RMR:RotText (list (+ (car mid) (* 2.0 s)) (+ (cadr mid) (* 2.0 s)))
+                           label (* 2.4 s) "RMR-LABEL" "RMR-P-ANNO" *RMR-BRAND-BLUE*
+                           (if (and (> ang (* pi 0.5)) (<= ang (* pi 1.5))) (- ang pi) ang))
+              (princ (strcat "\nFall 1:" kw " drawn - " (RMR:Num drop 0)
+                             "mm drop over " (RMR:Num run 0) "mm."))
+            )
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-DRAIN (/ p1 p2 pts start gradient length-so-far index name level
+                    previous s label)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p1 (getpoint "\nStart of the drainage run: "))
+  (if p1
+    (progn
+      (setq pts (list (list (car p1) (cadr p1))))
+      (setq p2 (getpoint (last pts) "\nNext point <enter to finish>: "))
+      (while p2
+        (setq pts (append pts (list (list (car p2) (cadr p2)))))
+        (setq p2 (getpoint (last pts) "\nNext point <enter to finish>: "))
+      )
+      (if (< (length pts) 2)
+        (princ "\nA drainage run needs at least two points.")
+        (progn
+          (setq start (RMR:PromptReal "Start invert level in mm" 1500.0))
+          (setq gradient (RMR:PromptReal "Gradient 1:x" 80.0))
+          (setq name (RMR:PromptText "First manhole reference" "MH01"))
+          (setq level start)
+          (setq index 0)
+          (setq previous (nth 0 pts))
+          (RMR:PolyLine pts nil nil "RMR-P-DRAIN" *RMR-BRAND-BLUE*)
+          (foreach pt pts
+            (if (> index 0)
+              (progn
+                (setq length-so-far (distance previous pt))
+                (setq level (- level (/ length-so-far gradient)))
+              )
+            )
+            (RMR:Circle pt (* 3.0 s) "RMR-P-FIXTURE" *RMR-BRAND-BLUE*)
+            (setq label (strcat name "  IL " (RMR:Num (/ level 1000.0) 3)))
+            (RMR:Text (RMR:PT+ pt (* 4.0 s) (* 1.0 s)) label (* 2.2 s)
+                      "RMR-LABEL" "RMR-P-ANNO" *RMR-BRAND-BLUE*)
+            (setq name (strcat "MH" (RMR:NumPad2 (+ index 2))))
+            (setq previous pt)
+            (setq index (1+ index))
+          )
+          (princ (strcat "\nDrainage run drawn: " (itoa (length pts))
+                         " manholes, invert from " (RMR:Num (/ start 1000.0) 3)
+                         "m down to " (RMR:Num (/ level 1000.0) 3) "m at 1:"
+                         (RMR:Num gradient 0) "."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- parking layout --------------------------------------------------------
+(defun C:RMR-PARK (/ base kw ang bayw bayd count aisle i x corner rot pts s
+                    ux uy nx ny)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq base (getpoint "\nStart corner of the parking row: "))
+  (if base
+    (progn
+      (setq kw (RMR:PromptKeyword "Bay angle" (RMR:KeywordBar "90 60 45") "90"))
+      (if kw
+        (progn
+          (setq rot (atof kw))
+          (setq bayw (RMR:PromptReal "Bay width in mm" 2500.0))
+          (setq bayd (RMR:PromptReal "Bay depth in mm" 5000.0))
+          (setq count (RMR:PromptInt "Number of bays" 4))
+          (setq aisle (RMR:PromptReal "Aisle width in mm" 6000.0))
+          (if (< count 1) (setq count 1))
+          (setq ang (RMR:Radians rot))
+          (setq ux (cos ang))
+          (setq uy (sin ang))
+          (setq nx (- uy))
+          (setq ny ux)
+          (setq i 0)
+          (while (< i count)
+            (setq corner (list (+ (car base) (* nx (* i bayw)))
+                               (+ (cadr base) (* ny (* i bayw)))))
+            (setq pts
+              (list corner
+                    (list (+ (car corner) (* ux bayd)) (+ (cadr corner) (* uy bayd)))
+                    (list (+ (car corner) (* ux bayd) (* nx bayw))
+                          (+ (cadr corner) (* uy bayd) (* ny bayw)))
+                    (list (+ (car corner) (* nx bayw)) (+ (cadr corner) (* ny bayw)))))
+            (RMR:PolyLine pts nil T "RMR-M-WALL" *RMR-BRAND-SLATE*)
+            (RMR:Text (list (+ (car corner) (* ux (* bayd 0.5)) (* nx (* bayw 0.5))
+                               (- (* 1.2 s)))
+                            (+ (cadr corner) (* uy (* bayd 0.5)) (* ny (* bayw 0.5))))
+                      (itoa (1+ i)) (* 2.6 s) "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+            (setq i (1+ i))
+          )
+          ;; aisle edge line, behind the row on the opposite side of the bays
+          (setq x (list (+ (car base) (* nx (* count bayw)))
+                        (+ (cadr base) (* ny (* count bayw)))))
+          (RMR:Line (list (- (car base) (* ux aisle)) (- (cadr base) (* uy aisle)))
+                    (list (- (car x) (* ux aisle)) (- (cadr x) (* uy aisle)))
+                    "RMR-00-REF" *RMR-BRAND-SLATE*)
+          (RMR:Line (list (+ (car base) (* ux bayd)) (+ (cadr base) (* uy bayd)))
+                    (list (+ (car base) (* ux bayd) (* nx (* count bayw)))
+                          (+ (cadr base) (* uy bayd) (* ny (* count bayw))))
+                    "RMR-M-WALL" *RMR-BRAND-SLATE*)
+          (RMR:Text (RMR:PT+ base 0.0 (- (* 12.0 s)))
+                    (strcat (itoa count) " BAYS AT " kw " DEG  |  " (itoa (fix bayw))
+                            " x " (itoa (fix bayd)) "mm  |  AISLE " (itoa (fix aisle)) "mm")
+                    (* 2.4 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+          (princ (strcat "\n" (itoa count) " parking bays drawn at " kw " degrees."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- tiling setout ---------------------------------------------------------
+(defun C:RMR-TILE (/ p1 p2 x1 y1 x2 y2 tw th grout cols rows used waste s i x y)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p1 (getpoint "\nFirst corner of the room: "))
+  (if p1
+    (progn
+      (setq p2 (getcorner p1 "\nOther corner of the room: "))
+      (if p2
+        (progn
+          (setq x1 (min (car p1) (car p2)))
+          (setq y1 (min (cadr p1) (cadr p2)))
+          (setq x2 (max (car p1) (car p2)))
+          (setq y2 (max (cadr p1) (cadr p2)))
+          (setq tw (RMR:PromptReal "Tile width in mm" 600.0))
+          (setq th (RMR:PromptReal "Tile height in mm" 600.0))
+          (setq grout (RMR:PromptReal "Allowance percentage for cutting and waste" 10.0))
+          (setq cols (fix (+ 0.999999 (/ (- x2 x1) tw))))
+          (setq rows (fix (+ 0.999999 (/ (- y2 y1) th))))
+          (if (< cols 1) (setq cols 1))
+          (if (< rows 1) (setq rows 1))
+          ;; setout grid, capped so huge rooms stay light
+          (setq i 1)
+          (while (and (< i cols) (< i 80))
+            (setq x (+ x1 (* i tw)))
+            (RMR:Line (list x y1) (list x y2) "RMR-M-FINISH" *RMR-BRAND-TEAL*)
+            (setq i (1+ i))
+          )
+          (setq i 1)
+          (while (and (< i rows) (< i 80))
+            (setq y (+ y1 (* i th)))
+            (RMR:Line (list x1 y) (list x2 y) "RMR-M-FINISH" *RMR-BRAND-TEAL*)
+            (setq i (1+ i))
+          )
+          (setq used (* cols rows))
+          (setq waste (* used (/ grout 100.0)))
+          (RMR:Text (list x1 (- y1 (* 8.0 s)))
+                    (strcat "TILING SETOUT " (itoa (fix tw)) " x " (itoa (fix th))
+                            "mm  |  " (itoa cols) " x " (itoa rows) " = "
+                            (itoa used) " TILES  |  WITH " (RMR:Num grout 0)
+                            "% WASTE ORDER " (itoa (fix (+ used waste))) " TILES")
+                    (* 2.4 s) "RMR-LABEL" "RMR-M-FINISH" *RMR-BRAND-TEAL*)
+          (princ (strcat "\nSetout: " (itoa cols) " x " (itoa rows) " = " (itoa used)
+                         " tiles, order " (itoa (fix (+ used waste)))
+                         " with " (RMR:Num grout 0) "% waste."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- reflected ceiling plan -------------------------------------------------
+(defun C:RMR-RCP (/ p1 p2 x1 y1 x2 y2 module spacing cols rows i x y count s)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p1 (getpoint "\nFirst corner of the ceiling: "))
+  (if p1
+    (progn
+      (setq p2 (getcorner p1 "\nOther corner of the ceiling: "))
+      (if p2
+        (progn
+          (setq x1 (min (car p1) (car p2)))
+          (setq y1 (min (cadr p1) (cadr p2)))
+          (setq x2 (max (car p1) (car p2)))
+          (setq y2 (max (cadr p1) (cadr p2)))
+          (setq module (RMR:PromptReal "Ceiling grid module in mm" 600.0))
+          (setq spacing (RMR:PromptReal "Light fitting spacing in mm" 1200.0))
+          (setq cols (fix (/ (- x2 x1) module)))
+          (setq rows (fix (/ (- y2 y1) module)))
+          (setq i 1)
+          (while (and (< i cols) (< i 80))
+            (setq x (+ x1 (* i module)))
+            (RMR:Line (list x y1) (list x y2) "RMR-M-CEILING" *RMR-BRAND-SAND*)
+            (setq i (1+ i))
+          )
+          (setq i 1)
+          (while (and (< i rows) (< i 80))
+            (setq y (+ y1 (* i module)))
+            (RMR:Line (list x1 y) (list x2 y) "RMR-M-CEILING" *RMR-BRAND-SAND*)
+            (setq i (1+ i))
+          )
+          (setq count 0)
+          (setq i 0)
+          (while (< (+ x1 (* (+ i 0.5) spacing)) x2)
+            (setq y y1)
+            (setq y (+ y (* 0.5 spacing)))
+            (while (< y y2)
+              (setq x (+ x1 (* (+ i 0.5) spacing)))
+              (RMR:Circle (list x y) (* 90.0 (/ module 600.0)) "RMR-M-CEILING" *RMR-BRAND-GOLD*)
+              (RMR:Line (list (- x (* 120.0 (/ module 600.0))) y)
+                        (list (+ x (* 120.0 (/ module 600.0))) y)
+                        "RMR-M-CEILING" *RMR-BRAND-GOLD*)
+              (RMR:Line (list x (- y (* 120.0 (/ module 600.0))))
+                        (list x (+ y (* 120.0 (/ module 600.0))))
+                        "RMR-M-CEILING" *RMR-BRAND-GOLD*)
+              (setq count (1+ count))
+              (setq y (+ y spacing))
+            )
+            (setq i (1+ i))
+          )
+          (RMR:Text (list x1 (- y1 (* 8.0 s)))
+                    (strcat "RCP  |  GRID " (itoa (fix module)) "mm  |  "
+                            (itoa count) " LIGHT FITTINGS AT " (itoa (fix spacing)) "mm")
+                    (* 2.4 s) "RMR-LABEL" "RMR-M-CEILING" *RMR-BRAND-SAND*)
+          (princ (strcat "\nReflected ceiling plan drawn: " (itoa count)
+                         " fittings on a " (itoa (fix module)) "mm grid."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- level schedule ---------------------------------------------------------
+(defun C:RMR-LEVELSCHED (/ point s text colw rowh width y row i cx label-index)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the level schedule: "))
+  (if point
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq text (* 2.3 s))
+      (setq colw (list (* 30.0 s) (* 34.0 s) (* 96.0 s)))
+      (setq width (+ (nth 0 colw) (nth 1 colw) (nth 2 colw)))
+      (setq rowh (* 8.0 s))
+      (setq y (cadr point))
+      (RMR:Text point "LEVEL SCHEDULE  |  RMR-LEVELSCHED" (* 4.5 s) "RMR-HEAD"
+                "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (RMR:Text (RMR:PT+ point 0.0 (- (* 5.5 s)))
+                (strcat "DATUM " (RMR:ProjectValue "PROJECT" "")
+                        "   |   LEVELS IN MILLIMETRES ABOVE DATUM")
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (setq y (- y (* 13.0 s)))
+      (RMR:Solid (list (car point) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+      (foreach label-index '(0 1 2)
+        (setq cx (car point))
+        (setq i 0)
+        (while (< i label-index)
+          (setq cx (+ cx (nth i colw)))
+          (setq i (1+ i))
+        )
+        (RMR:Text (RMR:PT+ (list cx (- y rowh) 0.0) (* 1.6 s) (* 2.2 s))
+                  (nth label-index '("LEVEL" "HEIGHT" "DESCRIPTION"))
+                  text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+      )
+      (RMR:TableDividers (car point) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+      (setq y (- y rowh))
+      (foreach row *RMR-LEVEL-SPECS*
+        (RMR:Rect (list (car point) (- y rowh) 0.0) width rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+        (RMR:TableDividers (car point) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+        (RMR:Text (RMR:PT+ (list (car point) (- y rowh) 0.0) (* 1.6 s) (* 2.2 s))
+                  (nth 0 row) text "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw)) (- y rowh) 0.0) (* 1.6 s) (* 2.2 s))
+                  (strcat (RMR:Num (nth 1 row) 0) " mm") text "RMR-BODY"
+                  "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw) (nth 1 colw)) (- y rowh) 0.0)
+                           (* 1.6 s) (* 2.2 s))
+                  (nth 2 row) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (setq y (- y rowh))
+      )
+      (princ (strcat "\nLevel schedule placed with " (itoa (length *RMR-LEVEL-SPECS*))
+                     " levels from *RMR-LEVEL-SPECS*."))
+    )
+  )
+  (princ)
+)
+
+;;; --- keynote library ---------------------------------------------------------
+(defun C:RMR-KEYLIB (/ point s y row text)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the keynote legend: "))
+  (if point
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq text (* 2.2 s))
+      (setq y (cadr point))
+      (RMR:Text point "KEYNOTE LEGEND  |  RMR-KEYLIB" (* 4.5 s) "RMR-HEAD"
+                "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 8.0 s)))
+      (RMR:Line (list (car point) y) (list (+ (car point) (* 210.0 s)) y)
+                "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+      (setq y (- y (* 6.0 s)))
+      (foreach row *RMR-KEYNOTES*
+        (RMR:Circle (list (+ (car point) (* 3.0 s)) (+ y (* 1.2 s))) (* 2.6 s)
+                    "RMR-A-KEYNOTE" *RMR-BRAND-GOLD*)
+        (RMR:CenterText (list (+ (car point) (* 3.0 s)) (+ y (* 1.2 s))) (nth 0 row)
+                        (* 2.2 s) "RMR-NUMBER" "RMR-A-KEYNOTE" *RMR-BRAND-INK*)
+        (RMR:Text (list (+ (car point) (* 8.0 s)) y) (nth 1 row) text
+                  "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (setq y (- y (* 5.0 s)))
+      )
+      (princ (strcat "\nKeynote legend placed with " (itoa (length *RMR-KEYNOTES*))
+                     " notes from *RMR-KEYNOTES*."))
+    )
+  )
+  (princ)
+)
+
+;;; --- standard report ----------------------------------------------------------
+(defun RMR:RGBText (rgb / r g b)
+  (setq r (itoa (fix (nth 0 rgb))))
+  (setq g (itoa (fix (nth 1 rgb))))
+  (setq b (itoa (fix (nth 2 rgb))))
+  (strcat r "," g "," b)
+)
+
+(defun C:RMR-REPORT (/ path lines spec group groups weight note)
+  (RMR:EnsureReady)
+  (setq path (getfiled "Save the standard report"
+                       (strcat "RooMNRooF_Standard_Report_" (RMR:TodayDate) ".txt")
+                       "txt" 1))
+  (if path
+    (progn
+      (setq lines
+        (list
+          "=============================================================="
+          (strcat "RooMNRooF " *RMR-VERSION* " - STANDARD REPORT")
+          (strcat "Generated " (RMR:TodayDate))
+          "=============================================================="
+          ""
+          "PROJECT DATA"
+        )
+      )
+      (foreach pair (RMR:ProjectPairs)
+        (setq lines (append lines (list (strcat "  " (car pair) " = " (cdr pair)))))
+      )
+      (setq lines (append lines (list "" "LAYER PALETTE" "")))
+      (setq groups nil)
+      (foreach spec *RMR-LAYER-SPECS*
+        (if (not (member (nth 1 spec) groups))
+          (setq groups (append groups (list (nth 1 spec))))
+        )
+      )
+      (foreach group groups
+        (setq lines (append lines (list (strcat "  [" group "]"))))
+        (foreach spec *RMR-LAYER-SPECS*
+          (if (= (nth 1 spec) group)
+            (progn
+              (setq weight (nth 4 spec))
+              (setq lines
+                (append lines
+                  (list
+                    (strcat "    " (nth 0 spec)
+                            "  |  RGB " (RMR:RGBText (nth 2 spec))
+                            "  |  " (nth 3 spec)
+                            "  |  " (if (< weight 0) "default"
+                                      (strcat (RMR:Num (/ weight 100.0) 2) "mm"))
+                            "  |  " (nth 5 spec)))))
+            )
+          )
+        )
+      )
+      (setq lines (append lines (list "" "TEXT STYLES" "")))
+      (foreach spec *RMR-TEXT-STYLES*
+        (setq lines (append lines
+          (list (strcat "  " (nth 0 spec) "  |  font " (nth 1 spec)
+                        "  |  width " (RMR:Num (nth 2 spec) 2)
+                        "  |  " (nth 4 spec)))))
+      )
+      (setq lines (append lines (list "" "DIMENSION STYLES" "")))
+      (foreach spec *RMR-DIMSTYLE-SPECS*
+        (setq lines (append lines
+          (list (strcat "  " (nth 0 spec) "  |  text " (RMR:Num (nth 1 spec) 2)
+                        "  |  arrows " (RMR:Num (nth 2 spec) 2)
+                        "  |  " (nth 3 spec)))))
+      )
+      (setq lines (append lines (list "" "MATERIAL HATCH LIBRARY" "")))
+      (foreach spec *RMR-HATCH-SPECS*
+        (setq lines (append lines
+          (list (strcat "  " (nth 0 spec) "  " (nth 1 spec) "  |  pattern "
+                        (nth 2 spec) "  |  scale " (RMR:Num (nth 3 spec) 2)
+                        "  |  " (nth 6 spec)))))
+      )
+      (setq lines (append lines (list "" "WALL TYPES" "")))
+      (foreach spec *RMR-WALL-SPECS*
+        (setq lines (append lines
+          (list (strcat "  " (nth 0 spec) "  |  " (RMR:Num (nth 1 spec) 0)
+                        "mm  |  " (nth 2 spec) "  |  " (nth 3 spec)))))
+      )
+      (setq lines (append lines (list "" "LEVELS" "")))
+      (foreach spec *RMR-LEVEL-SPECS*
+        (setq lines (append lines
+          (list (strcat "  " (nth 0 spec) "  |  " (RMR:Num (nth 1 spec) 0)
+                        "mm  |  " (nth 2 spec)))))
+      )
+      (setq lines (append lines (list "" "KEYNOTES" "")))
+      (foreach spec *RMR-KEYNOTES*
+        (setq lines (append lines (list (strcat "  " (nth 0 spec) "  " (nth 1 spec)))))
+      )
+      (setq lines (append lines (list "" "DRAWING REGISTER" "")))
+      (foreach spec *RMR-SHEET-LIST*
+        (setq lines (append lines
+          (list (strcat "  " (nth 0 spec) "  |  " (nth 1 spec) "  |  "
+                        (nth 2 spec) "  |  REV " (nth 3 spec) "  |  " (nth 4 spec)))))
+      )
+      (setq lines (append lines (list "" "GENERAL NOTES" "")))
+      (setq spec 0)
+      (foreach note *RMR-NOTES*
+        (setq spec (1+ spec))
+        (setq lines (append lines (list (strcat "  " (RMR:NumPad2 spec) ".  " note))))
+      )
+      (setq note (itoa spec))
+      (setq lines
+        (append lines
+          (list
+            ""
+            "=============================================================="
+            (strcat "Layers " (itoa (length *RMR-LAYER-SPECS*))
+                    "  |  text styles " (itoa (length *RMR-TEXT-STYLES*))
+                    "  |  dim styles " (itoa (length *RMR-DIMSTYLE-SPECS*))
+                    "  |  materials " (itoa (length *RMR-HATCH-SPECS*))
+                    "  |  keynotes " (itoa (length *RMR-KEYNOTES*))
+                    "  |  notes " (itoa (length *RMR-NOTES*)))
+            "Editable tables live near the top of RooMNRooF_Master.lsp."
+            "=============================================================="
+          )
+        )
+      )
+      (if (RMR:WriteLines path lines)
+        (progn
+          (princ (strcat "\nStandard report written: " path))
+          (princ (strcat "\n" (itoa (length lines)) " lines covering the whole standard."))
+        )
+        (princ "\nThe report file could not be written.")
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- stray layer audit ---------------------------------------------------------
+(defun RMR:StandardLayerP (name / spec found)
+  (setq found nil)
+  (foreach spec *RMR-LAYER-SPECS*
+    (if (= (strcase (nth 0 spec)) (strcase name)) (setq found T))
+  )
+  found
+)
+
+(defun C:RMR-STRAY (/ ss i data layer counts line target names)
+  (RMR:EnsureReady)
+  (setq ss (ssget "_X"))
+  (if ss
+    (progn
+      (setq counts nil)
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq data (entget (ssname ss i)))
+        (setq layer (cdr (assoc 8 data)))
+        (if (and layer
+                 (not (RMR:StandardLayerP layer))
+                 (not (vl-string-search "|" layer))
+                 (not (member (strcase layer) '("0" "DEFPOINTS"))))
+          (setq counts (RMR:AssocCountInc layer counts))
+        )
+        (setq i (1+ i))
+      )
+      (setq counts (RMR:SortPairsDesc counts))
+      (if counts
+        (progn
+          (princ (strcat "\nObjects on non-standard layers: " (itoa (apply '+ (mapcar 'cdr counts)))))
+          (foreach line counts
+            (princ (strcat "\n  " (car line) " - " (itoa (cdr line)) " object(s)"))
+          )
+          (if (RMR:YesP (RMR:PromptYesNo "Move them all onto a standard layer" "No"))
+            (progn
+              (setq names (RMR:GroupLayerNames "MAIN THEME"))
+              (setq target (RMR:PromptText "Target layer" (nth 0 names)))
+              (if (tblsearch "LAYER" target)
+                (progn
+                  (setq i 0)
+                  (repeat (sslength ss)
+                    (setq data (entget (ssname ss i)))
+                    (setq layer (cdr (assoc 8 data)))
+                    (if (and layer (not (RMR:StandardLayerP layer))
+                             (not (vl-string-search "|" layer))
+                             (not (member (strcase layer) '("0" "DEFPOINTS"))))
+                      (vl-catch-all-apply 'entmod
+                        (list (RMR:DXF 8 target data)))
+                    )
+                    (setq i (1+ i))
+                  )
+                  (princ (strcat "\nMoved the stray objects onto " target
+                                 ". Run RMR-CHECK to confirm."))
+                )
+                (princ (strcat "\n" target " is not a layer in this drawing."))
+              )
+            )
+          )
+        )
+        (princ "\nEvery object sits on a RooMNRooF standard layer.")
+      )
+    )
+    (princ "\nThis drawing has no objects.")
   )
   (princ)
 )

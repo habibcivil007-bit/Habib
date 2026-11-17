@@ -1,6 +1,6 @@
 ;;; -----------------------------------------------------------------------------
 ;;; RooMNRooF Master 2D CAD Standard
-;;; Version 6.0 SITE AND SERVICES SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
+;;; Version 7.0 COORDINATION SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
 ;;;
 ;;; Purpose
 ;;;   Builds a complete, colour-led 2D consultant standard in the active drawing.
@@ -22,6 +22,10 @@
 ;;;   and drainage runs, parking and tiling setout, reflected ceiling plans,
 ;;;   level and keynote libraries, a printable standard report and a stray
 ;;;   layer audit.
+;;;   Version 7.0 adds the coordination suite: bounding-box clash checks between
+;;;   layer groups, parametric roofs and balustrades, glazing and zone schedules,
+;;;   block swapping, tag renumbering, text alignment, entity information and
+;;;   true-north orientation.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -100,6 +104,18 @@
 ;;;   RMR-KEYLIB      Keynote legend from *RMR-KEYNOTES*
 ;;;   RMR-REPORT      Printable report of the whole standard
 ;;;   RMR-STRAY       Audit objects sitting on non-standard layers
+;;;
+;;; Coordination suite commands
+;;;   RMR-CLASH       Bounding-box clash check between two layer groups
+;;;   RMR-ROOF        Parametric roof plan: gable, hip or shed with eaves
+;;;   RMR-RAIL        Balustrade along a path with posts at a spacing
+;;;   RMR-WINDOWSCHED Glazing schedule from RMR-SYM-WINDOW* blocks
+;;;   RMR-ZONE        Zone plan: areas hatched by band with a legend
+;;;   RMR-BLKSWAP     Replace every insert of one block with another
+;;;   RMR-RENUMBER    Renumber picked tags in selection order
+;;;   RMR-TEXTALIGN   Align selected text onto a picked baseline
+;;;   RMR-INFO        Full information report for one object
+;;;   RMR-ORIENT      Rotate the model to true north
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
@@ -248,7 +264,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "6.0 SITE AND SERVICES SUITE")
+(setq *RMR-VERSION* "7.0 COORDINATION SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1466,6 +1482,8 @@
   (princ "\nHousekeeping: RMR-LAYERSTATE, RMR-STANDARDIZE, RMR-CLEAN, RMR-DWGPROPS")
   (princ "\nSite:   RMR-SUNPATH, RMR-FALL, RMR-DRAIN, RMR-PARK, RMR-TILE, RMR-RCP")
   (princ "\nData:   RMR-LEVELSCHED, RMR-KEYLIB, RMR-REPORT, RMR-STRAY")
+  (princ "\nCoordinate: RMR-CLASH, RMR-ROOF, RMR-RAIL, RMR-WINDOWSCHED, RMR-ZONE")
+  (princ "\nFix:    RMR-BLKSWAP, RMR-RENUMBER, RMR-TEXTALIGN, RMR-INFO, RMR-ORIENT")
   (princ)
 )
 
@@ -2944,6 +2962,18 @@
   (princ "\n  RMR-REPORT         Printable report of the whole standard")
   (princ "\n  RMR-STRAY          Audit objects on non-standard layers")
   (princ "\n")
+  (princ "\n Coordination suite")
+  (princ "\n  RMR-CLASH          Bounding-box clash check between two groups")
+  (princ "\n  RMR-ROOF           Gable / hip / shed roof plan with eaves")
+  (princ "\n  RMR-RAIL           Balustrade with posts at a spacing")
+  (princ "\n  RMR-WINDOWSCHED    Glazing schedule from window blocks")
+  (princ "\n  RMR-ZONE           Zone plan hatched by area band")
+  (princ "\n  RMR-BLKSWAP        Swap every insert of one block for another")
+  (princ "\n  RMR-RENUMBER       Renumber picked tags in selection order")
+  (princ "\n  RMR-TEXTALIGN      Align selected text onto a baseline")
+  (princ "\n  RMR-INFO           Full report for one object")
+  (princ "\n  RMR-ORIENT         Rotate the model to true north")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -2962,6 +2992,7 @@
   (princ "\n  *RMR-LEVEL-SPECS*    level schedule rows")
   (princ "\n  *RMR-KEYNOTES*       keynote library entries")
   (princ "\n  *RMR-SUN-CITIES*     reference latitudes for RMR-SUNPATH")
+  (princ "\n  *RMR-ZONE-BANDS*     zone bands: label, max m2, colour, pattern")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -5606,6 +5637,740 @@
       )
     )
     (princ "\nThis drawing has no objects.")
+  )
+  (princ)
+)
+
+;;; =====================================================================
+;;; PRO 7.0 COORDINATION SUITE
+;;; Clash detection, parametric roofs and balustrades, glazing and zone
+;;; schedules, block swapping, renumbering, text alignment, entity
+;;; information and true-north orientation.
+;;; =====================================================================
+
+;;; Zone bands: (Label MaxArea_m2 Red Green Blue Pattern)
+(setq *RMR-ZONE-BANDS*
+ '(
+    ("UNDER 5"    5.0  (214 234 226) "ANSI31")
+    ("5 TO 15"   15.0  (168 214 196) "ANSI31")
+    ("15 TO 30"  30.0  (110 186 165) "ANSI31")
+    ("30 TO 60"  60.0  ( 57 137 130) "ANSI31")
+    ("OVER 60"  99999.0 ( 31  90  86) "ANSI31")
+  )
+)
+
+;;; --- clash detection ------------------------------------------------------
+(defun RMR:EntityBox (ename / obj result minp maxp lo hi)
+  (setq obj (vl-catch-all-apply 'vlax-ename->vla-object (list ename)))
+  (if (vl-catch-all-error-p obj)
+    nil
+    (progn
+      (setq minp nil)
+      (setq maxp nil)
+      (setq result (vl-catch-all-apply 'vla-GetBoundingBox (list obj 'minp 'maxp)))
+      (if (vl-catch-all-error-p result)
+        nil
+        (progn
+          (setq lo (vl-catch-all-apply 'vlax-safearray->list (list minp)))
+          (setq hi (vl-catch-all-apply 'vlax-safearray->list (list maxp)))
+          (if (or (vl-catch-all-error-p lo) (vl-catch-all-error-p hi))
+            nil
+            (list lo hi)
+          )
+        )
+      )
+    )
+  )
+)
+
+(defun RMR:BoxOverlap (a b / lo1 hi1 lo2 hi2 overlap)
+  (setq lo1 (nth 0 a))
+  (setq hi1 (nth 1 a))
+  (setq lo2 (nth 0 b))
+  (setq hi2 (nth 1 b))
+  (if (or (<= (car hi1) (car lo2)) (<= (car hi2) (car lo1))
+          (<= (cadr hi1) (cadr lo2)) (<= (cadr hi2) (cadr lo1)))
+    nil
+    (progn
+      (setq overlap
+        (list
+          (list (max (car lo1) (car lo2)) (max (cadr lo1) (cadr lo2)))
+          (list (min (car hi1) (car hi2)) (min (cadr hi1) (cadr hi2)))
+        )
+      )
+      (if (or (<= (- (car (nth 1 overlap)) (car (nth 0 overlap))) 0.0)
+              (<= (- (cadr (nth 1 overlap)) (cadr (nth 0 overlap))) 0.0))
+        nil
+        overlap
+      )
+    )
+  )
+)
+
+(defun C:RMR-CLASH (/ kw1 kw2 names1 names2 ss1 ss2 i j e1 e2 box1 box2 overlap
+                     clashes marker s)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq kw1 (RMR:PromptKeyword "First group"
+                               (RMR:KeywordBar "MAIN FURNITURE STRUCTURAL PLUMBING")
+                               "STRUCTURAL"))
+  (if kw1
+    (progn
+      (setq kw2 (RMR:PromptKeyword "Second group"
+                                   (RMR:KeywordBar "MAIN FURNITURE STRUCTURAL PLUMBING")
+                                   "PLUMBING"))
+      (if kw2
+        (progn
+          (setq names1 (RMR:GroupLayerNames kw1))
+          (setq names2 (RMR:GroupLayerNames kw2))
+          (if (or (not names1) (not names2))
+            (princ "\nBoth groups must contain layers in *RMR-LAYER-SPECS*.")
+            (progn
+              (setq ss1 (ssget "_X" (list (cons 8 (RMR:LayerList->Filter names1)))))
+              (setq ss2 (ssget "_X" (list (cons 8 (RMR:LayerList->Filter names2)))))
+              (if (or (not ss1) (not ss2))
+                (princ "\nOne of the groups has no objects in this drawing.")
+                (progn
+                  (setq clashes nil)
+                  (setq i 0)
+                  (repeat (sslength ss1)
+                    (setq e1 (ssname ss1 i))
+                    (setq box1 (RMR:EntityBox e1))
+                    (if box1
+                      (progn
+                        (setq j 0)
+                        (repeat (sslength ss2)
+                          (setq e2 (ssname ss2 j))
+                          (setq box2 (RMR:EntityBox e2))
+                          (if box2
+                            (progn
+                              (setq overlap (RMR:BoxOverlap box1 box2))
+                              (if overlap
+                                (setq clashes
+                                  (cons
+                                    (list
+                                      (cdr (assoc 8 (entget e1)))
+                                      (cdr (assoc 8 (entget e2)))
+                                      (list (/ (+ (car (nth 0 overlap)) (car (nth 1 overlap))) 2.0)
+                                            (/ (+ (cadr (nth 0 overlap)) (cadr (nth 1 overlap))) 2.0))
+                                      (* (- (car (nth 1 overlap)) (car (nth 0 overlap)))
+                                         (- (cadr (nth 1 overlap)) (cadr (nth 0 overlap))))
+                                    )
+                                    clashes))
+                              )
+                            )
+                          )
+                          (setq j (1+ j))
+                        )
+                      )
+                    )
+                    (setq i (1+ i))
+                  )
+                  (setq s (RMR:Scaled 1.0))
+                  (if clashes
+                    (progn
+                      (princ (strcat "\nBounding-box overlaps between " kw1 " and " kw2
+                                     ": " (itoa (length clashes))))
+                      (foreach marker clashes
+                        (princ (strcat "\n  " (nth 0 marker) " x " (nth 1 marker)
+                                       "  " (RMR:Num (nth 3 marker) 2) " mm2"))
+                      )
+                      (if (RMR:YesP (RMR:PromptYesNo "Mark the overlaps with circles" "Yes"))
+                        (foreach marker clashes
+                          (RMR:Circle (nth 2 marker) (* 4.0 s) "RMR-A-REVISION" *RMR-BRAND-TERRA*)
+                        )
+                      )
+                      (princ "\nBounding boxes overlap objects, so treat this as a")
+                      (princ "\nreview list rather than a true solid clash report.")
+                    )
+                    (princ (strcat "\nNo bounding-box overlaps between " kw1 " and " kw2
+                                   " - clean coordination check."))
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+(defun RMR:LayerList->Filter (names / out name)
+  ;; Builds an ssget layer filter string from a list of layer names.
+  (setq out "")
+  (foreach name names
+    (setq out (strcat out (if (= out "") "" ",") name))
+  )
+  out
+)
+
+;;; --- parametric roof --------------------------------------------------------
+(defun C:RMR-ROOF (/ p1 p2 x1 y1 x2 y2 over rooftype slope s ux uy nx ny
+                     long short lo eaves r1 r2 hip ux2 uy2 mid corner)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p1 (getpoint "\nFirst corner of the building: "))
+  (if p1
+    (progn
+      (setq p2 (getcorner p1 "\nOther corner of the building: "))
+      (if p2
+        (progn
+          (setq rooftype (RMR:PromptKeyword "Roof type"
+                                        (RMR:KeywordBar "GABLE HIP SHED") "HIP"))
+          (if rooftype
+            (progn
+              (setq over (RMR:PromptReal "Eaves overhang in mm" 600.0))
+              (setq slope (RMR:PromptReal "Roof pitch in degrees" 25.0))
+              (setq x1 (min (car p1) (car p2)))
+              (setq y1 (min (cadr p1) (cadr p2)))
+              (setq x2 (max (car p1) (car p2)))
+              (setq y2 (max (cadr p1) (cadr p2)))
+              ;; eaves rectangle, expanded by the overhang
+              (setq eaves
+                (list (list (- x1 over) (- y1 over))
+                      (list (+ x2 over) (- y1 over))
+                      (list (+ x2 over) (+ y2 over))
+                      (list (- x1 over) (+ y2 over))))
+              (RMR:PolyLine eaves nil T "RMR-M-WALL" *RMR-BRAND-TERRA*)
+              ;; the ridge runs along the longer direction
+              (if (>= (- x2 x1) (- y2 y1))
+                (progn (setq ux 1.0) (setq uy 0.0) (setq long (- x2 x1)) (setq short (- y2 y1)))
+                (progn (setq ux 0.0) (setq uy 1.0) (setq long (- y2 y1)) (setq short (- x2 x1)))
+              )
+              (setq nx (- uy))
+              (setq ny ux)
+              (setq lo (list (/ (+ x1 x2) 2.0) (/ (+ y1 y2) 2.0)))
+              (cond
+                ((= rooftype "GABLE")
+                  (setq r1 (list (- (car lo) (* ux (/ long 2.0))) (- (cadr lo) (* uy (/ long 2.0)))))
+                  (setq r2 (list (+ (car lo) (* ux (/ long 2.0))) (+ (cadr lo) (* uy (/ long 2.0)))))
+                )
+                ((= rooftype "HIP")
+                  (setq hip (/ (- long short) 2.0))
+                  (if (< hip 0.0) (setq hip 0.0))
+                  (setq r1 (list (- (car lo) (* ux (/ hip 1.0))) (- (cadr lo) (* uy (/ hip 1.0)))))
+                  (setq r2 (list (+ (car lo) (* ux (/ hip 1.0))) (+ (cadr lo) (* uy (/ hip 1.0)))))
+                )
+                ((= rooftype "SHED")
+                  (setq r1 (list (- (car lo) (* ux (/ long 2.0))) (- (cadr lo) (* uy (/ long 2.0)))))
+                  (setq r2 (list (+ (car lo) (* ux (/ long 2.0))) (+ (cadr lo) (* uy (/ long 2.0)))))
+                )
+              )
+              (if (/= rooftype "SHED")
+                (RMR:Line r1 r2 "RMR-M-WALL" *RMR-BRAND-TERRA*)
+              )
+              (if (= rooftype "HIP")
+                (progn
+                  (foreach corner eaves
+                    (if (< (+ (* (- (car corner) (car lo)) nx) (* (- (cadr corner) (cadr lo)) ny)) 0.0)
+                      (RMR:Line corner r1 "RMR-M-WALL" *RMR-BRAND-TERRA*)
+                      (RMR:Line corner r2 "RMR-M-WALL" *RMR-BRAND-TERRA*)
+                    )
+                  )
+                )
+              )
+              ;; slope arrow across the short direction with the pitch label
+              (setq ux2 nx)
+              (setq uy2 ny)
+              (setq mid (list (- (car lo) (* ux2 (/ (+ short (* 2.0 over)) 2.0)))
+                              (- (cadr lo) (* uy2 (/ (+ short (* 2.0 over)) 2.0)))))
+              (RMR:Line mid (list (+ (car mid) (* ux2 (+ short (* 2.0 over))))
+                                  (+ (cadr mid) (* uy2 (+ short (* 2.0 over)))))
+                        "RMR-A-ARROW" *RMR-BRAND-TERRA*)
+              (RMR:SolidTri (list (+ (car mid) (* ux2 (+ short (* 2.0 over))))
+                                  (+ (cadr mid) (* uy2 (+ short (* 2.0 over)))))
+                            (- ux2) (- uy2) (* 4.0 s) "RMR-A-ARROW" *RMR-BRAND-TERRA*)
+              (RMR:RotText (list (+ (car mid) (* 3.0 s)) (+ (cadr mid) (* 3.0 s)))
+                           (strcat rooftype " ROOF  |  PITCH " (RMR:Num slope 1) " DEG  |  "
+                                   (RMR:Num (RMR:LinearToMetres over) 2) "m EAVES")
+                           (* 2.4 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*
+                           (if (= ux 1.0) 0.0 (/ pi 2.0)))
+              (princ (strcat "\n" rooftype " roof drawn over "
+                             (RMR:Num (RMR:LinearToMetres (- x2 x1)) 2) " x "
+                             (RMR:Num (RMR:LinearToMetres (- y2 y1)) 2) "m."))
+            )
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- balustrade -------------------------------------------------------------
+(defun C:RMR-RAIL (/ pts p next spacing width s i total handrail
+                    seg-start seg-end seg-len count step ang j pt)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p (getpoint "\nStart of the balustrade: "))
+  (if p
+    (progn
+      (setq pts (list (list (car p) (cadr p))))
+      (setq next (getpoint (last pts) "\nNext point <enter to finish>: "))
+      (while next
+        (setq pts (append pts (list (list (car next) (cadr next)))))
+        (setq next (getpoint (last pts) "\nNext point <enter to finish>: "))
+      )
+      (if (< (length pts) 2)
+        (princ "\nA balustrade needs at least two points.")
+        (progn
+          (setq width (RMR:PromptReal "Balustrade thickness in mm" 100.0))
+          (setq spacing (RMR:PromptReal "Post spacing in mm" 1100.0))
+          ;; handrail: offset the path both sides of the thickness
+          (setq handrail (RMR:OffsetPath pts (/ width 2.0)))
+          (RMR:PolyLine handrail nil nil "RMR-M-FINISH" *RMR-BRAND-TEAL*)
+          (RMR:PolyLine (RMR:OffsetPath pts (- (/ width 2.0))) nil nil
+                        "RMR-M-FINISH" *RMR-BRAND-TEAL*)
+          ;; posts along the path at the chosen spacing
+          (setq i 0)
+          (setq total (length pts))
+          (while (< i (1- total))
+            (setq seg-start (nth i pts))
+            (setq seg-end (nth (1+ i) pts))
+            (setq seg-len (distance seg-start seg-end))
+            (setq count (fix (/ seg-len spacing)))
+            (if (< count 1) (setq count 1))
+            (setq step (/ seg-len (float count)))
+            (setq ang (angle seg-start seg-end))
+            ;; the shared vertex already carries a post, so later segments
+            ;; start at the first interior spacing
+            (setq j (if (= i 0) 0 1))
+            (while (<= j count)
+              (setq pt (RMR:Polar seg-start ang (* step j)))
+              (RMR:Circle pt (* 25.0 (/ width 100.0)) "RMR-M-FINISH" *RMR-BRAND-TEAL*)
+              (setq j (1+ j))
+            )
+            (setq i (1+ i))
+          )
+          (princ (strcat "\nBalustrade drawn: " (itoa (length pts))
+                         " vertices, posts at " (RMR:Num spacing 0) "mm."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- glazing schedule --------------------------------------------------------
+(defun C:RMR-WINDOWSCHED (/ ss i data name layer counts rows point s text colw
+                             rowh width y row index parts)
+  (RMR:EnsureReady)
+  (princ "\nSelect the glazing blocks <enter for the whole drawing>: ")
+  (setq ss (ssget '((0 . "INSERT"))))
+  (if (not ss) (setq ss (ssget "_X" '((0 . "INSERT")))))
+  (if ss
+    (progn
+      (setq counts nil)
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq data (entget (ssname ss i)))
+        (setq name (cdr (assoc 2 data)))
+        (setq layer (cdr (assoc 8 data)))
+        (if (wcmatch (strcase name) "RMR-SYM-WINDOW*")
+          (setq counts (RMR:AssocCountInc (strcat name "|" layer) counts))
+        )
+        (setq i (1+ i))
+      )
+      (setq rows (RMR:SortPairsDesc counts))
+      (if rows
+        (progn
+          (setq point (getpoint "\nTop-left of the glazing schedule: "))
+          (if point
+            (progn
+              (setq s (RMR:Scaled 1.0))
+              (setq text (* 2.3 s))
+              (setq colw (list (* 14.0 s) (* 70.0 s) (* 70.0 s) (* 18.0 s)))
+              (setq width (+ (nth 0 colw) (nth 1 colw) (nth 2 colw) (nth 3 colw)))
+              (setq rowh (* 8.0 s))
+              (setq y (cadr point))
+              (RMR:Text point "GLAZING SCHEDULE  |  RMR-WINDOWSCHED" (* 4.5 s)
+                        "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+              (setq y (- y (* 13.0 s)))
+              (RMR:Solid (list (car point) (- y rowh) 0.0) width rowh
+                         "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+              (RMR:Text (RMR:PT+ (list (car point) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                        "NO." text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+              (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                        "TYPE" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+              (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw) (nth 1 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                        "LAYER" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+              (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw) (nth 1 colw) (nth 2 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                        "QTY" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+              (RMR:TableDividers (car point) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+              (setq y (- y rowh))
+              (setq index 0)
+              (foreach row rows
+                (setq parts (RMR:SplitString (car row) "|"))
+                (RMR:Rect (list (car point) (- y rowh) 0.0) width rowh
+                          "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+                (RMR:TableDividers (car point) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+                (RMR:Text (RMR:PT+ (list (car point) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                          (itoa (1+ index)) text "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+                (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                          (nth 0 parts) text "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+                (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw) (nth 1 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                          (nth 1 parts) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+                (RMR:Text (RMR:PT+ (list (+ (car point) (nth 0 colw) (nth 1 colw) (nth 2 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+                          (itoa (cdr row)) text "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+                (setq index (1+ index))
+                (setq y (- y rowh))
+              )
+              (princ (strcat "\nGlazing schedule placed: " (itoa (length rows)) " type(s)."))
+            )
+          )
+        )
+        (princ "\nNo RMR-SYM-WINDOW* blocks found - run RMR-SYMBOLS first.")
+      )
+    )
+    (princ "\nNo block references in this drawing.")
+  )
+  (princ)
+)
+
+;;; --- zone plan ---------------------------------------------------------------
+(defun RMR:ZoneBand (area / band found)
+  (setq found nil)
+  (foreach band *RMR-ZONE-BANDS*
+    (if (and (not found) (<= area (nth 1 band))) (setq found band))
+  )
+  (if found found (last *RMR-ZONE-BANDS*))
+)
+
+(defun C:RMR-ZONE (/ ss i ename area band counts s y total point sorted)
+  (RMR:EnsureReady)
+  (setq ss (ssget '((0 . "LWPOLYLINE,POLYLINE,CIRCLE,ELLIPSE,REGION,HATCH"))))
+  (if ss
+    (progn
+      (setq counts nil)
+      (setq total 0.0)
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq ename (ssname ss i))
+        (setq area (RMR:EntityArea ename))
+        (if area
+          (progn
+            (setq area (RMR:AreaToSqm area))
+            (setq band (RMR:ZoneBand area))
+            (setq counts (RMR:AssocCountInc (nth 0 band) counts))
+            (setq total (+ total area))
+            (RMR:HatchEntity ename (nth 3 band) (nth 2 band))
+          )
+        )
+        (setq i (1+ i))
+      )
+      (setq sorted (RMR:SortPairsDesc counts))
+      (princ (strcat "\nZones hatched: " (itoa (sslength ss))
+                     " | total area " (RMR:Num total 2) " m2"))
+      (foreach pair sorted
+        (princ (strcat "\n  " (car pair) " m2 band - " (itoa (cdr pair)) " room(s)"))
+      )
+      (setq point (getpoint "\nTop-left of the zone legend <enter to skip>: "))
+      (if point
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq y (cadr point))
+          (RMR:Text point "ZONE PLAN  |  RMR-ZONE" (* 4.5 s) "RMR-HEAD" "RMR-A-TEXT"
+                    *RMR-BRAND-TERRA*)
+          (setq y (- y (* 8.0 s)))
+          (foreach band *RMR-ZONE-BANDS*
+            (RMR:Solid (list (car point) y) (* 10.0 s) (* 5.0 s) "RMR-M-AREA"
+                       (nth 2 band))
+            (RMR:Text (list (+ (car point) (* 13.0 s)) y) (nth 0 band) (* 2.4 s)
+                      "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (setq y (- y (* 6.0 s)))
+          )
+          (RMR:Text (list (car point) (- y (* 2.0 s)))
+                    (strcat "TOTAL " (RMR:Num total 2) " m2") (* 2.6 s)
+                    "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        )
+      )
+    )
+    (princ "\nNo closed areas selected.")
+  )
+  (princ)
+)
+
+(defun RMR:HatchEntity (ename pattern rgb / obj result data)
+  ;; Hatches a single closed entity using the AutoCAD HATCH command path so it
+  ;; works with the boundary detection AutoCAD already has.
+  (vl-load-com)
+  (setq obj (vl-catch-all-apply 'vlax-ename->vla-object (list ename)))
+  (if (not (vl-catch-all-error-p obj))
+    (progn
+      (setq result
+        (vl-catch-all-apply
+          'command
+          (list "_.-hatch" "_P" pattern "_S" (vlax-vla-object->ename obj) "" "")))
+      (if (vl-catch-all-error-p result)
+        nil
+        (progn
+          (setq result (entlast))
+          (if result
+            (progn
+              (setq data (entget result))
+              (setq data (RMR:DXF 8 "RMR-M-AREA" data))
+              (setq data (RMR:DXF 420 (RMR:RGB->420 rgb) data))
+              (vl-catch-all-apply 'entmod (list data))
+            )
+          )
+          T
+        )
+      )
+    )
+    nil
+  )
+)
+
+;;; --- block swap ----------------------------------------------------------------
+(defun C:RMR-BLKSWAP (/ old new ss i data ename insert count skipped)
+  (RMR:EnsureReady)
+  (setq old (RMR:PromptText "Block name to replace" ""))
+  (if (/= old "")
+    (progn
+      (if (not (tblsearch "BLOCK" old))
+        (princ (strcat "\nThere is no block called " old " in this drawing."))
+        (progn
+          (setq new (RMR:PromptText "Replacement block name" ""))
+          (if (not (and (/= new "") (tblsearch "BLOCK" new)))
+            (princ "\nThe replacement block is missing - nothing changed.")
+            (progn
+              (princ (strcat "\nSelect the " old " blocks to swap <enter for all>: "))
+              (setq ss (ssget (list '(0 . "INSERT") (cons 2 old))))
+              (if (not ss)
+                (setq ss (ssget "_X" (list '(0 . "INSERT") (cons 2 old))))
+              )
+              (if ss
+                (progn
+                  (setq count 0)
+                  (setq skipped 0)
+                  (setq i 0)
+                  (repeat (sslength ss)
+                    (setq ename (ssname ss i))
+                    (setq data (entget ename))
+                    (if (= (cdr (assoc 66 data)) 1)
+                      (setq skipped (1+ skipped))
+                      (progn
+                        (setq insert
+                          (entmake
+                            (subst (cons 2 new) (assoc 2 data) data)))
+                        (if insert
+                          (progn
+                            (entdel ename)
+                            (setq count (1+ count))
+                          )
+                          (setq skipped (1+ skipped))
+                        )
+                      )
+                    )
+                    (setq i (1+ i))
+                  )
+                  (princ (strcat "\nSwapped " (itoa count) " block(s) from " old
+                                 " to " new ". Skipped " (itoa skipped)
+                                 " (attributed or failed)."))
+                )
+                (princ (strcat "\nNo inserts of " old " were found."))
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- renumber --------------------------------------------------------------------
+(defun C:RMR-RENUMBER (/ ss order prefix start pad i ename data value)
+  (RMR:EnsureReady)
+  (princ "\nPick the tags to renumber in the order you want them numbered: ")
+  (setq ss (ssget '((0 . "TEXT,MTEXT"))))
+  (if ss
+    (progn
+      (setq prefix (RMR:PromptText "Prefix (empty for none)" ""))
+      (setq start (RMR:PromptInt "First number" 1))
+      (setq pad (RMR:YesP (RMR:PromptYesNo "Pad to two digits" "Yes")))
+      ;; keep the pick order reported by ssnamex
+      (setq order (vl-sort (ssnamex ss)
+                           '(lambda (a b) (< (cadr (assoc 1 (caddr a)))
+                                             (cadr (assoc 1 (caddr b)))))))
+      (setq i 0)
+      (foreach entry order
+        (if (= (car entry) 1)
+          (progn
+            (setq ename (cadr entry))
+            (setq value (itoa (+ start i)))
+            (if pad (setq value (RMR:NumPad2 (+ start i))))
+            (setq value (strcat prefix value))
+            (setq data (entget ename))
+            (vl-catch-all-apply 'entmod (list (subst (cons 1 value) (assoc 1 data) data)))
+            (setq i (1+ i))
+          )
+        )
+      )
+      (princ (strcat "\nRenumbered " (itoa i) " tag(s) from " prefix
+                     (itoa start) " upwards."))
+      (princ "\nPick order follows the crossing window; check the result on screen.")
+    )
+    (princ "\nNo text selected.")
+  )
+  (princ)
+)
+
+;;; --- text alignment ---------------------------------------------------------------
+(defun C:RMR-TEXTALIGN (/ ss p1 p2 ang i ename data value dx dy point)
+  (RMR:EnsureReady)
+  (princ "\nSelect the text to align: ")
+  (setq ss (ssget '((0 . "TEXT"))))
+  (if ss
+    (progn
+      (setq p1 (getpoint "\nFirst point of the baseline: "))
+      (if p1
+        (progn
+          (setq p2 (getpoint p1 "\nSecond point of the baseline: "))
+          (if p2
+            (progn
+              (setq ang (angle p1 p2))
+              (setq i 0)
+              (repeat (sslength ss)
+                (setq ename (ssname ss i))
+                (setq data (entget ename))
+                ;; project the current insertion point onto the baseline
+                (setq dx (- (car (cdr (assoc 10 data))) (car p1)))
+                (setq dy (- (cadr (cdr (assoc 10 data))) (cadr p1)))
+                (setq value (+ (* dx (cos ang)) (* dy (sin ang))))
+                (setq point (list (+ (car p1) (* value (cos ang)))
+                                  (+ (cadr p1) (* value (sin ang)))
+                                  0.0))
+                (setq data (RMR:DXF 10 point data))
+                (setq data (RMR:DXF 11 point data))
+                (if (assoc 50 data) (setq data (RMR:DXF 50 ang data)))
+                (if (assoc 72 data) (setq data (RMR:DXF 72 0 data)))
+                (if (assoc 73 data) (setq data (RMR:DXF 73 0 data)))
+                (vl-catch-all-apply 'entmod (list data))
+                (setq i (1+ i))
+              )
+              (princ (strcat "\nAligned " (itoa (sslength ss))
+                             " text object(s) onto the picked baseline."))
+            )
+          )
+        )
+      )
+    )
+    (princ "\nNo single-line text selected.")
+  )
+  (princ)
+)
+
+;;; --- entity information -------------------------------------------------------------
+(defun C:RMR-INFO (/ ename data obj result colour truecolour length area)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq ename (car (entsel "\nSelect an object: ")))
+  (if ename
+    (progn
+      (setq data (entget ename))
+      (princ "\n-------------------------------------------------")
+      (princ (strcat "\n Entity type   " (cdr (assoc 0 data))))
+      (princ (strcat "\n Layer         " (cdr (assoc 8 data))))
+      (setq colour (cdr (assoc 62 data)))
+      (princ (strcat "\n Colour        "
+                     (cond
+                       ((not colour) "BYLAYER")
+                       ((= colour 0) "BYBLOCK")
+                       ((= colour 256) "BYLAYER")
+                       (T (itoa colour))
+                     )))
+      (setq truecolour (cdr (assoc 420 data)))
+      (if truecolour
+        (princ (strcat "\n True colour   R" (itoa (lsh truecolour -16))
+                       " G" (itoa (logand (lsh truecolour -8) 255))
+                       " B" (itoa (logand truecolour 255))))
+      )
+      (princ (strcat "\n Linetype      "
+                     (if (assoc 6 data) (cdr (assoc 6 data)) "BYLAYER")))
+      (if (assoc 370 data)
+        (princ (strcat "\n Lineweight    " (RMR:Num (/ (cdr (assoc 370 data)) 100.0) 2) " mm"))
+      )
+      (if (= (cdr (assoc 0 data)) "INSERT")
+        (princ (strcat "\n Block         " (cdr (assoc 2 data))))
+      )
+      (if (assoc 7 data)
+        (princ (strcat "\n Text style    " (cdr (assoc 7 data))))
+      )
+      (if (assoc 1 data)
+        (princ (strcat "\n Text          " (cdr (assoc 1 data))))
+      )
+      (setq obj (vl-catch-all-apply 'vlax-ename->vla-object (list ename)))
+      (if (not (vl-catch-all-error-p obj))
+        (progn
+          (setq length (vl-catch-all-apply 'vlax-get-property (list obj 'Length)))
+          (if (not (vl-catch-all-error-p length))
+            (princ (strcat "\n Length        " (RMR:Num length 1) " mm  =  "
+                           (RMR:Num (RMR:LinearToMetres length) 3) " m"))
+          )
+          (setq area (vl-catch-all-apply 'vlax-get-property (list obj 'Area)))
+          (if (not (vl-catch-all-error-p area))
+            (princ (strcat "\n Area          " (RMR:Num (RMR:AreaToSqm area) 3)
+                           " m2  =  " (RMR:Num (* (RMR:AreaToSqm area) *RMR-SQFT-PER-SQM*) 1)
+                           " sq ft"))
+          )
+        )
+      )
+      (princ "\n-------------------------------------------------")
+    )
+    (princ "\nNothing selected.")
+  )
+  (princ)
+)
+
+;;; --- true north orientation --------------------------------------------------------
+(defun C:RMR-ORIENT (/ angle base ss i ename obj result count)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq angle (RMR:PromptAngle "Rotate the model to true north by" 0.0))
+  (if (not (equal angle 0.0 0.0001))
+    (progn
+      (if (RMR:YesP (RMR:PromptYesNo "Rotate every object in model space" "No"))
+        (progn
+          (setq base (getpoint "\nRotation base point: "))
+          (if base
+            (progn
+              (setq ss (ssget "_X" (list (cons 410 "Model"))))
+              (if ss
+                (progn
+                  (setq count 0)
+                  (setq i 0)
+                  (repeat (sslength ss)
+                    (setq ename (ssname ss i))
+                    (setq obj (vl-catch-all-apply 'vlax-ename->vla-object (list ename)))
+                    (if (not (vl-catch-all-error-p obj))
+                      (progn
+                        (setq result
+                          (vl-catch-all-apply 'vla-Rotate
+                            (list obj (vlax-3d-point base) (RMR:Radians angle))))
+                        (if (not (vl-catch-all-error-p result))
+                          (setq count (1+ count))
+                        )
+                      )
+                    )
+                    (setq i (1+ i))
+                  )
+                  (princ (strcat "\nRotated " (itoa count) " object(s) by "
+                                 (RMR:Num angle 2) " degrees."))
+                  (princ "\nMove the north arrow to match, then run RMR-CHECK.")
+                )
+                (princ "\nNothing found in model space.")
+              )
+            )
+          )
+        )
+        (princ (strcat "\nNo rotation applied. True north is "
+                       (RMR:Num angle 2) " degrees from the drawing Y axis."))
+      )
+    )
+    (princ "\nAngle is zero - nothing to do.")
   )
   (princ)
 )

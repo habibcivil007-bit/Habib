@@ -163,6 +163,7 @@ def load_lisp_data():
                      for item in _extract_form(src, "*RMR-KEYNOTES*")],
         "cities": [(item[0], item[1])
                    for item in _extract_form(src, "*RMR-SUN-CITIES*")],
+        "zones": _extract_form(src, "*RMR-ZONE-BANDS*"),
     }
 
 
@@ -2159,6 +2160,335 @@ def build_site():
 
 
 # --------------------------------------------------------------------------- #
+# 11. coordination sheet (7.0): clash check, roof plan, balustrade,
+#     glazing schedule, zone plan, block swap, renumber, align, info.
+# --------------------------------------------------------------------------- #
+
+ROOF_K = 0.0062          # millimetres -> sheet units for the roof plans
+
+
+def _box_overlap(pts_a, pts_b):
+    """min/max bounding boxes of two point lists, as the LISP does."""
+    lo1 = (min(p[0] for p in pts_a), min(p[1] for p in pts_a))
+    hi1 = (max(p[0] for p in pts_a), max(p[1] for p in pts_a))
+    lo2 = (min(p[0] for p in pts_b), min(p[1] for p in pts_b))
+    hi2 = (max(p[0] for p in pts_b), max(p[1] for p in pts_b))
+    if hi1[0] <= lo2[0] or hi2[0] <= lo1[0] or hi1[1] <= lo2[1] or hi2[1] <= lo1[1]:
+        return None
+    return [(max(lo1[0], lo2[0]), max(lo1[1], lo2[1])),
+            (min(hi1[0], hi2[0]), min(hi1[1], hi2[1]))]
+
+
+def draw_coord_clash(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h, "CLASH CHECK  |  RMR-CLASH")
+
+    # two overlapping service runs drawn as rectangles, one clash found
+    a = [(x + 14.0, y + 24.0), (x + 104.0, y + 24.0),
+         (x + 104.0, y + 34.0), (x + 14.0, y + 34.0)]
+    b = [(x + 74.0, y + 14.0), (x + 122.0, y + 14.0),
+         (x + 122.0, y + 52.0), (x + 74.0, y + 52.0)]
+    c = [(x + 20.0, y + 74.0), (x + 60.0, y + 74.0),
+         (x + 60.0, y + 84.0), (x + 20.0, y + 84.0)]
+    sh.poly(a, [0.0] * 4, True, "RMR-S-BEAM", TERRA)
+    sh.poly(b, [0.0] * 4, True, "RMR-P-DRAIN", BLUE)
+    sh.poly(c, [0.0] * 4, True, "RMR-S-BEAM", TERRA)
+
+    ov = _box_overlap(a, b)
+    cx = (ov[0][0] + ov[1][0]) / 2.0
+    cy = (ov[0][1] + ov[1][1]) / 2.0
+    sh.circle((cx, cy), 8.0, "RMR-A-REVISION", TERRA)
+    sh.circle((cx, cy), 5.0, "RMR-A-REVISION", GOLD)
+    sh.text((cx + 10.0, cy + 1.0), "CLASH 01", 2.2, "RMR-NUMBER", "RMR-A-REVISION", TERRA)
+    sh.text((x + 14.0, y + 8.0),
+            "Structural beam x Plumbing drain", 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+    sh.text((x + 14.0, y + 4.0),
+            "1 overlap found, 1 group pair clear", 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    lx = x + 150.0
+    ly = ty - 4.0
+    sh.text((lx, ly), "HOW IT WORKS", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 4.6
+    for line in ("Pick two layer groups, for",
+                 "example STRUCTURAL and PLUMBING.",
+                 "Every object bounding box is",
+                 "compared with every other box.",
+                 "Overlaps are listed with their",
+                 "area and can be circled so you",
+                 "can walk the model and review.",
+                 "",
+                 "Bounding boxes overlap objects,",
+                 "so read it as a review list,",
+                 "not a solid clash engine."):
+        sh.text((lx, ly), line, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 3.5
+
+
+def _roof(sh, ox, oy, w_mm, h_mm, over, rooftype):
+    k = ROOF_K
+    x1, y1 = ox, oy
+    x2, y2 = ox + w_mm * k, oy + h_mm * k
+    o = over * k
+    eaves = [(x1 - o, y1 - o), (x2 + o, y1 - o), (x2 + o, y2 + o), (x1 - o, y2 + o)]
+    sh.poly(eaves, [0.0] * 4, True, "RMR-M-WALL", TERRA)
+    long_is_x = (x2 - x1) >= (y2 - y1)
+    ux, uy = (1.0, 0.0) if long_is_x else (0.0, 1.0)
+    L, S = ((x2 - x1), (y2 - y1)) if long_is_x else ((y2 - y1), (x2 - x1))
+    cx, cy = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+    if rooftype == "HIP":
+        hip = max(0.0, (L - S) / 2.0)
+    else:
+        hip = L / 2.0
+    r1 = (cx - ux * hip, cy - uy * hip)
+    r2 = (cx + ux * hip, cy + uy * hip)
+    if rooftype != "SHED":
+        sh.line(r1, r2, "RMR-M-WALL", TERRA)
+    if rooftype == "HIP":
+        nx, ny = -uy, ux
+        for pt in eaves:
+            side = (pt[0] - cx) * nx + (pt[1] - cy) * ny
+            sh.line(pt, r1 if side < 0 else r2, "RMR-M-WALL", TERRA)
+    return round(math.dist(r1, r2) / k)
+
+
+def draw_coord_roof(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h, "ROOF PLANS  |  RMR-ROOF")
+
+    ly = ty - 4.0
+    for line in ("GABLE / HIP / SHED, with an eaves overhang and a pitch label.",
+                 "The ridge always follows the longer direction, and hip lines",
+                 "run from the ridge ends out to the eaves corners."):
+        sh.text((x + 12.0, ly), line, 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 4.0
+
+    ridge = _roof(sh, x + 14.0, y + 44.0, 12000.0, 8000.0, 600.0, "HIP")
+    sh.text((x + 14.0, y + 36.0), "HIP", 2.2, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+    sh.text((x + 14.0, y + 29.0), "ridge %d mm = long - short" % ridge, 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, y + 24.0), "eaves 600 mm overhang", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+
+    ridge2 = _roof(sh, x + 104.0, y + 44.0, 12000.0, 8000.0, 600.0, "GABLE")
+    sh.text((x + 104.0, y + 36.0), "GABLE", 2.2, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+    sh.text((x + 104.0, y + 29.0), "ridge %d mm = full length" % ridge2, 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 104.0, y + 24.0), "gable ends left open", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+
+    sh.text((x + 186.0, y + 36.0), "SHED", 2.2, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+    sh.text((x + 186.0, y + 29.0), "no ridge, hips", 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 186.0, y + 24.0), "to one ridge end", 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_coord_rail(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h, "BALUSTRADE AND GLAZING  |  RMR-RAIL / RMR-WINDOWSCHED")
+
+    # balustrade along an L-shaped path
+    pts = [(x + 16.0, y + 20.0), (x + 96.0, y + 20.0), (x + 96.0, y + 62.0)]
+    inner = _offset_path([(p[0] / 1.0, p[1] / 1.0) for p in pts], 3.0)
+    outer = _offset_path([(p[0] / 1.0, p[1] / 1.0) for p in pts], -3.0)
+    sh.poly(inner, [0.0] * len(inner), False, "RMR-M-FINISH", TEAL)
+    sh.poly(outer, [0.0] * len(outer), False, "RMR-M-FINISH", TEAL)
+    for i in range(len(pts) - 1):
+        a, b = pts[i], pts[i + 1]
+        L = math.dist(a, b)
+        n = max(1, int(L / 16.0))
+        ang = math.atan2(b[1] - a[1], b[0] - a[0])
+        start = 0 if i == 0 else 1
+        for j in range(start, n + 1):
+            t = L * j / n
+            sh.circle((a[0] + t * math.cos(ang), a[1] + t * math.sin(ang)), 1.6,
+                      "RMR-M-FINISH", TEAL)
+    sh.text((x + 16.0, y + 14.0), "Posts at spacing, corners counted once", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # glazing schedule
+    gy = ty - 4.0
+    sh.text((x + 12.0, gy), "GLAZING SCHEDULE", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    gy -= 5.0
+    rows = (("RMR-SYM-WINDOW", "RMR-M-WINDOW", "4"),
+            ("RMR-SYM-WINDOW", "RMR-F-FURN", "1"))
+    _table(sh, x + 12.0, gy, ("TYPE", "LAYER", "QTY"), [58.0, 56.0, 16.0], rows, text=1.9)
+
+
+def draw_coord_zone(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "ZONE PLAN  |  RMR-ZONE  |  *RMR-ZONE-BANDS*")
+
+    # five sample areas, each hatches into its band
+    bands = DATA["zones"]
+    samples = [(x + 14.0, y + 20.0, 30.0, 20.0, 0),
+               (x + 50.0, y + 20.0, 44.0, 26.0, 1),
+               (x + 14.0, y + 48.0, 52.0, 30.0, 2),
+               (x + 72.0, y + 20.0, 60.0, 34.0, 3),
+               (x + 72.0, y + 60.0, 70.0, 38.0, 4)]
+    for sx, sy, sw, shh, band_index in samples:
+        name, limit, rgb, pattern = bands[band_index]
+        pts = [(sx, sy), (sx + sw, sy), (sx + sw, sy + shh), (sx, sy + shh)]
+        sh.hatch_pattern(pts, "RMR-M-AREA", tuple(int(v) for v in rgb),
+                         pattern, scale=0.6)
+        sh.rect((sx, sy), sw, shh, "RMR-M-AREA", tuple(int(v) for v in rgb))
+
+    lx = x + 156.0
+    ly = ty - 4.0
+    sh.text((lx, ly), "BANDS", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 5.0
+    for name, limit, rgb, pattern in bands:
+        sh.solid((lx, ly - 3.0), 10.0, 5.0, "RMR-M-AREA", tuple(int(v) for v in rgb))
+        sh.text((lx + 13.0, ly - 2.4), name, 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+        ly -= 6.0
+    sh.text((lx, ly - 1.0), "TOTAL 178.40 m2", 2.2, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+    sh.text((x + 12.0, y + 4.0), "Closed areas are hatched by band, then totaled.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_coord_fixes(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "DRAWING FIXES  |  SWAP, RENUMBER, ALIGN")
+
+    # block swap before / after
+    bx = x + 14.0
+    by = ty - 8.0
+    sh.text((bx, by), "RMR-BLKSWAP", 2.2, "RMR-MARK", "RMR-A-TEXT", TEAL)
+    for i, (label, rgb) in enumerate((("CHAIR-OLD", SLATE), ("CHAIR-NEW", TEAL))):
+        cx = bx + i * 44.0
+        sh.rect((cx, by - 22.0), 14.0, 12.0, "RMR-F-FURN", rgb)
+        sh.rect((cx + 2.0, by - 20.0), 10.0, 2.5, "RMR-F-FURN", rgb)
+        sh.text((cx, by - 26.0), label, 1.9, "RMR-LABEL", "RMR-A-TEXT", INK)
+        if i == 0:
+            sh.text((cx + 20.0, by - 16.0), ">", 3.0, "RMR-NUMBER", "RMR-A-TEXT", GOLD)
+    sh.text((bx, by - 32.0), "Position, rotation, scale and layer are kept.", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # renumber
+    ry = by - 44.0
+    sh.text((bx, ry), "RMR-RENUMBER", 2.2, "RMR-MARK", "RMR-A-TEXT", TEAL)
+    for i in range(5):
+        cx = bx + i * 16.0
+        sh.circle((cx + 4.0, ry - 12.0), 3.4, "RMR-A-ROOMTAG", TERRA)
+        sh.text((cx + 4.0, ry - 12.0), "%02d" % (i + 1), 2.2, "RMR-NUMBER",
+                "RMR-A-ROOMTAG", INK, align="middle")
+    sh.text((bx, ry - 22.0), "Tags renumbered in selection order, optional prefix",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((bx, ry - 25.4), "and two-digit padding.", 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # text align
+    ay = ry - 38.0
+    sh.text((bx, ay), "RMR-TEXTALIGN", 2.2, "RMR-MARK", "RMR-A-TEXT", TEAL)
+    sh.line((bx, ay - 10.0), (bx + 90.0, ay - 6.0), "RMR-00-REF", SLATE)
+    for i, yy in enumerate((18.0, 12.0, 6.0)):
+        sh.text((bx + 8.0 + i * 26.0, ay - 10.0 - yy + 0.0), "NOTE %d" % (i + 1), 2.0,
+                "RMR-BODY", "RMR-A-TEXT", INK)
+
+
+def draw_coord_info(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "OBJECT INFORMATION  |  RMR-INFO / RMR-ORIENT")
+
+    lines = [
+        "---------------------------------------------",
+        " Entity type   LWPOLYLINE",
+        " Layer         RMR-M-WALL",
+        " Colour        BYLAYER",
+        " True colour   R198 G93 B72",
+        " Linetype      Continuous",
+        " Lineweight    0.35 mm",
+        " Length        18400 mm  =  18.400 m",
+        " Area          62.400 m2  =  671.7 sq ft",
+        "---------------------------------------------",
+    ]
+    ly = ty - 4.0
+    for line in lines:
+        sh.text((x + 8.0, ly), line, 1.8, "RMR-BODY" if line.startswith(" ") else
+                "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 3.6
+
+    ly -= 3.0
+    sh.text((x + 8.0, ly), "RMR-ORIENT  true north", 2.2, "RMR-MARK", "RMR-A-TEXT", TEAL)
+    ly -= 5.0
+    # north rotation illustration: original Y axis vs true north
+    cx, cy = x + 40.0, y + 34.0
+    r = 22.0
+    sh.circle((cx, cy), r, "RMR-00-REF", SLATE)
+    sh.line((cx, cy - r), (cx, cy + r), "RMR-00-REF", SLATE)
+    sh.line((cx - r, cy), (cx + r, cy), "RMR-00-REF", SLATE)
+    a = math.radians(27.0)
+    sh.line((cx, cy), (cx + r * math.sin(a), cy + r * math.cos(a)), "RMR-PRES-NORTH", TEAL)
+    sh.tri((cx + r * math.sin(a) - 3.0, cy + r * math.cos(a) - 3.0), 5.0,
+           "RMR-PRES-NORTH", TEAL)
+    sh.text((cx + r * math.sin(a) + 2.0, cy + r * math.cos(a) + 1.0), "N 27", 2.2,
+            "RMR-LABEL", "RMR-A-TEXT", TEAL)
+    lx = x + 96.0
+    for line in ("Rotate the whole model by an",
+                 "angle about a base point so",
+                 "drawing north matches true",
+                 "north, then move the north",
+                 "arrow to suit."):
+        sh.text((lx, ly), line, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 3.6
+
+
+def draw_coord_commands(sh):
+    x, y, w, h = 20.0, 74.0, 796.0, 158.0
+    ty = _panel(sh, x, y, w, h, "COORDINATION SUITE  |  10 NEW COMMANDS")
+
+    entries = [
+        ("RMR-CLASH", "Bounding-box clash check between two layer groups, with the",
+         "overlap area, an optional marker circle and a printed review list."),
+        ("RMR-ROOF", "Gable, hip or shed roof plan: eaves overhang, ridge along the",
+         "long axis, hip lines to the corners and a pitch label."),
+        ("RMR-RAIL", "Balustrade along a picked path: two handrail lines plus posts",
+         "at your spacing, with corner posts counted once."),
+        ("RMR-WINDOWSCHED", "Glazing schedule counted from the RMR-SYM-WINDOW* blocks",
+         "you have inserted, sorted by quantity."),
+        ("RMR-ZONE", "Hatch closed areas by band from *RMR-ZONE-BANDS* and draw the",
+         "colour legend with the total area."),
+        ("RMR-BLKSWAP", "Replace every insert of one block with another, keeping the",
+         "insertion point, rotation, scale and layer."),
+        ("RMR-RENUMBER", "Renumber picked tags in selection order with an optional",
+         "prefix and two-digit padding."),
+        ("RMR-TEXTALIGN", "Project selected single-line text onto a picked baseline",
+         "and rotate it to match the line."),
+        ("RMR-INFO", "Full report for one object: type, layer, colour, true colour,",
+         "linetype, lineweight, block, style, length and area."),
+        ("RMR-ORIENT", "Rotate every object in model space about a base point so the",
+         "drawing matches true north."),
+    ]
+    colw = 265.0
+    ly = ty - 4.0
+    for i, (name, line1, line2) in enumerate(entries):
+        col, row = i // 5, i % 5
+        gx = x + 8.0 + col * colw
+        gy = ly - row * 26.0
+        sh.text((gx, gy), name, 2.3, "RMR-MARK", "RMR-A-TEXT", TEAL)
+        sh.text((gx, gy - 4.4), line1, 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        sh.text((gx, gy - 7.6), line2, 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def build_coordination():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "COORDINATION SUITE SHEET"
+    SHEET_SUBTITLE = "CLASH CHECKS, ROOFS, BALUSTRADES, ZONES AND DRAWING FIXES"
+    SHEET_NOTE = ("The 7.0 coordination suite: the checks and utilities that keep a "
+                  "drawing set consistent before issue.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_coord_clash(sh)
+    draw_coord_roof(sh)
+    draw_coord_rail(sh)
+    draw_coord_zone(sh)
+    draw_coord_fixes(sh)
+    draw_coord_info(sh)
+    draw_coord_commands(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -2272,6 +2602,16 @@ def main():
         print("Site PNG render skipped:", exc)
     print("levels: %d | keynotes: %d | cities: %d"
           % (len(DATA["levels"]), len(DATA["keynotes"]), len(DATA["cities"])))
+    coord = build_coordination()
+    coord_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Coordination_Suite.dxf")
+    coord.saveas(coord_path)
+    print("DXF  :", coord_path, os.path.getsize(coord_path), "bytes")
+    try:
+        print("PNG  :", render_png(coord, os.path.join(OUT_DIR, "RooMNRooF_PRO_Coordination_Suite.png"),
+                                   dpi=150))
+    except Exception as exc:
+        print("Coordination PNG render skipped:", exc)
+    print("zone bands: %d" % len(DATA["zones"]))
     return 0
 
 

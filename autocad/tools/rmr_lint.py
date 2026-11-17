@@ -37,7 +37,8 @@ lsh mapcar max member menucmd min minusp mktemp namedobjdict nentsel nentselp
 new_dialog not nth null numberp open or osnap polar prin1 princ print progn
 prompt quit read read-line redraw regapp rem repeat reverse rtos set setenv
 setfunhelp setq setvar sin sinh slide_image snvalid sqrt ssadd ssdel ssget
-sslength ssmemb ssname sssetfirst start_list startapp strcase strcat strlen
+sslength ssmemb ssname ssnamex sssetfirst start_list startapp strcase strcat
+strlen
 subst substr tblnext tblobjname tblsearch term_dialog terpri textbox textpage
 wcmatch
 textscr trace trans type undo untrace vl-catch-all-apply

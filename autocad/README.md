@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 6.0 SITE AND SERVICES SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 7.0 COORDINATION SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -14,9 +14,13 @@ xref register, transmittal records, layer states, ByLayer standardisation, drawi
 clean-up and project-driven drawing properties) plus the 6.0 site and services
 suite (solar study diagrams, falls and drainage runs, parking and tiling setout,
 reflected ceiling plans, level and keynote libraries, a printable standard report
-and a stray-layer audit).
+and a stray-layer audit) plus the 7.0 coordination suite (bounding-box clash
+checks between layer groups, parametric gable / hip / shed roof plans, balustrades
+with spaced posts, a glazing schedule counted from the symbol library, zone plans
+hatched by area band, block swap, tag renumbering, text-to-baseline alignment, a
+full object information report and true-north orientation).
 
-Version string inside the LISP: `*RMR-VERSION* = "6.0 SITE AND SERVICES SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "7.0 COORDINATION SUITE"`.
 
 ## Package contents
 
@@ -33,8 +37,11 @@ Version string inside the LISP: `*RMR-VERSION* = "6.0 SITE AND SERVICES SUITE"`.
 | `preview/RooMNRooF_PRO_Delivery_Suite.png` | Rendered delivery-suite sheet. |
 | `preview/RooMNRooF_PRO_Site_Services_Suite.dxf` | A1 sheet showing the 6.0 site and services suite: solar study, drainage, parking, tiling setout, RCP, level schedule, keynote legend and report excerpt. |
 | `preview/RooMNRooF_PRO_Site_Services_Suite.png` | Rendered site and services sheet. |
+| `preview/RooMNRooF_PRO_Coordination_Suite.dxf` | A1 sheet showing the 7.0 coordination suite: clash check, roof plans, balustrade and glazing schedule, zone plan with the band legend, the swap / renumber / align fixes and the object information report. |
+| `preview/RooMNRooF_PRO_Coordination_Suite.png` | Rendered coordination sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
+| `tools/check_preview_sheets.py` | Layout audit for the generated sheets: text outside the frame and copy that would overprint other copy. |
 
 The binary `.DWT` template is intentionally **not** shipped: it can only be produced
 inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
@@ -51,7 +58,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (67 commands)
+## Command reference (77 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -134,6 +141,21 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-STRAY` | Audits the drawing for objects on layers that are not in `*RMR-LAYER-SPECS*` (ignoring xrefs, layer 0 and Defpoints) and can move them onto a standard layer. |
 
 
+### Coordination suite (new in 7.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-CLASH` | Bounding-box clash check between two layer groups (MAIN / FURNITURE / STRUCTURAL / PLUMBING). Every box in one group is compared with every box in the other; overlaps are listed with the two layers and the overlap area in mm² and can be circled on `RMR-A-REVISION`. |
+| `RMR-ROOF` | Parametric roof plan from two corners: GABLE / HIP / SHED, eaves overhang (600 mm default) and pitch (25° default). The ridge runs along the longer axis; the hip ridge is `long − short`, the gable ridge is the full length and a shed draws no ridge. Adds a slope arrow and a `TYPE \| PITCH n DEG \| n m EAVES` label. |
+| `RMR-RAIL` | Balustrade along a picked polyline path: thickness (100 mm default) and post spacing (1100 mm default). Offsets the path to both faces and places post circles, skipping the duplicated post at every shared corner vertex. |
+| `RMR-WINDOWSCHED` | Glazing schedule counted from the `RMR-SYM-WINDOW*` inserts in the drawing, grouped by block name and layer, sorted descending by quantity, drawn as a `NO. / TYPE / LAYER / QTY` table. |
+| `RMR-ZONE` | Hatches each selected closed area on `RMR-M-AREA` with the colour and pattern of its band from `*RMR-ZONE-BANDS*`, prints the band counts and total m², and can draw the band legend with the total. |
+| `RMR-BLKSWAP` | Replaces every insert of one block with another while keeping the layer, insertion point, rotation and scale. Attributed inserts are skipped and counted, because their attribute references cannot be rebuilt safely. |
+| `RMR-RENUMBER` | Renumbers picked TEXT / MTEXT tags in selection order with an optional prefix, a start number and optional two-digit padding. |
+| `RMR-TEXTALIGN` | Projects the insertion point of each selected single-line text onto a picked baseline and rotates the text to match the line (resets DXF 72 / 73 and sets 50 to the baseline angle). |
+| `RMR-INFO` | Full report for one object: entity type, layer, colour (BYLAYER / BYBLOCK / index), true colour R-G-B, linetype, lineweight, block name, style, text content, plus length in mm and m and area in m² and sq ft. |
+| `RMR-ORIENT` | Rotates every object in model space about a picked base point by a prompted angle so drawing north matches true north; answer `No` to only read the current angle. |
+
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -171,6 +193,8 @@ All visual data lives in plain editable tables near the top of the LISP:
 - `*RMR-LEVEL-SPECS*` — level schedule rows: `(Level Height_mm Description)`
 - `*RMR-KEYNOTES*` — keynote library: `(Number Text)`
 - `*RMR-SUN-CITIES*` — reference latitudes for `RMR-SUNPATH`: `(City Latitude)`
+- `*RMR-ZONE-BANDS*` — zone bands for `RMR-ZONE`: `(Label MaxArea_m2 (R G B) Pattern)`,
+  a teal ramp `UNDER 5 → 5 TO 15 → 15 TO 30 → 30 TO 60 → OVER 60` m², all `ANSI31`
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -212,6 +236,11 @@ RMR-PAGESETUP  RMR-PUBLISH
 RMR-SUNPATH  RMR-FALL  RMR-DRAIN   ; site studies
 RMR-PARK  RMR-TILE  RMR-RCP        ; setout and services
 RMR-LEVELSCHED  RMR-KEYLIB         ; schedules and legends
+RMR-CLASH  RMR-ZONE                ; coordinate before issue
+RMR-ROOF  RMR-RAIL                 ; roof plan and balustrade
+RMR-WINDOWSCHED                    ; glazing quantities
+RMR-BLKSWAP  RMR-RENUMBER  RMR-TEXTALIGN
+RMR-INFO  RMR-ORIENT               ; interrogate and orientate
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -220,7 +249,7 @@ RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds two A1 sheets: the standard sheet (below) and
+values) and rebuilds five A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
@@ -231,7 +260,12 @@ xref register and the housekeeping panel — and
 `RooMNRooF_PRO_Site_Services_Suite.dxf`, which previews the 6.0 site and services
 suite: the solar study diagram, a drainage run with invert levels, parking bays,
 a tiling setout, a reflected ceiling plan, the level schedule, the keynote legend
-and a report excerpt. The standard sheet contains: sample 1:50 apartment plan with walls,
+and a report excerpt, and `RooMNRooF_PRO_Coordination_Suite.dxf`, which previews the
+7.0 coordination suite: a clash check on two overlapping service runs, hip and gable
+roof plans with the ridge lengths, a balustrade with spaced posts and the glazing
+schedule, the zone plan with its band legend, the block swap / renumber / text-align
+fixes and the object information report with the true-north rotation. The standard
+sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -240,13 +274,18 @@ revision table, layer palette legend, text-style samples, symbol gallery, the
 ```bash
 python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 ./.venv-rmr/bin/python autocad/tools/make_preview_dxf.py
+./.venv-rmr/bin/python autocad/tools/check_preview_sheets.py   # layout audit
 ```
+
+`tools/check_preview_sheets.py` reads the generated DXFs back and reports copy that
+runs outside the sheet frame and text boxes that would print on top of each other.
+Current state across the five sheets: **0 problems** (1,179 text entities checked).
 
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (223,238 bytes / 5,617 lines, 196 defuns,
-67 commands).
+variables). Current state: **PASS**, 0 findings (255,703 bytes / 6,382 lines, 211 defuns,
+77 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -254,6 +293,15 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 
 ## Notes and limitations
 
+- `RMR-CLASH` compares bounding boxes, not solids: two objects whose boxes overlap
+  but whose geometry does not will still be listed. Treat the output as a review
+  list to walk through, not as a clash engine result.
+- `RMR-ROOF` takes the longer picked edge as the ridge direction, so the same two
+  corners give a hip ridge of `long − short` and a gable ridge of the full length.
+- `RMR-RAIL` walks each polyline segment separately and skips the first post of every
+  segment after the first, so a shared corner vertex gets one post, not two.
+- `RMR-BLKSWAP` rebuilds inserts with `entmake`; attributed inserts (DXF 66 = 1) are
+  skipped and reported, so check the skip count before trusting a furniture swap.
 - `RMR-SUNPATH` uses the standard solar position formulae (declination,
   hour angle, altitude and azimuth); noon altitude equals `90 - |latitude -
   declination|`, and southern latitudes put the noon sun in the north.

@@ -174,6 +174,13 @@ def load_lisp_data():
         "rates": _extract_form(src, "*RMR-RATE-SPECS*"),
         "elements": _extract_form(src, "*RMR-ELEMENT-SPECS*"),
         "auto": _extract_form(src, "*RMR-AUTO-SEQUENCE*"),
+        "columns": _extract_form(src, "*RMR-COLUMN-SPECS*"),
+        "beams": _extract_form(src, "*RMR-BEAM-SPECS*"),
+        "rebar": _extract_form(src, "*RMR-REBAR-SPECS*"),
+        "ducts": _extract_form(src, "*RMR-DUCT-SPECS*"),
+        "pipes": _extract_form(src, "*RMR-PIPE-SPECS*"),
+        "service_zones": _extract_form(src, "*RMR-SERVICE-ZONES*"),
+        "service_layer_zones": _extract_form(src, "*RMR-SERVICE-LAYER-ZONES*"),
     }
 
 
@@ -3565,6 +3572,367 @@ def build_quantity():
 
 
 # --------------------------------------------------------------------------- #
+# 11.0 STRUCTURAL AND MEP SHEET PANELS
+# --------------------------------------------------------------------------- #
+RMR_COLUMNS = DATA["columns"]
+RMR_BEAMS = DATA["beams"]
+RMR_REBAR = DATA["rebar"]
+RMR_DUCTS = DATA["ducts"]
+RMR_PIPES = DATA["pipes"]
+RMR_ZONES = DATA["service_zones"]
+RMR_LAYER_ZONES = DATA["service_layer_zones"]
+
+
+def _rgb(key):
+    return tuple(DATA["brand"][str(key).upper()])
+
+
+def draw_mep_frame(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "RMR_COLUMNS AND RMR_BEAMS  |  RMR-COLUMN / RMR-BEAM")
+
+    # a 3 x 2 column grid at 6 m centres, drawn at 12 units per metre
+    k = 12.0
+    ox, oy = x + 14.0, y + 34.0
+    marks = ["C1", "C2", "C3"]
+    for ix in range(3):
+        for iy in range(2):
+            cx = ox + ix * 6.0 * k
+            cy = oy + iy * 5.0 * k
+            spec = RMR_COLUMNS[ix if iy == 0 else ix + 3]
+            half_w = float(spec[1]) / 1000.0 * k / 2.0
+            half_d = float(spec[2]) / 1000.0 * k / 2.0
+            sh.solid((cx - half_w, cy - half_d), half_w * 2.0, half_d * 2.0,
+                     "RMR-S-COLUMN", _rgb(spec[3]))
+            sh.rect((cx - half_w, cy - half_d), half_w * 2.0, half_d * 2.0,
+                    "RMR-S-COLUMN", INK)
+            sh.line((cx - half_w * 2.0, cy), (cx + half_w * 2.0, cy),
+                    "RMR-S-COLUMN", SLATE)
+            sh.line((cx, cy - half_d * 2.0), (cx, cy + half_d * 2.0),
+                    "RMR-S-COLUMN", SLATE)
+            sh.circle((cx + 3.4, cy + 3.4), 2.4, "RMR-A-GRID", SLATE)
+            sh.text((cx + 2.0, cy + 2.0), spec[0], 2.6, "RMR-NUMBER",
+                    "RMR-A-GRID", INK)
+            sh.text((cx - half_w, cy - half_d - 4.0),
+                    "%s x %s" % (spec[1], spec[2]), 1.9, "RMR-MARK",
+                    "RMR-A-TEXT", SLATE)
+
+    # two beams spanning between the columns
+    bx, by = x + 150.0, y + 74.0
+    for i, spec in enumerate((RMR_BEAMS[1], RMR_BEAMS[3])):
+        y0 = by - i * 26.0
+        half = float(spec[1]) / 1000.0 * k / 2.0
+        x0, x1 = bx, bx + 108.0
+        sh.poly([(x0, y0 + half), (x1, y0 + half), (x1, y0 - half),
+                 (x0, y0 - half)], [0.0] * 4, True, "RMR-S-BEAM", _rgb(spec[4]))
+        sh.rect((x0, y0 - half), x1 - x0, half * 2.0, "RMR-S-BEAM", INK)
+        sh.text((x0 + 2.0, y0 - half - 4.2),
+                "%s  %s x %s  SPAN %.1f m" % (spec[0], spec[1], spec[2],
+                                              float(spec[3]) / 1000.0),
+                2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+    sh.text((x + 14.0, ty - 4.0),
+            "Sizes come from *RMR-COLUMN-SPECS* and *RMR-BEAM-SPECS*.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, ty - 8.4),
+            "RMR-BEAM warns when a span passes the mark's limit.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_mep_foundation(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "FOUNDATIONS AND RMR_REBAR  |  RMR-FOUNDATION / RMR-RMR_REBAR")
+
+    # three pads on a strip, drawn at 14 units per metre
+    k = 14.0
+    ox, oy = x + 14.0, y + 78.0
+    half = 0.90 * k / 2.0
+    for i in range(3):
+        cx = ox + 24.0 + i * 3.0 * k
+        sh.solid((cx - half, oy - half), half * 2.0, half * 2.0,
+                 "RMR-S-FOUND", SLATE)
+        sh.rect((cx - half, oy - half), half * 2.0, half * 2.0,
+                "RMR-S-FOUND", INK)
+        sh.rect((cx - half + 1.4, oy - half + 1.4), half * 2.0 - 2.8,
+                half * 2.0 - 2.8, "RMR-S-HIDDEN", SLATE)
+        sh.text((cx - half, oy - half - 4.2), "PAD 900 X 900 X 450 DP", 1.9,
+                "RMR-NOTE", "RMR-A-TEXT", INK)
+    sh.line((ox, oy), (ox + 24.0 + 2 * 3.0 * k + 14.0, oy),
+            "RMR-S-HIDDEN", SLATE)
+    sh.text((ox, oy + 3.0), "STRIP 900 WIDE X 450 DP", 1.9, "RMR-LABEL",
+            "RMR-A-TEXT", INK)
+
+    # three rebar runs with hooks and a bar mark
+    ry = y + 34.0
+    for i, spec in enumerate((RMR_REBAR[1], RMR_REBAR[3], RMR_REBAR[0])):
+        yy = ry + (2 - i) * 9.0
+        sh.line((x + 14.0, yy), (x + 210.0, yy), "RMR-S-RMR_REBAR", INK)
+        sh.line((x + 14.0, yy), (x + 14.0, yy + 4.0), "RMR-S-RMR_REBAR", INK)
+        sh.line((x + 210.0, yy), (x + 210.0, yy - 4.0), "RMR-S-RMR_REBAR", INK)
+        sh.circle((x + 112.0 + i * 12.0, yy + 5.0), 2.4, "RMR-A-GRID", SLATE)
+        sh.text((x + 110.4 + i * 12.0, yy + 3.4), spec[0], 2.4, "RMR-NUMBER",
+                "RMR-A-GRID", INK)
+        sh.text((x + 14.0, yy - 6.0), "%s @ %s" % (spec[1], spec[2]), 2.0,
+                "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, ty - 4.0),
+            "Pads, strips and bars all label themselves as they are drawn.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_mep_slab(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "SLAB PANELS AND SETTING OUT  |  RMR-SLABPANEL / RMR-SETOUT")
+
+    # a slab split into six panels on a 1200 module
+    px, py, pw, ph = x + 14.0, y + 66.0, 200.0, 60.0
+    sh.rect((px, py), pw, ph, "RMR-S-SLAB", INK)
+    for i in range(1, 6):
+        sh.line((px + i * pw / 6.0, py), (px + i * pw / 6.0, py + ph),
+                "RMR-S-SLAB", SLATE)
+    for i in range(6):
+        sh.text((px + i * pw / 6.0 + 6.0, py + ph / 2.0 - 2.0),
+                "P%02d" % (i + 1), 2.6, "RMR-NUMBER", "RMR-A-TEXT", INK)
+    sh.text((px, py - 5.0), "6 PANELS  |  MODULE 1200 mm  |  200 mm THICK",
+            2.0, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+
+    rows = [["P01", "1200", "6000", "200"], ["P02", "1200", "6000", "200"],
+            ["P03", "1200", "6000", "200"]]
+    _table(sh, x + 14.0, py - 12.0, ("PANEL", "LENGTH", "WIDTH", "THICK"),
+           (34.0, 44.0, 44.0, 44.0), rows, text=2.0)
+    sh.text((x + 14.0, y + 14.0),
+            "RMR-SETOUT labels each point S1, S2 ... with its easting and",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, y + 9.8),
+            "northing, then writes a POINT,EASTING,NORTHING CSV.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_mep_duct(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "DUCTWORK  |  RMR-DUCT  |  *RMR-DUCT-SPECS*")
+
+    # a duct run: two straight legs and a mitred corner
+    ox, oy = x + 14.0, y + 96.0
+    pts = [(ox, oy), (ox + 120.0, oy), (ox + 120.0, oy - 46.0)]
+    k = 10.0
+    for i, spec in enumerate((RMR_DUCTS[4], RMR_DUCTS[2], RMR_DUCTS[1])):
+        half = float(spec[1]) / 1000.0 * k / 2.0
+        yy = oy - i * 34.0
+        leg = [(ox, yy), (ox + 96.0, yy), (ox + 96.0, yy - 20.0)]
+        sh.poly([(p[0], p[1] + half) for p in leg] +
+                [(p[0], p[1] - half) for p in reversed(leg)],
+                [0.0] * 6, True, "RMR-E-DUCT", _rgb(spec[3]))
+        sh.poly([(p[0], p[1] + half) for p in leg], [0.0] * 3, False,
+                "RMR-E-DUCT", INK)
+        sh.poly([(p[0], p[1] - half) for p in leg], [0.0] * 3, False,
+                "RMR-E-DUCT", INK)
+        sh.text((ox + 4.0, yy + half + 2.4),
+                "%s  |  %.1f m" % (spec[0], 9.6 + i * 0.6), 2.0, "RMR-LABEL",
+                "RMR-P-ANNO", TEAL)
+    sh.text((x + 14.0, ty - 4.0),
+            "Six sizes, mitred corners, a hatched body, a size label and a",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, ty - 8.4),
+            "flow arrow at the end of every run.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_mep_pipe(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h,
+                "PIPEWORK AND CONTAINMENT  |  RMR-PIPE / RMR-TRAY")
+
+    ox, oy = x + 14.0, y + 96.0
+    k = 10.0
+    for i, spec in enumerate((RMR_PIPES[5], RMR_PIPES[3], RMR_PIPES[1])):
+        half = float(spec[1]) / 1000.0 * k / 2.0
+        yy = oy - i * 24.0
+        leg = [(ox, yy), (ox + 104.0, yy), (ox + 104.0, yy - 14.0)]
+        sh.poly([(p[0], p[1] + half) for p in leg] +
+                [(p[0], p[1] - half) for p in reversed(leg)],
+                [0.0] * 6, True, "RMR-E-PIPE", _rgb(spec[2]))
+        sh.poly([(p[0], p[1] + half) for p in leg], [0.0] * 3, False,
+                "RMR-E-PIPE", INK)
+        sh.poly([(p[0], p[1] - half) for p in leg], [0.0] * 3, False,
+                "RMR-E-PIPE", INK)
+        sh.text((ox + 4.0, yy + half + 2.2),
+                "0%s mm  1:80 FALL  |  11.4 m" % spec[1], 2.0, "RMR-LABEL",
+                "RMR-P-ANNO", BLUE)
+
+    # a cable tray with rungs below the pipework
+    ty0 = y + 26.0
+    half = 0.30 * k / 2.0
+    sh.line((ox, ty0 + half), (ox + 150.0, ty0 + half), "RMR-E-TRAY", GOLD)
+    sh.line((ox, ty0 - half), (ox + 150.0, ty0 - half), "RMR-E-TRAY", GOLD)
+    for i in range(11):
+        rx = ox + 6.0 + i * 14.0
+        sh.line((rx, ty0 - half), (rx, ty0 + half), "RMR-E-TRAY", GOLD)
+    sh.text((ox + 2.0, ty0 + half + 2.4), "CABLE TRAY 300", 2.0, "RMR-LABEL",
+            "RMR-P-ANNO", GOLD)
+    sh.text((x + 14.0, y + 12.0),
+            "Rungs are walked along every segment at the spacing you set.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_mep_lighting(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "LIGHTING  |  RMR-LIGHTING")
+
+    ox, oy, pw, ph = x + 14.0, y + 58.0, 200.0, 62.0
+    sh.rect((ox, oy), pw, ph, "RMR-E-LIGHT", SLATE)
+    cols, rows = 5, 2
+    index = 0
+    for ix in range(cols):
+        for iy in range(rows):
+            index += 1
+            cx = ox + (ix + 0.5) * pw / cols
+            cy = oy + (iy + 0.5) * ph / rows
+            sh.rect((cx - 3.0, cy - 3.0), 6.0, 6.0, "RMR-E-LIGHT", GOLD)
+            sh.line((cx - 3.0, cy - 3.0), (cx + 3.0, cy + 3.0),
+                    "RMR-E-LIGHT", GOLD)
+            sh.text((cx + 4.4, cy - 1.6), "A%d" % index, 2.0, "RMR-NUMBER",
+                    "RMR-P-ANNO", INK)
+    sh.circle((ox - 6.0, oy - 6.0), 2.6, "RMR-E-POWER", GOLD)
+    sh.line((ox - 6.0, oy - 6.0), (ox - 10.0, oy - 2.0), "RMR-E-POWER", GOLD)
+    sh.text((ox - 12.0, oy - 12.0), "S/A", 2.0, "RMR-LABEL", "RMR-P-ANNO", INK)
+    sh.text((ox, oy - 6.0),
+            "10 LUMINAIRES  |  CIRCUIT A  |  0.18 kW  |  2400 x 2400 mm GRID",
+            2.0, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+    sh.text((x + 14.0, ty - 4.0),
+            "Pick two corners, give the spacing and the circuit letter,",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, ty - 8.4),
+            "and the grid, tags, switch and schedule draw themselves.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_mep_sprinkler(sh):
+    x, y, w, h = 20.0, 74.0, 286.0, 158.0
+    ty = _panel(sh, x, y, w, h, "SPRINKLERS  |  RMR-SPRINKLER")
+
+    ox, oy, pw, ph = x + 14.0, y + 74.0, 200.0, 62.0
+    sh.rect((ox, oy), pw, ph, "RMR-E-SPRINK", SLATE)
+    cols, rows = 4, 2
+    index = 0
+    for ix in range(cols):
+        for iy in range(rows):
+            index += 1
+            cx = ox + (ix + 0.5) * pw / cols
+            cy = oy + (iy + 0.5) * ph / rows
+            sh.circle((cx, cy), 2100.0 / 1000.0 * 10.0, "RMR-E-SPRINK", SAND)
+            sh.circle((cx, cy), 2.2, "RMR-E-SPRINK", TERRA)
+            sh.line((cx - 3.4, cy), (cx + 3.4, cy), "RMR-E-SPRINK", TERRA)
+            sh.line((cx, cy - 3.4), (cx, cy + 3.4), "RMR-E-SPRINK", TERRA)
+            sh.text((cx + 4.0, cy - 1.6), "S%02d" % index, 1.8, "RMR-MARK",
+                    "RMR-P-ANNO", SLATE)
+    sh.text((ox, oy - 6.0),
+            "8 HEADS  |  3000 mm GRID  |  2100 mm COVER  |  124.00 m2 PROTECTED",
+            2.0, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+    sh.text((x + 14.0, y + 52.0),
+            "Every head carries its coverage circle so the overlap is",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, y + 47.8),
+            "visible on the plan, not just in a calculation.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, y + 41.0),
+            "RMR-SPRINKLER reports the protected area in m2 when it finishes.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_mep_zones(sh):
+    x, y, w, h = 316.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h,
+                "VERTICAL SERVICE RMR_ZONES  |  RMR-CLEARANCE")
+
+    total = max(float(z[2]) for z in RMR_ZONES)
+    ox, oy = x + 14.0, ty - 6.0
+    wide, maxh = 118.0, 96.0
+    yy = oy
+    for zone in reversed(RMR_ZONES):
+        bottom, top = float(zone[1]), float(zone[2])
+        band = maxh * (top - bottom) / total
+        sh.solid((ox, yy - band), wide, band, "RMR-M-FILL", _rgb(zone[3]))
+        sh.rect((ox, yy - band), wide, band, "RMR-A-FRAME", SLATE)
+        sh.text((ox + 3.0, yy - band * 0.45), zone[0], 2.2, "RMR-LABEL",
+                "RMR-A-TEXT", INK)
+        if band > 10.0:
+            sh.text((ox + 3.0, yy - band * 0.85), zone[4][:34], 1.8,
+                    "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        sh.text((ox + wide + 3.0, yy - band * 0.5),
+                "%d - %d mm" % (bottom, top), 2.0, "RMR-NUMBER", "RMR-A-TEXT",
+                INK)
+        yy -= band
+    sh.text((ox, yy - 6.0), "VERDICT: REVIEW  |  2 shared zones", 2.4,
+            "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((ox, yy - 13.0), "HVAC DUCT ZONE carries 2 services", 1.9,
+            "RMR-BODY", "RMR-A-TEXT", TERRA)
+    sh.text((ox, yy - 17.6), "CEILING ZONE carries 2 services", 1.9,
+            "RMR-BODY", "RMR-A-TEXT", TERRA)
+    return ty
+
+
+def draw_mep_schedules(sh):
+    x, y, w, h = 576.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h,
+                "SCHEDULES  |  RMR-STRUCTSCHED / RMR-MEPSCHED")
+    sh.text((x + 14.0, ty - 4.0), "STRUCTURAL ELEMENT SCHEDULE", 2.2,
+            "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    struct = (("RMR-S-COLUMN", "Columns and vertical structure", "18"),
+              ("RMR-S-BEAM", "Beams and primary framing", "24"),
+              ("RMR-S-SLAB", "Slabs and structural decks", "6"),
+              ("RMR-S-FOUND", "Foundations and footings", "21"),
+              ("RMR-S-RMR_REBAR", "Reinforcement and embeds", "34"),
+              ("RMR-S-GRID", "Structural grids", "8"))
+    cy = _table(sh, x + 14.0, ty - 10.0, ("LAYER", "DESCRIPTION", "COUNT"),
+                (30.0, 30.0, 16.0),
+                [[r[0][4:], r[1][:14], r[2]] for r in struct], text=1.9)
+    sh.text((x + 14.0, cy - 6.0), "SERVICES SCHEDULE", 2.2, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    mep = (("RMR-E-DUCT", "Ductwork", "12"), ("RMR-E-GRILLE", "Grilles", "16"),
+           ("RMR-E-PIPE", "Pipework", "9"), ("RMR-E-POWER", "Small power", "22"),
+           ("RMR-E-LIGHT", "Luminaires", "10"), ("RMR-E-TRAY", "Cable tray", "5"),
+           ("RMR-E-DATA", "Data and comms", "7"),
+           ("RMR-E-SPRINK", "Sprinklers", "8"))
+    _table(sh, x + 14.0, cy - 12.0, ("LAYER", "DESCRIPTION", "COUNT"),
+           (30.0, 30.0, 16.0),
+           [[r[0][4:], r[1][:14], r[2]] for r in mep], text=1.9)
+    return ty
+
+
+def build_structural_mep():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "STRUCTURAL AND MEP COORDINATION SHEET"
+    SHEET_SUBTITLE = ("RMR_COLUMNS, RMR_BEAMS, FOUNDATIONS, RMR_REBAR, SLAB PANELS, SETTING OUT AND "
+                      "DUCTWORK")
+    SHEET_NOTE = ("The 11.0 suite: the structure that holds the building up and the services "
+                  "that run through it.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_mep_frame(sh)
+    draw_mep_foundation(sh)
+    draw_mep_slab(sh)
+    draw_mep_duct(sh)
+    draw_mep_pipe(sh)
+    draw_mep_lighting(sh)
+    draw_mep_sprinkler(sh)
+    draw_mep_zones(sh)
+    draw_mep_schedules(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -3724,6 +4092,18 @@ def main():
     print("rates: %d | elements: %d | automation steps: %d | takeoff: %d"
           % (len(DATA["rates"]), len(DATA["elements"]), len(DATA["auto"]),
              len(TAKEOFF)))
+    mep = build_structural_mep()
+    mep_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Structural_MEP_Suite.dxf")
+    mep.saveas(mep_path)
+    print("DXF  :", mep_path, os.path.getsize(mep_path), "bytes")
+    try:
+        print("PNG  :", render_png(mep, os.path.join(
+            OUT_DIR, "RooMNRooF_PRO_Structural_MEP_Suite.png"), dpi=150))
+    except Exception as exc:
+        print("Structural MEP PNG render skipped:", exc)
+    print("columns: %d | beams: %d | rebar: %d | ducts: %d | pipes: %d | zones: %d"
+          % (len(DATA["columns"]), len(DATA["beams"]), len(DATA["rebar"]),
+             len(DATA["ducts"]), len(DATA["pipes"]), len(DATA["zones"])))
     return 0
 
 

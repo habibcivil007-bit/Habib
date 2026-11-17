@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 10.0 QUANTITY AND AUTOMATION SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 11.0 STRUCTURAL AND MEP COORDINATION SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -33,9 +33,14 @@ takeoff, a rate library, an elemental cost plan, a cost per m² dashboard, a
 cash flow curve, generic CSV import, quantity validation and a full quantity
 surveyor report, then short command aliases, a menu / tool palette file, a
 scripted automation runner and a batch script writer for whole folders of
-drawings).
+drawings) plus the 11.0 structural and MEP coordination suite (parametric
+columns, beams, pad and strip foundations, reinforcement, slab panels,
+setting-out coordinates and a structural element schedule, then ductwork,
+pipework, cable containment, lighting, sprinklers, a services schedule and a
+vertical clearance check against the service zone bands, all drawn on a new
+true-colour **SERVICES** layer group).
 
-Version string inside the LISP: `*RMR-VERSION* = "10.0 QUANTITY AND AUTOMATION SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "11.0 STRUCTURAL AND MEP COORDINATION SUITE"`.
 
 ## Package contents
 
@@ -60,6 +65,8 @@ Version string inside the LISP: `*RMR-VERSION* = "10.0 QUANTITY AND AUTOMATION S
 | `preview/RooMNRooF_PRO_Presentation_Suite.png` | Rendered presentation sheet. |
 | `preview/RooMNRooF_PRO_Quantity_Suite.dxf` | A1 sheet showing the 10.0 quantity and automation suite: the rate library, a measured survey plot, a priced takeoff, the elemental cost plan, the cost per m² dashboard, the cash flow S curve, a CSV import table, the validation verdict and the automation sequence with the alias and menu output. |
 | `preview/RooMNRooF_PRO_Quantity_Suite.png` | Rendered quantity and automation sheet. |
+| `preview/RooMNRooF_PRO_Structural_MEP_Suite.dxf` | A1 sheet showing the 11.0 structural and MEP suite: a column grid with beams, pads on a strip with three rebar runs, a slab panel layout with its schedule, three duct sizes, three pipe sizes with a cable tray, a luminaire grid with its switch, a sprinkler grid with coverage circles, the vertical service zone diagram with its verdict, and the structural and services schedules. |
+| `preview/RooMNRooF_PRO_Structural_MEP_Suite.png` | Rendered structural and MEP sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 | `tools/check_preview_sheets.py` | Layout audit for the generated sheets: text outside the frame and copy that would overprint other copy. |
@@ -79,7 +86,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (111 commands)
+## Command reference (125 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -229,6 +236,28 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-AUTO` | Runs the scripted sequence in `*RMR-AUTO-SEQUENCE*` (build the standard, set the scale, force ByLayer, write the drawing properties, audit stray layers, write the aliases, purge and audit) and writes `RooMNRooF_Automation_Log.txt` beside the drawing. |
 | `RMR-BATCH` | Picks any drawing in a folder, asks which commands to run, and writes `RooMNRooF-Batch.scr` that opens every `.dwg` in that folder, runs the steps and saves and closes. Review it first, then run it with `SCRIPT`. |
 
+### Structural suite (new in 11.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-COLUMN` | Places columns from `*RMR-COLUMN-SPECS*`. Each one is a filled section on `RMR-S-COLUMN` with a setting-out cross, a mark bubble and a size label underneath. |
+| `RMR-BEAM` | Places beams from `*RMR-BEAM-SPECS*`. Two picked points give a four-sided section filled in the mark colour, with a rotated `mark / width x depth / span` label, and a warning when the span passes the mark's limit. |
+| `RMR-FOUNDATION` | Pads or strips. Pads are filled squares with a hidden-line inner offset and a `PAD 900 X 900 X 450 DP` label; strips are offset polylines either side of a picked centre line with the run length. |
+| `RMR-REBAR` | Reinforcement runs from `*RMR-REBAR-SPECS*`: a bar with 90° hooks at both ends, a mark bubble and a `T16 @ 200` label. Hooks are symbolic, drawn at the annotation scale. |
+| `RMR-SLABPANEL` | Splits a picked rectangle into panels on a chosen module, horizontally or vertically, labelling each `P01`, `P02`… and writing an optional panel schedule. The last panel is clipped to the boundary. |
+| `RMR-SETOUT` | Setting-out coordinates. Every picked point becomes a numbered marker with its easting and northing, an on-screen table, and an optional `POINT,EASTING,NORTHING` CSV. |
+| `RMR-STRUCTSCHED` | Counts the structural layers in the drawing and draws the schedule, with an optional `.txt` report. |
+
+### Services / MEP suite (new in 11.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-DUCT` | Ductwork runs from `*RMR-DUCT-SPECS*`. Each run is offset both sides of the picked route, hatched as one closed body, and labelled with its size and length, with a flow arrow at the end. |
+| `RMR-PIPE` | Pipework runs from `*RMR-PIPE-SPECS*`. Same construction as the duct run, plus a fall — `1:80` by default — in the label and a flow arrow. |
+| `RMR-TRAY` | Cable containment: two side rails offset from the route plus rungs walked along every segment at the spacing you set. |
+| `RMR-LIGHTING` | Luminaire grid over a picked rectangle: spacing across and down, a circuit letter, watts per fitting. Every fitting is tagged `A1`, `A2`…, a switch is drawn at the picked corner and an optional schedule lists the circuit load in kW. |
+| `RMR-SPRINKLER` | Sprinkler grid with a coverage circle per head, numbered `S01`, `S02`…, reporting the protected area in m². |
+| `RMR-MEPSCHED` | Counts every services layer in the drawing and draws the schedule, with an optional `.txt` report. |
+| `RMR-CLEARANCE` | Draws the vertical service zone bands from `*RMR-SERVICE-ZONES*`, then groups every services layer that carries geometry by the zone in `*RMR-SERVICE-LAYER-ZONES*`. Any zone carrying more than one service is listed as a shared zone to coordinate, with a PASS / REVIEW verdict and an optional report. |
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -287,10 +316,31 @@ All visual data lives in plain editable tables near the top of the LISP:
   `RMR-CASHFLOW` and `RMR-QSREPORT` all read the same numbers
 - `*RMR-AUTO-SEQUENCE*` — the automation runner steps:
   `(Label Action Argument)`, 8 steps from `STANDARD` through to `LOG`
+- `*RMR-COLUMN-SPECS*` — column sizes: `(Mark Width_mm Depth_mm ColourKey)`,
+  6 marks from `C1 230 x 230` to `C6 450 x 600`
+- `*RMR-BEAM-SPECS*` — beam sizes:
+  `(Mark Width_mm Depth_mm MaxSpan_mm ColourKey)`, 5 marks from
+  `B1 230 x 400` to `B5 400 x 850`
+- `*RMR-REBAR-SPECS*` — reinforcement: `(BarMark Diameter_mm Spacing_mm)`,
+  `T12` to `T40`, spacing tightening as the bar grows
+- `*RMR-DUCT-SPECS*` — duct sizes: `(Size Width_mm Height_mm ColourKey)`,
+  6 sizes from `100 X 100` to `800 X 400`
+- `*RMR-PIPE-SPECS*` — pipe sizes: `(Size Bore_mm ColourKey)`,
+  6 bores from 15 mm to 76 mm
+- `*RMR-SERVICE-ZONES*` — vertical bands:
+  `(Zone Bottom_mm Top_mm ColourKey Description)`, 5 contiguous bands from
+  `0` to `1250` mm
+- `*RMR-SERVICE-LAYER-ZONES*` — which vertical zone each services layer
+  occupies: `(Layer Zone)`, 13 rows. `RMR-CLEARANCE` reads both tables, so
+  retargeting a service is a one-row edit
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
-Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
-lines, phantom) and `RMR-PRES-VPORT` (viewport frames and labels) to those groups. Add a row (or a whole new group) and every generator,
+Services, Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
+lines, phantom) and `RMR-PRES-VPORT` (viewport frames and labels) to those groups.
+Version 11.0 adds the whole **Services** group — `RMR-E-DUCT`, `RMR-E-GRILLE`,
+`RMR-E-PIPE`, `RMR-E-EQUIP`, `RMR-E-POWER`, `RMR-E-LIGHT`, `RMR-E-TRAY`,
+`RMR-E-DATA` and `RMR-E-SPRINK` — so every MEP discipline has its own
+true-colour layer. Add a row (or a whole new group) and every generator,
 legend, layer-group command and the preview tool pick it up automatically. For
 non-LISP workflows use `RMR-EXPORT-PALETTE` / `RMR-IMPORT-PALETTE` (CSV round-trip).
 
@@ -352,6 +402,13 @@ RMR-ALIAS                           ; short aliases + RooMNRooF.pgp
 RMR-TOOLPALETTE                     ; RooMNRooF.mnu menu and toolbar
 RMR-AUTO                            ; run the standard end to end
 RMR-BATCH                           ; script a whole folder of drawings
+RMR-COLUMN  RMR-BEAM                 ; columns and beams from the size tables
+RMR-FOUNDATION  RMR-REBAR            ; pads, strips and reinforcement
+RMR-SLABPANEL  RMR-SETOUT            ; panels and setting-out coordinates
+RMR-STRUCTSCHED                      ; structural element schedule
+RMR-DUCT  RMR-PIPE  RMR-TRAY         ; ductwork, pipework, containment
+RMR-LIGHTING  RMR-SPRINKLER          ; lighting and sprinkler grids
+RMR-MEPSCHED  RMR-CLEARANCE          ; services schedule and zone check
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -360,7 +417,7 @@ RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds eight A1 sheets: the standard sheet (below) and
+values) and rebuilds nine A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
@@ -390,7 +447,13 @@ automation suite: the 12-rate library, a 12-point measured survey with its
 traverse, an 8-line priced takeoff with its total, the elemental cost plan
 bars, the cost per m² dashboard against a benchmark, the weekly spend bars with
 the cumulative S curve, a CSV import table, the validation verdict and the
-eight automation steps with the alias and menu output. The standard sheet contains: sample 1:50 apartment plan with walls,
+eight automation steps with the alias and menu output, and
+`RooMNRooF_PRO_Structural_MEP_Suite.dxf`, which previews the 11.0 structural and
+MEP suite: a 3 x 2 column grid with two beams, three pads on a strip with three
+rebar runs, a six-panel slab with its schedule, three duct sizes, three pipe
+sizes above a cable tray, a luminaire grid with its switch, a sprinkler grid with
+coverage circles, the vertical service zone diagram with its verdict, and the
+structural and services schedules. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -404,14 +467,14 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 
 `tools/check_preview_sheets.py` reads the generated DXFs back and reports copy that
 runs outside the sheet frame and text boxes that would print on top of each other.
-Current state across the eight sheets: **0 problems** (1,955 text entities and
-1,663 geometry entities checked).
+Current state across the nine sheets: **0 problems** (2,178 text entities and
+1,936 geometry entities checked).
 
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (376,843 bytes / 9,231 lines, 275 defuns,
-111 commands).
+variables). Current state: **PASS**, 0 findings (429,174 bytes / 10,437 lines, 300 defuns,
+125 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -466,6 +529,23 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 - `RMR-SURVEY` expects the last three fields of every row to be the easting,
   northing and level, so a header row is skipped automatically, and rows where
   all three are zero are treated as blanks.
+- `RMR-BEAM`, `RMR-DUCT`, `RMR-PIPE` and `RMR-TRAY` all offset a picked
+  centre-line path, so a route that turns back on itself inside its own width
+  will self-intersect at the corner. Keep the turn radius wider than the
+  section.
+- `RMR-REBAR` draws hooks at a fixed annotation-scale length, not at the real
+  bend radius. Use it as a callout on a plan, not as a bending schedule.
+- `RMR-SLABPANEL` and the two grid commands (`RMR-LIGHTING`, `RMR-SPRINKLER`)
+  round the count with `fix`, so the last cell is clipped to the boundary and
+  may be narrower than the module.
+- `RMR-CLEARANCE` assigns a service to a zone from
+  `*RMR-SERVICE-LAYER-ZONES*`, one zone per layer. A service that genuinely
+  occupies two bands has to be modelled on two layers or checked by hand.
+- `RMR-DUCT` and `RMR-PIPE` hatch through the `HATCH` command line, so the
+  pattern must exist in the drawing; `ANSI31` ships with the standard.
+- `RMR-SETOUT` divides the picked coordinates by the units-per-metre factor,
+  so it reports metres in a metric drawing and the same numbers scaled in a
+  millimetre drawing. Give it `0.001` for a millimetre drawing.
 - `RMR-SUNPATH` uses the standard solar position formulae (declination,
   hour angle, altitude and azimuth); noon altitude equals `90 - |latitude -
   declination|`, and southern latitudes put the noon sun in the north.

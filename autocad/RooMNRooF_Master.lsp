@@ -42,6 +42,12 @@
 ;;;   curve, CSV import, quantity validation and the surveyor report, plus
 ;;;   command aliases, a menu / tool palette file, a scripted automation
 ;;;   runner and a batch script writer for whole folders of drawings.
+;;;   Version 11.0 adds the structural and MEP coordination suite: parametric
+;;;   columns, beams, pad and strip foundations, reinforcement, slab panels,
+;;;   setting-out coordinates and a structural element schedule, plus ductwork,
+;;;   pipework, cable containment, lighting, sprinklers, a services schedule
+;;;   and a vertical clearance check against the service zone bands. It also
+;;;   adds a SERVICES layer group so every discipline has its own layer.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -175,6 +181,24 @@
 ;;;   RMR-AUTO        Run the scripted sequence in *RMR-AUTO-SEQUENCE*
 ;;;   RMR-BATCH       Write a script that processes a whole folder
 ;;;
+;;; Structural commands
+;;;   RMR-COLUMN      Place columns from *RMR-COLUMN-SPECS*
+;;;   RMR-BEAM        Place beams from *RMR-BEAM-SPECS*
+;;;   RMR-FOUNDATION  Pad and strip foundations with depth labels
+;;;   RMR-REBAR       Reinforcement bars with hooks, marks and spacing
+;;;   RMR-SLABPANEL   Slab panel layout with marks and a panel schedule
+;;;   RMR-SETOUT      Setting-out coordinates, table and CSV
+;;;   RMR-STRUCTSCHED Structural element schedule from the drawing
+;;;
+;;; Services / MEP commands
+;;;   RMR-DUCT        Ductwork runs from *RMR-DUCT-SPECS*
+;;;   RMR-PIPE        Pipework runs with a fall and a flow arrow
+;;;   RMR-TRAY        Cable tray with rungs at a chosen spacing
+;;;   RMR-LIGHTING    Luminaire grid with circuit tags and a schedule
+;;;   RMR-SPRINKLER   Sprinkler head grid with coverage circles
+;;;   RMR-MEPSCHED    Services schedule from the drawing
+;;;   RMR-CLEARANCE   Vertical service zone diagram and shared-zone check
+;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
 ;;;   2. Run RMR-MASTER in a blank drawing before drawing production work.
@@ -250,7 +274,18 @@
    ("RMR-P-EQUIP"   "PLUMBING"   (210 119  58) "Continuous" 18 "Pumps, tanks and equipment")
    ("RMR-P-ANNO"    "PLUMBING"   ( 47 116 181) "Continuous" 13 "Plumbing annotations")
 
-   ;; 5. Leaders / arrows / annotation
+   ;; 5. Services / MEP
+   ("RMR-E-DUCT"    "SERVICES"   ( 57 137 130) "Continuous" 25 "Supply and extract ductwork")
+   ("RMR-E-GRILLE"  "SERVICES"   ( 90 168 160) "Continuous" 18 "Grilles, diffusers and air terminals")
+   ("RMR-E-PIPE"    "SERVICES"   ( 47 116 181) "Continuous" 25 "Mechanical pipework, flow and return")
+   ("RMR-E-EQUIP"   "SERVICES"   ( 86 104 116) "Continuous" 18 "Plant, tanks and mechanical equipment")
+   ("RMR-E-POWER"   "SERVICES"   (214 163  76) "Continuous" 18 "Small power, outlets and switchgear")
+   ("RMR-E-LIGHT"   "SERVICES"   (232 196 110) "Continuous" 13 "Luminaires, switching and circuits")
+   ("RMR-E-TRAY"    "SERVICES"   (124 106 168) "Continuous" 18 "Cable tray, conduit and containment")
+   ("RMR-E-DATA"    "SERVICES"   (150 132 190) "DASHED"      13 "Data, comms and security cabling")
+   ("RMR-E-SPRINK"  "SERVICES"   (198  93  72) "Continuous" 18 "Sprinkler heads and fire detection")
+
+   ;; 6. Leaders / arrows / annotation
    ("RMR-A-TEXT"    "ANNOTATION" ( 31  42  51) "Continuous" 13 "General notes and text")
    ("RMR-A-DIMS"    "ANNOTATION" ( 31  42  51) "Continuous" 13 "Dimensions")
    ("RMR-A-LEADER"  "ANNOTATION" (214 163  76) "Continuous" 18 "Leaders and callouts")
@@ -264,7 +299,7 @@
    ("RMR-A-LEVEL"   "ANNOTATION" ( 57 137 130) "Continuous" 18 "Level and datum markers")
    ("RMR-A-REVISION" "ANNOTATION" (198  93  72) "Continuous" 18 "Revision triangles and clouds")
 
-   ;; 6. Presentation / plotting
+   ;; 7. Presentation / plotting
    ("RMR-PRES-TITLE" "PRESENTATION" (198  93  72) "Continuous" 25 "Title block and brand")
    ("RMR-PRES-KEY"   "PRESENTATION" (214 163  76) "Continuous" 18 "Keynotes and numbered tags")
    ("RMR-PRES-NORTH" "PRESENTATION" ( 57 137 130) "Continuous" 18 "North arrows and orientation")
@@ -322,7 +357,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "10.0 QUANTITY AND AUTOMATION SUITE")
+(setq *RMR-VERSION* "11.0 STRUCTURAL AND MEP COORDINATION SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -499,6 +534,7 @@
     ((= (strcase group) "FURNITURE") "RMR-F-")
     ((= (strcase group) "STRUCTURAL") "RMR-S-")
     ((= (strcase group) "PLUMBING") "RMR-P-")
+    ((= (strcase group) "SERVICES") "RMR-E-")
     ((= (strcase group) "ANNOTATION") "RMR-A-")
     ((= (strcase group) "PRESENTATION") "RMR-PRES-")
     ((= (strcase group) "CONTROL") "RMR-00-")
@@ -1131,6 +1167,7 @@
     ((= (strcase keyword) "FURNITURE") "FURNITURE")
     ((= (strcase keyword) "STRUCTURAL") "STRUCTURAL")
     ((= (strcase keyword) "PLUMBING") "PLUMBING")
+    ((= (strcase keyword) "MEP") "SERVICES")
     ((= (strcase keyword) "ANNOTATION") "ANNOTATION")
     ((= (strcase keyword) "PRESENTATION") "PRESENTATION")
     ((= (strcase keyword) "CONTROL") "CONTROL")
@@ -1139,7 +1176,7 @@
 )
 
 (defun RMR:GroupKeywords ()
-  "Main Furniture Structural Plumbing Annotation Presentation Control"
+  "Main Furniture Structural Plumbing MEP Annotation Presentation Control"
 )
 
 (defun RMR:DocSafe (/ acad doc)
@@ -1551,6 +1588,10 @@
   (princ "\nMeasure: RMR-SURVEY, RMR-MEASURE, RMR-QUANTITY, RMR-RATES")
   (princ "\nCost:   RMR-COSTPLAN, RMR-PERQM, RMR-CASHFLOW, RMR-QSREPORT")
   (princ "\nAuto:   RMR-ALIAS, RMR-TOOLPALETTE, RMR-AUTO, RMR-BATCH")
+  (princ "\nStruct: RMR-COLUMN, RMR-BEAM, RMR-FOUNDATION, RMR-REBAR")
+  (princ "\nStruct: RMR-SLABPANEL, RMR-SETOUT, RMR-STRUCTSCHED")
+  (princ "\nMEP:    RMR-DUCT, RMR-PIPE, RMR-TRAY, RMR-CLEARANCE")
+  (princ "\nMEP:    RMR-LIGHTING, RMR-SPRINKLER, RMR-MEPSCHED")
   (princ)
 )
 
@@ -3083,6 +3124,24 @@
   (princ "\n  RMR-AUTO           Run *RMR-AUTO-SEQUENCE* with a log")
   (princ "\n  RMR-BATCH          Write a .scr for a whole folder of drawings")
   (princ "\n")
+  (princ "\n Structural suite")
+  (princ "\n  RMR-COLUMN         Place columns from *RMR-COLUMN-SPECS*")
+  (princ "\n  RMR-BEAM           Place beams from *RMR-BEAM-SPECS*")
+  (princ "\n  RMR-FOUNDATION     Pad and strip foundations with depths")
+  (princ "\n  RMR-REBAR          Bars with hooks, marks and spacing")
+  (princ "\n  RMR-SLABPANEL      Slab panel layout and panel schedule")
+  (princ "\n  RMR-SETOUT         Setting-out coordinates, table and CSV")
+  (princ "\n  RMR-STRUCTSCHED    Structural element schedule")
+  (princ "\n")
+  (princ "\n Services and MEP suite")
+  (princ "\n  RMR-DUCT           Ductwork runs from *RMR-DUCT-SPECS*")
+  (princ "\n  RMR-PIPE           Pipework runs with a fall")
+  (princ "\n  RMR-TRAY           Cable tray with rungs")
+  (princ "\n  RMR-LIGHTING       Luminaire grid with circuit tags")
+  (princ "\n  RMR-SPRINKLER      Sprinkler grid with coverage")
+  (princ "\n  RMR-MEPSCHED       Services schedule from the drawing")
+  (princ "\n  RMR-CLEARANCE      Service zone diagram and shared-zone check")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -3112,6 +3171,13 @@
   (princ "\n  *RMR-RATE-SPECS*      rate library: code, description, unit, rate")
   (princ "\n  *RMR-ELEMENT-SPECS*   elemental cost plan: element, sum, colour key")
   (princ "\n  *RMR-AUTO-SEQUENCE*   automation steps: label, action, argument")
+  (princ "\n  *RMR-COLUMN-SPECS*    column sizes: mark, width, depth, colour")
+  (princ "\n  *RMR-BEAM-SPECS*      beam sizes: mark, width, depth, max span")
+  (princ "\n  *RMR-REBAR-SPECS*     bars: mark, diameter, spacing")
+  (princ "\n  *RMR-DUCT-SPECS*      duct sizes: size, width, height, colour")
+  (princ "\n  *RMR-PIPE-SPECS*      pipe sizes: size, bore, colour")
+  (princ "\n  *RMR-SERVICE-ZONES*   vertical bands: zone, bottom, top, colour")
+  (princ "\n  *RMR-SERVICE-LAYER-ZONES*  which zone each services layer uses")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -8996,7 +9062,11 @@
        "RMR-BRANDING RMR-PRESENTSHEET")
       ("QUANTITY" "RMR-SURVEY RMR-MEASURE RMR-QUANTITY RMR-RATES RMR-COSTPLAN"
        "RMR-PERQM RMR-CASHFLOW RMR-CSVIMPORT RMR-VALIDATE RMR-QSREPORT")
-      ("AUTOMATION" "RMR-ALIAS RMR-TOOLPALETTE RMR-AUTO RMR-BATCH"))
+      ("AUTOMATION" "RMR-ALIAS RMR-TOOLPALETTE RMR-AUTO RMR-BATCH")
+      ("STRUCTURE" "RMR-COLUMN RMR-BEAM RMR-FOUNDATION RMR-REBAR"
+       "RMR-SLABPANEL RMR-SETOUT RMR-STRUCTSCHED")
+      ("SERVICES" "RMR-DUCT RMR-PIPE RMR-TRAY RMR-LIGHTING"
+       "RMR-SPRINKLER RMR-MEPSCHED RMR-CLEARANCE"))
     (setq out (append out (list group)))
   )
   out
@@ -9044,7 +9114,7 @@
     (progn
       (princ (strcat "\nWritten: " path))
       (princ (strcat "\n" (itoa count)
-                     " commands across 14 pull-down sections."))
+                     " commands across 16 pull-down sections."))
       (princ "\nLoad it with MENULOAD, or CUILOAD for newer builds.")
     )
     (princ "\nCould not write the menu file.")
@@ -9223,6 +9293,1142 @@
   )
   (princ)
 )
+
+;;; =====================================================================
+;;; PRO 11.0 STRUCTURAL AND MEP COORDINATION SUITE
+;;; Parametric columns, beams, foundations, reinforcement, slab panels,
+;;; setting-out coordinates and a structural element schedule, plus
+;;; ductwork, pipework, cable containment, lighting, sprinklers, a
+;;; services schedule and a vertical clearance coordination check.
+;;; The suite adds a SERVICES layer group so every discipline in the
+;;; model has its own true-colour layer.
+;;; =====================================================================
+
+;;; --- structural sizes --------------------------------------------------------
+;;; Column sizes: (Mark Width_mm Depth_mm ColourKey)
+(setq *RMR-COLUMN-SPECS*
+ '(
+    ("C1" 230 230 "TERRA")
+    ("C2" 300 300 "TERRA")
+    ("C3" 230 450 "TERRA")
+    ("C4" 300 450 "TERRA")
+    ("C5" 400 400 "TERRA")
+    ("C6" 450 600 "TERRA")
+  )
+)
+
+;;; Beam sizes: (Mark Width_mm Depth_mm MaxSpan_mm ColourKey)
+(setq *RMR-BEAM-SPECS*
+ '(
+    ("B1" 230  400  6000 "TERRA")
+    ("B2" 300  500  7500 "TERRA")
+    ("B3" 300  600  9000 "TERRA")
+    ("B4" 400  700 12000 "SLATE")
+    ("B5" 400  850 15000 "SLATE")
+  )
+)
+
+;;; Reinforcement: (BarMark Diameter_mm Spacing_mm)
+(setq *RMR-REBAR-SPECS*
+ '(
+    ("T12" 12 200)
+    ("T16" 16 200)
+    ("T20" 20 150)
+    ("T25" 25 150)
+    ("T32" 32 125)
+    ("T40" 40 100)
+  )
+)
+
+;;; --- services sizes ----------------------------------------------------------
+;;; Duct sizes: (Size Width_mm Height_mm ColourKey)
+(setq *RMR-DUCT-SPECS*
+ '(
+    ("100 X 100" 100 100 "TEAL")
+    ("200 X 150" 200 150 "TEAL")
+    ("300 X 200" 300 200 "TEAL")
+    ("400 X 250" 400 250 "TEAL")
+    ("600 X 300" 600 300 "TEAL")
+    ("800 X 400" 800 400 "TEAL")
+  )
+)
+
+;;; Pipe sizes: (Size Bore_mm ColourKey)
+(setq *RMR-PIPE-SPECS*
+ '(
+    ("15" 15 "BLUE")
+    ("22" 22 "BLUE")
+    ("28" 28 "BLUE")
+    ("35" 35 "BLUE")
+    ("54" 54 "BLUE")
+    ("76" 76 "BLUE")
+  )
+)
+
+;;; Vertical service zones: (Zone Bottom_mm Top_mm ColourKey Description)
+(setq *RMR-SERVICE-ZONES*
+ '(
+    ("STRUCTURAL ZONE"    0  450 "SLATE" "Structure, slab and primary framing")
+    ("HVAC DUCT ZONE"   450  750 "TEAL"  "Supply and extract ductwork")
+    ("PIPEWORK ZONE"    750  950 "BLUE"  "Flow, return, drainage and sprinkler mains")
+    ("ELECTRICAL ZONE"  950 1050 "GOLD"  "Containment, cable tray and small power")
+    ("CEILING ZONE"    1050 1250 "SAND"  "Ceiling, luminaires and air terminals")
+  )
+)
+
+;;; Which vertical zone each services layer occupies: (Layer Zone)
+(setq *RMR-SERVICE-LAYER-ZONES*
+ '(
+    ("RMR-S-BEAM"    "STRUCTURAL ZONE")
+    ("RMR-S-SLAB"    "STRUCTURAL ZONE")
+    ("RMR-S-COLUMN"  "STRUCTURAL ZONE")
+    ("RMR-E-DUCT"    "HVAC DUCT ZONE")
+    ("RMR-E-GRILLE"  "HVAC DUCT ZONE")
+    ("RMR-E-PIPE"    "PIPEWORK ZONE")
+    ("RMR-P-SUPPLY"  "PIPEWORK ZONE")
+    ("RMR-P-DRAIN"   "PIPEWORK ZONE")
+    ("RMR-E-POWER"   "ELECTRICAL ZONE")
+    ("RMR-E-TRAY"    "ELECTRICAL ZONE")
+    ("RMR-E-DATA"    "ELECTRICAL ZONE")
+    ("RMR-E-LIGHT"   "CEILING ZONE")
+    ("RMR-E-SPRINK"  "CEILING ZONE")
+  )
+)
+
+;;; --- shared structural and services helpers -----------------------------------
+(defun RMR:Mm (mm k)
+  ;; Millimetres to drawing units. k is drawing units per metre.
+  (* (/ (float mm) 1000.0) k)
+)
+
+(defun RMR:Mid2D (p1 p2)
+  (list (/ (+ (car p1) (car p2)) 2.0) (/ (+ (cadr p1) (cadr p2)) 2.0) 0.0)
+)
+
+(defun RMR:LayerCount (layer / ss)
+  (setq ss (ssget "_X" (list (cons 8 layer))))
+  (if ss (sslength ss) 0)
+)
+
+(defun RMR:LayerDescription (layer / spec found)
+  (foreach spec *RMR-LAYER-SPECS*
+    (if (= (strcase (nth 0 spec)) (strcase layer)) (setq found (nth 5 spec)))
+  )
+  (if found found layer)
+)
+
+(defun RMR:ZoneFor (level / zone found)
+  ;; The service zone a level in millimetres falls into.
+  (foreach zone *RMR-SERVICE-ZONES*
+    (if (and (>= level (float (nth 1 zone))) (< level (float (nth 2 zone))))
+      (setq found zone)
+    )
+  )
+  found
+)
+
+(defun RMR:ZoneTop (/ top zone)
+  (setq top 0.0)
+  (foreach zone *RMR-SERVICE-ZONES*
+    (if (> (float (nth 2 zone)) top) (setq top (float (nth 2 zone))))
+  )
+  top
+)
+
+(defun RMR:ZoneOfLayer (layer / pair found)
+  (foreach pair *RMR-SERVICE-LAYER-ZONES*
+    (if (= (strcase (nth 0 pair)) (strcase layer)) (setq found (nth 1 pair)))
+  )
+  found
+)
+
+(defun RMR:CountByLayer (layers / out layer count)
+  (setq out '())
+  (foreach layer layers
+    (setq count (RMR:LayerCount layer))
+    (setq out (append out (list (list layer (RMR:LayerDescription layer) count))))
+  )
+  out
+)
+
+(defun RMR:FlowArrow (tip angle size layer rgb / ux uy)
+  (setq ux (cos angle))
+  (setq uy (sin angle))
+  (RMR:SolidTri tip ux uy size layer rgb)
+)
+
+(defun RMR:Rung (centre angle half size layer rgb / ux uy p1 p2)
+  ;; A short cross bar, used for cable tray rungs and sprinkler heads.
+  (setq ux (- (sin angle)))
+  (setq uy (cos angle))
+  (setq p1 (list (- (car centre) (* ux half)) (- (cadr centre) (* uy half)) 0.0))
+  (setq p2 (list (+ (car centre) (* ux half)) (+ (cadr centre) (* uy half)) 0.0))
+  (RMR:Line p1 p2 layer rgb)
+  (setq p1 (list (- (car centre) (* (- ux) size)) (- (cadr centre) (* (- uy) size)) 0.0))
+  (setq p2 (list (+ (car centre) (* (- ux) size)) (+ (cadr centre) (* (- uy) size)) 0.0))
+  (if (> size 0.0) (RMR:Line p1 p2 layer rgb))
+)
+
+;;; --- columns -------------------------------------------------------------------
+(defun C:RMR-COLUMN (/ keys mark spec k pick count w d centre base s)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-COLUMN-SPECS*))
+  (setq mark (RMR:PromptKeyword "Column mark" keys (nth 0 (nth 0 *RMR-COLUMN-SPECS*))))
+  (setq spec (RMR:TableSpec mark *RMR-COLUMN-SPECS*))
+  (if spec
+    (progn
+      (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+      (setq w (RMR:Mm (nth 1 spec) k))
+      (setq d (RMR:Mm (nth 2 spec) k))
+      (setq s (RMR:Scaled 1.0))
+      (setq count 0)
+      (princ (strcat "\nPlacing " mark " columns at " (itoa (nth 1 spec))
+                     " x " (itoa (nth 2 spec)) " mm. Pick the centres."))
+      (setq pick (getpoint "\nColumn centre <finish>: "))
+      (while pick
+        (setq centre (list (car pick) (cadr pick) 0.0))
+        (setq base (list (- (car centre) (/ w 2.0)) (- (cadr centre) (/ d 2.0)) 0.0))
+        (RMR:Solid base w d "RMR-S-COLUMN" (RMR:BrandRGB (nth 3 spec)))
+        (RMR:Rect base w d "RMR-S-COLUMN" *RMR-BRAND-INK*)
+        ;; setting-out cross through the centre
+        (RMR:Line (list (- (car centre) w) (cadr centre) 0.0)
+                  (list (+ (car centre) w) (cadr centre) 0.0)
+                  "RMR-S-COLUMN" *RMR-BRAND-SLATE*)
+        (RMR:Line (list (car centre) (- (cadr centre) d) 0.0)
+                  (list (car centre) (+ (cadr centre) d) 0.0)
+                  "RMR-S-COLUMN" *RMR-BRAND-SLATE*)
+        (RMR:GridBubble (list (+ (car centre) (* 1.6 s)) (+ (cadr centre) (* 1.6 s)) 0.0)
+                        mark (* 2.2 s))
+        (setq count (1+ count))
+        (setq pick (getpoint "\nNext column centre <finish>: "))
+      )
+      (princ (strcat "\n" (itoa count) " " mark " columns placed."))
+    )
+    (princ "\nUnknown column mark.")
+  )
+  (princ)
+)
+
+;;; --- beams ---------------------------------------------------------------------
+(defun C:RMR-BEAM (/ keys mark spec k pick p1 p2 count half span maxspan
+                 angle mid nx ny rgb a b c d)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-BEAM-SPECS*))
+  (setq mark (RMR:PromptKeyword "Beam mark" keys (nth 0 (nth 0 *RMR-BEAM-SPECS*))))
+  (setq spec (RMR:TableSpec mark *RMR-BEAM-SPECS*))
+  (if spec
+    (progn
+      (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+      (setq half (/ (RMR:Mm (nth 1 spec) k) 2.0))
+      (setq maxspan (nth 3 spec))
+      (setq rgb (RMR:BrandRGB (nth 4 spec)))
+      (setq count 0)
+      (princ (strcat "\nPlacing " mark " beams at " (itoa (nth 1 spec))
+                     " x " (itoa (nth 2 spec)) " mm."))
+      (setq pick (getpoint "\nBeam start <finish>: "))
+      (while pick
+        (setq p1 pick)
+        (setq p2 (getpoint p1 "\nBeam end: "))
+        (if p2
+          (progn
+            (setq angle (angle p1 p2))
+            ;; left and right offsets from the centre line give the beam edges
+            (setq nx (* (- (sin angle)) half))
+            (setq ny (* (cos angle) half))
+            (setq a (list (+ (car p1) nx) (+ (cadr p1) ny) 0.0))
+            (setq b (list (+ (car p2) nx) (+ (cadr p2) ny) 0.0))
+            (setq c (list (- (car p2) nx) (- (cadr p2) ny) 0.0))
+            (setq d (list (- (car p1) nx) (- (cadr p1) ny) 0.0))
+            (RMR:Quad a b c d "RMR-S-BEAM" rgb)
+            (RMR:Line a b "RMR-S-BEAM" *RMR-BRAND-INK*)
+            (RMR:Line c d "RMR-S-BEAM" *RMR-BRAND-INK*)
+            (RMR:Line d a "RMR-S-BEAM" *RMR-BRAND-INK*)
+            (RMR:Line b c "RMR-S-BEAM" *RMR-BRAND-INK*)
+            (setq mid (RMR:Mid2D a c))
+            (setq span (* (/ (distance p1 p2) k) 1000.0))
+            (RMR:RotText mid
+              (strcat mark "  " (itoa (nth 1 spec)) " X " (itoa (nth 2 spec))
+                      "  SPAN " (RMR:Num (/ span 1000.0) 2) " m")
+              (* 2.2 (RMR:Scaled 1.0)) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*
+              angle)
+            (if (> span (float maxspan))
+              (princ (strcat "\n  span " (RMR:Num (/ span 1000.0) 2)
+                             " m exceeds the " (itoa maxspan)
+                             " mm limit for " mark))
+            )
+            (setq count (1+ count))
+          )
+        )
+        (setq pick (getpoint "\nNext beam start <finish>: "))
+      )
+      (princ (strcat "\n" (itoa count) " " mark " beams placed."))
+    )
+    (princ "\nUnknown beam mark.")
+  )
+  (princ)
+)
+
+;;; --- foundations ----------------------------------------------------------------
+(defun C:RMR-FOUNDATION (/ kind w dp k pick centre base half pts left right
+                        count s)
+  (RMR:EnsureReady)
+  (setq kind (RMR:PromptKeyword "Foundation" "Pad Strip" "Pad"))
+  (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+  (setq w (RMR:PromptReal "Foundation width in mm" 900.0))
+  (setq dp (RMR:PromptReal "Foundation depth in mm" 450.0))
+  (setq s (RMR:Scaled 1.0))
+  (setq count 0)
+  (if (= (strcase kind) "PAD")
+    (progn
+      (princ "\nPick the pad centres.")
+      (setq pick (getpoint "\nPad centre <finish>: "))
+      (while pick
+        (setq centre (list (car pick) (cadr pick) 0.0))
+        (setq half (/ (RMR:Mm w k) 2.0))
+        (setq base (list (- (car centre) half) (- (cadr centre) half) 0.0))
+        (RMR:Solid base (* 2.0 half) (* 2.0 half) "RMR-S-FOUND"
+                   *RMR-BRAND-SLATE*)
+        (RMR:Rect base (* 2.0 half) (* 2.0 half) "RMR-S-FOUND" *RMR-BRAND-INK*)
+        (RMR:Rect (list (+ (car base) (* 1.5 s)) (+ (cadr base) (* 1.5 s)) 0.0)
+                  (- (* 2.0 half) (* 3.0 s)) (- (* 2.0 half) (* 3.0 s))
+                  "RMR-S-HIDDEN" *RMR-BRAND-SLATE*)
+        (RMR:Text (RMR:PT+ base (* 1.0 s) (- (* 4.0 s)))
+                  (strcat "PAD " (RMR:Num w 0) " X " (RMR:Num w 0) " X "
+                          (RMR:Num dp 0) " DP")
+                  (* 2.0 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (setq count (1+ count))
+        (setq pick (getpoint "\nNext pad centre <finish>: "))
+      )
+      (princ (strcat "\n" (itoa count) " pads placed."))
+    )
+    (progn
+      (princ "\nPick the strip centre line, Enter when finished.")
+      (setq pts '())
+      (setq pick (getpoint "\nStrip start: "))
+      (while pick
+        (setq pts (append pts (list (list (car pick) (cadr pick) 0.0))))
+        (setq pick (getpoint "\nNext point <finish>: "))
+      )
+      (if (> (length pts) 1)
+        (progn
+          (setq half (/ (RMR:Mm w k) 2.0))
+          (setq left (RMR:OffsetPath pts half))
+          (setq right (RMR:OffsetPath pts (- half)))
+          (RMR:PolyLine left nil nil "RMR-S-FOUND" *RMR-BRAND-SLATE*)
+          (RMR:PolyLine right nil nil "RMR-S-FOUND" *RMR-BRAND-SLATE*)
+          (RMR:PolyLine pts nil nil "RMR-S-HIDDEN" *RMR-BRAND-SLATE*)
+          (RMR:Text (RMR:PT+ (nth 0 pts) (* 2.0 s) (* 2.0 s))
+                    (strcat "STRIP " (RMR:Num w 0) " WIDE X "
+                            (RMR:Num dp 0) " DP  |  "
+                            (RMR:Num (/ (* (RMR:PathLength pts) 1000.0) k) 2)
+                            " m run")
+                    (* 2.2 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          (princ (strcat "\nStrip foundation drawn, " (itoa (length pts))
+                         " points."))
+        )
+        (princ "\nA strip needs at least two points.")
+      )
+    )
+  )
+  (princ)
+)
+
+(defun RMR:PathLength (pts / total i)
+  (setq total 0.0)
+  (setq i 0)
+  (while (< i (1- (length pts)))
+    (setq total (+ total (distance (nth i pts) (nth (1+ i) pts))))
+    (setq i (1+ i))
+  )
+  total
+)
+
+;;; --- reinforcement ---------------------------------------------------------------
+(defun C:RMR-REBAR (/ keys mark spec pick p1 p2 angle mid s count hook)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-REBAR-SPECS*))
+  (setq mark (RMR:PromptKeyword "Bar mark" keys (nth 0 (nth 0 *RMR-REBAR-SPECS*))))
+  (setq spec (RMR:TableSpec mark *RMR-REBAR-SPECS*))
+  (if spec
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq count 0)
+      (princ (strcat "\nDrawing " mark " bars. Pick the bar runs."))
+      (setq pick (getpoint "\nBar start <finish>: "))
+      (while pick
+        (setq p1 (list (car pick) (cadr pick) 0.0))
+        (setq p2 (getpoint p1 "\nBar end: "))
+        (if p2
+          (progn
+            (setq p2 (list (car p2) (cadr p2) 0.0))
+            (setq angle (angle p1 p2))
+            (setq hook (* 2.0 s))
+            (RMR:Line p1 p2 "RMR-S-REBAR" *RMR-BRAND-INK*)
+            ;; 90 degree hooks at both ends, the standard bar callout
+            (RMR:Line p1 (polar p1 (+ angle (* 0.5 pi)) hook)
+                      "RMR-S-REBAR" *RMR-BRAND-INK*)
+            (RMR:Line p2 (polar p2 (- angle (* 0.5 pi)) hook)
+                      "RMR-S-REBAR" *RMR-BRAND-INK*)
+            (setq mid (RMR:Mid2D p1 p2))
+            (RMR:GridBubble (RMR:PT+ mid (* 1.4 s) (* 1.4 s)) mark (* 2.0 s))
+            (RMR:RotText (RMR:PT+ mid 0.0 (- (* 3.6 s)))
+              (strcat (itoa (nth 1 spec)) " @ " (itoa (nth 2 spec)))
+              (* 2.0 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE* angle)
+            (setq count (1+ count))
+          )
+        )
+        (setq pick (getpoint "\nNext bar start <finish>: "))
+      )
+      (princ (strcat "\n" (itoa count) " " mark " bars drawn."))
+    )
+    (princ "\nUnknown bar mark.")
+  )
+  (princ)
+)
+
+;;; --- slab panels ------------------------------------------------------------------
+(defun C:RMR-SLABPANEL (/ c1 c2 module thick dir k s x0 x1 y0 y1 span panels
+                     index pos rows base count)
+  (RMR:EnsureReady)
+  (setq c1 (getpoint "\nFirst corner of the slab: "))
+  (if c1
+    (progn
+      (setq c2 (getcorner c1 "\nOpposite corner: "))
+      (if c2
+        (progn
+          (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+          (setq module (RMR:PromptReal "Panel module in mm" 1200.0))
+          (setq thick (RMR:PromptReal "Slab thickness in mm" 200.0))
+          (setq dir (RMR:PromptKeyword "Panels run" "Horizontal Vertical"
+                                       "Horizontal"))
+          (setq s (RMR:Scaled 1.0))
+          (setq x0 (min (car c1) (car c2)))
+          (setq x1 (max (car c1) (car c2)))
+          (setq y0 (min (cadr c1) (cadr c2)))
+          (setq y1 (max (cadr c1) (cadr c2)))
+          (RMR:Rect (list x0 y0 0.0) (- x1 x0) (- y1 y0) "RMR-S-SLAB"
+                    *RMR-BRAND-INK*)
+          (setq panels '())
+          (setq rows '())
+          (setq count 0)
+          (if (= (strcase dir) "HORIZONTAL")
+            (progn
+              (setq span (- x1 x0))
+              (setq index 0)
+              (setq pos x0)
+              (while (< pos x1)
+                (setq panels (append panels (list pos)))
+                (setq pos (+ pos (RMR:Mm module k)))
+              )
+              (foreach pos panels
+                (if (> pos x0)
+                  (RMR:Line (list pos y0 0.0) (list pos y1 0.0)
+                            "RMR-S-SLAB" *RMR-BRAND-SLATE*)
+                )
+                (setq count (1+ count))
+                (RMR:Text (list (/ (+ pos (min (+ pos (RMR:Mm module k)) x1)) 2.0)
+                                (/ (+ y0 y1) 2.0) 0.0)
+                          (strcat "P" (RMR:NumPad2 count)) (* 2.4 s)
+                          "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+                (setq rows (append rows
+                            (list (list (strcat "P" (RMR:NumPad2 count))
+                                        (RMR:Num (min (* (/ (- (+ pos (RMR:Mm module k)) pos) 1000.0) (/ 1.0 k)) 1000.0) 0)
+                                        (RMR:Num (* (/ (- y1 y0) k) 1000.0) 0)
+                                        (RMR:Num thick 0)))))
+                (setq index (1+ index))
+              )
+            )
+            (progn
+              (setq span (- y1 y0))
+              (setq pos y0)
+              (while (< pos y1)
+                (setq panels (append panels (list pos)))
+                (setq pos (+ pos (RMR:Mm module k)))
+              )
+              (foreach pos panels
+                (if (> pos y0)
+                  (RMR:Line (list x0 pos 0.0) (list x1 pos 0.0)
+                            "RMR-S-SLAB" *RMR-BRAND-SLATE*)
+                )
+                (setq count (1+ count))
+                (RMR:Text (list (/ (+ x0 x1) 2.0)
+                                (/ (+ pos (min (+ pos (RMR:Mm module k)) y1)) 2.0)
+                                0.0)
+                          (strcat "P" (RMR:NumPad2 count)) (* 2.4 s)
+                          "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+                (setq rows (append rows
+                            (list (list (strcat "P" (RMR:NumPad2 count))
+                                        (RMR:Num (* (/ (- x1 x0) k) 1000.0) 0)
+                                        (RMR:Num (min (* (/ (- (+ pos (RMR:Mm module k)) pos) 1000.0) (/ 1.0 k)) 1000.0) 0)
+                                        (RMR:Num thick 0)))))
+              )
+            )
+          )
+          (RMR:Text (list x0 (- y0 (* 5.0 s)) 0.0)
+                    (strcat (itoa count) " PANELS  |  MODULE "
+                            (RMR:Num module 0) " mm  |  "
+                            (RMR:Num thick 0) " mm THICK")
+                    (* 2.4 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (setq base (getpoint "\nTop-left of the panel schedule <enter to skip>: "))
+          (if base
+            (RMR:DocTable base "SLAB PANEL SCHEDULE  |  RMR-SLABPANEL"
+                          (strcat (itoa count) " panels at "
+                                  (RMR:Num module 0) " mm module")
+                          '("PANEL" "LENGTH" "WIDTH" "THICK")
+                          (list (* 20.0 s) (* 26.0 s) (* 26.0 s) (* 26.0 s))
+                          rows nil s)
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- setting out -------------------------------------------------------------------
+(defun C:RMR-SETOUT (/ k s pick point index rows base count answer path lines)
+  (RMR:EnsureReady)
+  (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+  (setq s (RMR:Scaled 1.0))
+  (setq rows '())
+  (setq count 0)
+  (princ "\nPick the setting-out points in order.")
+  (setq pick (getpoint "\nSetting-out point <finish>: "))
+  (while pick
+    (setq point (list (car pick) (cadr pick) 0.0))
+    (setq count (1+ count))
+    (RMR:Circle point (* 1.2 s) "RMR-00-REF" *RMR-BRAND-TERRA*)
+    (RMR:Text (RMR:PT+ point (* 1.8 s) (* 1.4 s))
+              (strcat "S" (itoa count)) (* 2.2 s) "RMR-NUMBER" "RMR-A-TEXT"
+              *RMR-BRAND-TERRA*)
+    (RMR:Text (RMR:PT+ point (* 1.8 s) (- (* 3.4 s)))
+              (strcat "E " (RMR:Num (/ (car point) k) 3)
+                      "  N " (RMR:Num (/ (cadr point) k) 3))
+              (* 1.9 s) "RMR-MARK" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+    (setq rows (append rows
+                (list (list (strcat "S" (itoa count))
+                            (RMR:Num (/ (car point) k) 3)
+                            (RMR:Num (/ (cadr point) k) 3)))))
+    (setq pick (getpoint "\nNext setting-out point <finish>: "))
+  )
+  (if rows
+    (progn
+      (setq base (getpoint "\nTop-left of the setting-out table <enter to skip>: "))
+      (if base
+        (RMR:DocTable base "SETTING OUT COORDINATES  |  RMR-SETOUT"
+                      (strcat (itoa count) " points  |  metres")
+                      '("POINT" "EASTING" "NORTHING")
+                      (list (* 22.0 s) (* 34.0 s) (* 34.0 s))
+                      rows nil s)
+      )
+      (setq answer (RMR:PromptYesNo "Write a setting-out CSV" "No"))
+      (if (RMR:YesP answer)
+        (progn
+          (setq path (getfiled "Save the setting-out coordinates"
+                               "RooMNRooF_SettingOut.csv" "csv" 1))
+          (if path
+            (progn
+              (setq lines (list "POINT,EASTING,NORTHING"))
+              (foreach row rows
+                (setq lines (append lines
+                              (list (strcat (nth 0 row) "," (nth 1 row) ","
+                                            (nth 2 row)))))
+              )
+              (if (RMR:WriteLines path lines)
+                (princ (strcat "\nWritten: " path))
+                (princ "\nCould not write the CSV.")
+              )
+            )
+          )
+        )
+      )
+      (princ (strcat "\n" (itoa count) " setting-out points recorded."))
+    )
+    (princ "\nNo points picked.")
+  )
+  (princ)
+)
+
+;;; --- structural schedule -------------------------------------------------------------
+(defun C:RMR-STRUCTSCHED (/ layers rows base s answer path lines total)
+  (RMR:EnsureReady)
+  (setq layers '("RMR-S-COLUMN" "RMR-S-BEAM" "RMR-S-SLAB" "RMR-S-FOUND"
+                 "RMR-S-REBAR" "RMR-S-GRID"))
+  (setq rows (RMR:CountByLayer layers))
+  (setq s (RMR:Scaled 1.0))
+  (setq total 0)
+  (foreach row rows (setq total (+ total (nth 2 row))))
+  (princ (strcat "\nStructural elements in the drawing: " (itoa total)))
+  (foreach row rows
+    (princ (strcat "\n  " (nth 0 row) "  " (itoa (nth 2 row))))
+  )
+  (setq base (getpoint "\nTop-left of the structural schedule <enter to skip>: "))
+  (if base
+    (RMR:DocTable base "STRUCTURAL ELEMENT SCHEDULE  |  RMR-STRUCTSCHED"
+                  (strcat (itoa total) " elements  |  counted from the drawing")
+                  '("LAYER" "DESCRIPTION" "COUNT")
+                  (list (* 34.0 s) (* 86.0 s) (* 22.0 s))
+                  (mapcar '(lambda (row)
+                             (list (nth 0 row) (RMR:Shorten (nth 1 row) 40)
+                                   (itoa (nth 2 row))))
+                          rows)
+                  nil s)
+  )
+  (setq answer (RMR:PromptYesNo "Write a structural schedule report" "No"))
+  (if (RMR:YesP answer)
+    (progn
+      (setq path (getfiled "Save the structural schedule"
+                           "RooMNRooF_Structural_Schedule.txt" "txt" 1))
+      (if path
+        (progn
+          (setq lines (list "RooMNRooF STRUCTURAL ELEMENT SCHEDULE"
+                            (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+                            (strcat "Date: " (RMR:TodayDate))
+                            ""
+                            "LAYER                 DESCRIPTION                              COUNT"))
+          (foreach row rows
+            (setq lines (append lines
+                          (list (strcat "  " (nth 0 row) "  "
+                                        (RMR:Shorten (nth 1 row) 40)
+                                        "  " (itoa (nth 2 row))))))
+          )
+          (setq lines (append lines (list "" (strcat "TOTAL  " (itoa total)))))
+          (if (RMR:WriteLines path lines)
+            (princ (strcat "\nWritten: " path))
+            (princ "\nCould not write the report.")
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- ductwork -------------------------------------------------------------------------
+(defun C:RMR-DUCT (/ keys size spec k pick pts count length left right
+                 inner outer angle mid s)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-DUCT-SPECS*))
+  (setq size (RMR:PromptKeyword "Duct size" keys (nth 0 (nth 0 *RMR-DUCT-SPECS*))))
+  (setq spec (RMR:TableSpec size *RMR-DUCT-SPECS*))
+  (if spec
+    (progn
+      (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+      (setq s (RMR:Scaled 1.0))
+      (setq count 0)
+      (princ (strcat "\nDrawing " size " ductwork. Pick the route."))
+      (setq pick (getpoint "\nDuct start: "))
+      (while pick
+        (setq pts (list (list (car pick) (cadr pick) 0.0)))
+        (setq pick (getpoint (nth 0 pts) "\nNext point <finish>: "))
+        (while pick
+          (setq pts (append pts (list (list (car pick) (cadr pick) 0.0))))
+          (setq pick (getpoint (nth (1- (length pts)) pts) "\nNext point <finish>: "))
+        )
+        (if (> (length pts) 1)
+          (progn
+            (setq left (RMR:OffsetPath pts (/ (RMR:Mm (nth 1 spec) k) 2.0)))
+            (setq right (RMR:OffsetPath pts (- (/ (RMR:Mm (nth 1 spec) k) 2.0))))
+            (setq inner (RMR:ClosedPoly
+                          (append left (reverse right))
+                          "RMR-E-DUCT" (RMR:BrandRGB (nth 3 spec))))
+            (if inner (RMR:HatchEntity inner "ANSI31" (RMR:BrandRGB (nth 3 spec))))
+            (RMR:PolyLine left nil nil "RMR-E-DUCT" *RMR-BRAND-INK*)
+            (RMR:PolyLine right nil nil "RMR-E-DUCT" *RMR-BRAND-INK*)
+            (setq angle (angle (nth 0 pts) (nth 1 pts)))
+            (setq length (* (/ (RMR:PathLength pts) k) 1000.0))
+            (setq mid (RMR:Mid2D (nth 0 pts) (nth 1 pts)))
+            (RMR:RotText (RMR:PT+ mid 0.0 (* 2.0 s))
+              (strcat size "  |  " (RMR:Num (/ length 1000.0) 2) " m")
+              (* 2.2 s) "RMR-LABEL" "RMR-P-ANNO" *RMR-BRAND-TEAL* angle)
+            (RMR:FlowArrow (nth (1- (length pts)) pts)
+                           (angle (nth (- (length pts) 2) pts)
+                                  (nth (1- (length pts)) pts))
+                           (* 2.6 s) "RMR-E-DUCT" (RMR:BrandRGB (nth 3 spec)))
+            (setq count (1+ count))
+            (princ (strcat "\n  run " (itoa count) ": "
+                           (RMR:Num (/ length 1000.0) 2) " m"))
+          )
+        )
+        (setq pick (getpoint "\nNext duct start <finish>: "))
+      )
+      (princ (strcat "\n" (itoa count) " duct runs drawn at " size "."))
+    )
+    (princ "\nUnknown duct size.")
+  )
+  (princ)
+)
+
+;;; --- pipework --------------------------------------------------------------------------
+(defun C:RMR-PIPE (/ keys size spec k slope pick pts count left right inner
+                 angle mid s)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-PIPE-SPECS*))
+  (setq size (RMR:PromptKeyword "Pipe size" keys (nth 0 (nth 0 *RMR-PIPE-SPECS*))))
+  (setq spec (RMR:TableSpec size *RMR-PIPE-SPECS*))
+  (if spec
+    (progn
+      (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+      (setq slope (RMR:PromptReal "Fall, 1 in" 80.0))
+      (setq s (RMR:Scaled 1.0))
+      (setq count 0)
+      (princ (strcat "\nDrawing " size " mm pipework at 1:" (RMR:Num slope 0)
+                     " fall. Pick the route."))
+      (setq pick (getpoint "\nPipe start: "))
+      (while pick
+        (setq pts (list (list (car pick) (cadr pick) 0.0)))
+        (setq pick (getpoint (nth 0 pts) "\nNext point <finish>: "))
+        (while pick
+          (setq pts (append pts (list (list (car pick) (cadr pick) 0.0))))
+          (setq pick (getpoint (nth (1- (length pts)) pts) "\nNext point <finish>: "))
+        )
+        (if (> (length pts) 1)
+          (progn
+            (setq left (RMR:OffsetPath pts (/ (RMR:Mm (nth 1 spec) k) 2.0)))
+            (setq right (RMR:OffsetPath pts (- (/ (RMR:Mm (nth 1 spec) k) 2.0))))
+            (setq inner (RMR:ClosedPoly
+                          (append left (reverse right))
+                          "RMR-E-PIPE" (RMR:BrandRGB (nth 2 spec))))
+            (if inner (RMR:HatchEntity inner "ANSI31" (RMR:BrandRGB (nth 2 spec))))
+            (RMR:PolyLine left nil nil "RMR-E-PIPE" *RMR-BRAND-INK*)
+            (RMR:PolyLine right nil nil "RMR-E-PIPE" *RMR-BRAND-INK*)
+            (setq angle (angle (nth 0 pts) (nth 1 pts)))
+            (setq mid (RMR:Mid2D (nth 0 pts) (nth 1 pts)))
+            (RMR:RotText (RMR:PT+ mid 0.0 (* 2.0 s))
+              (strcat "0" size " mm  1:" (RMR:Num slope 0) " FALL  |  "
+                      (RMR:Num (/ (* (RMR:PathLength pts) 1000.0) k) 2) " m")
+              (* 2.2 s) "RMR-LABEL" "RMR-P-ANNO" *RMR-BRAND-BLUE* angle)
+            (RMR:FlowArrow (nth (1- (length pts)) pts)
+                           (angle (nth (- (length pts) 2) pts)
+                                  (nth (1- (length pts)) pts))
+                           (* 2.4 s) "RMR-E-PIPE" (RMR:BrandRGB (nth 2 spec)))
+            (setq count (1+ count))
+          )
+        )
+        (setq pick (getpoint "\nNext pipe start <finish>: "))
+      )
+      (princ (strcat "\n" (itoa count) " pipe runs drawn at " size " mm."))
+    )
+    (princ "\nUnknown pipe size.")
+  )
+  (princ)
+)
+
+;;; --- cable containment -------------------------------------------------------------------
+(defun C:RMR-TRAY (/ width rung k pick pts left right count step dist index
+                 point angle s mid)
+  (RMR:EnsureReady)
+  (setq width (RMR:PromptReal "Tray width in mm" 300.0))
+  (setq rung (RMR:PromptReal "Rung spacing in mm" 300.0))
+  (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+  (setq s (RMR:Scaled 1.0))
+  (setq count 0)
+  (princ (strcat "\nDrawing " (RMR:Num width 0)
+                 " mm cable tray. Pick the route."))
+  (setq pick (getpoint "\nTray start: "))
+  (while pick
+    (setq pts (list (list (car pick) (cadr pick) 0.0)))
+    (setq pick (getpoint (nth 0 pts) "\nNext point <finish>: "))
+    (while pick
+      (setq pts (append pts (list (list (car pick) (cadr pick) 0.0))))
+      (setq pick (getpoint (nth (1- (length pts)) pts) "\nNext point <finish>: "))
+    )
+    (if (> (length pts) 1)
+      (progn
+        (setq left (RMR:OffsetPath pts (/ (RMR:Mm width k) 2.0)))
+        (setq right (RMR:OffsetPath pts (- (/ (RMR:Mm width k) 2.0))))
+        (RMR:PolyLine left nil nil "RMR-E-TRAY" *RMR-BRAND-GOLD*)
+        (RMR:PolyLine right nil nil "RMR-E-TRAY" *RMR-BRAND-GOLD*)
+        ;; rungs walked along each segment at the spacing given
+        (setq index 0)
+        (while (< index (1- (length pts)))
+          (setq point (nth index pts))
+          (setq angle (angle point (nth (1+ index) pts)))
+          (setq dist (distance point (nth (1+ index) pts)))
+          (setq step (RMR:Mm rung k))
+          (while (< step dist)
+            (setq mid (polar point angle step))
+            (RMR:Rung mid angle (/ (RMR:Mm width k) 2.0) 0.0
+                      "RMR-E-TRAY" *RMR-BRAND-GOLD*)
+            (setq step (+ step (RMR:Mm rung k)))
+          )
+          (setq index (1+ index))
+        )
+        (setq mid (RMR:Mid2D (nth 0 pts) (nth 1 pts)))
+        (RMR:RotText (RMR:PT+ mid 0.0 (* 2.0 s))
+          (strcat "CABLE TRAY " (RMR:Num width 0))
+          (* 2.2 s) "RMR-LABEL" "RMR-P-ANNO" *RMR-BRAND-GOLD*
+          (angle (nth 0 pts) (nth 1 pts)))
+        (setq count (1+ count))
+        (princ (strcat "\n  run " (itoa count) ": "
+                       (RMR:Num (/ (* (RMR:PathLength pts) 1000.0) k) 2) " m"))
+      )
+    )
+    (setq pick (getpoint "\nNext tray start <finish>: "))
+  )
+  (princ (strcat "\n" (itoa count) " tray runs drawn."))
+  (princ)
+)
+
+;;; --- lighting layout ----------------------------------------------------------------------
+(defun C:RMR-LIGHTING (/ c1 c2 sx sy circuit k s x0 x1 y0 y1 nx ny ix iy
+                     index cx cy base rows count watts)
+  (RMR:EnsureReady)
+  (setq c1 (getpoint "\nFirst corner of the lit area: "))
+  (if c1
+    (progn
+      (setq c2 (getcorner c1 "\nOpposite corner: "))
+      (if c2
+        (progn
+          (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+          (setq sx (RMR:PromptReal "Spacing across in mm" 2400.0))
+          (setq sy (RMR:PromptReal "Spacing down in mm" 2400.0))
+          (setq circuit (strcase (RMR:PromptText "Circuit letter" "A")))
+          (setq watts (RMR:PromptReal "Watts per luminaire" 18.0))
+          (setq s (RMR:Scaled 1.0))
+          (setq x0 (min (car c1) (car c2)))
+          (setq x1 (max (car c1) (car c2)))
+          (setq y0 (min (cadr c1) (cadr c2)))
+          (setq y1 (max (cadr c1) (cadr c2)))
+          (RMR:Rect (list x0 y0 0.0) (- x1 x0) (- y1 y0) "RMR-E-LIGHT"
+                    *RMR-BRAND-SLATE*)
+          (setq nx (max 1 (fix (+ 0.5 (/ (- x1 x0) (RMR:Mm sx k))))))
+          (setq ny (max 1 (fix (+ 0.5 (/ (- y1 y0) (RMR:Mm sy k))))))
+          (setq index 0)
+          (setq rows '())
+          (setq ix 0)
+          (while (< ix nx)
+            (setq iy 0)
+            (while (< iy ny)
+              (setq cx (+ x0 (* (RMR:Mm sx k) (+ ix 0.5))))
+              (setq cy (+ y0 (* (RMR:Mm sy k) (+ iy 0.5))))
+              (if (and (< cx x1) (< cy y1))
+                (progn
+                  (setq index (1+ index))
+                  (RMR:Rect (RMR:PT+ (list cx cy 0.0) (- (* 1.6 s)) (- (* 1.6 s)))
+                            (* 3.2 s) (* 3.2 s) "RMR-E-LIGHT" *RMR-BRAND-GOLD*)
+                  (RMR:Line (RMR:PT+ (list cx cy 0.0) (- (* 1.6 s)) (- (* 1.6 s)))
+                            (RMR:PT+ (list cx cy 0.0) (* 1.6 s) (* 1.6 s))
+                            "RMR-E-LIGHT" *RMR-BRAND-GOLD*)
+                  (RMR:Text (RMR:PT+ (list cx cy 0.0) (* 2.2 s) (* 0.8 s))
+                            (strcat circuit (itoa index)) (* 2.0 s) "RMR-NUMBER"
+                            "RMR-P-ANNO" *RMR-BRAND-INK*)
+                  (setq rows (append rows
+                               (list (list (strcat circuit (itoa index))
+                                           (RMR:Num watts 0)
+                                           (strcat "CCT " circuit)))))
+                )
+              )
+              (setq iy (1+ iy))
+            )
+            (setq ix (1+ ix))
+          )
+          ;; the switch, drawn at the corner the area was picked from
+          (RMR:Circle (RMR:PT+ (list x0 y0 0.0) (- (* 3.0 s)) (- (* 3.0 s)))
+                      (* 1.6 s) "RMR-E-POWER" *RMR-BRAND-GOLD*)
+          (RMR:Line (RMR:PT+ (list x0 y0 0.0) (- (* 3.0 s)) (- (* 3.0 s)))
+                    (RMR:PT+ (list x0 y0 0.0) (- (* 1.4 s)) (- (* 4.6 s)))
+                    "RMR-E-POWER" *RMR-BRAND-GOLD*)
+          (RMR:Text (RMR:PT+ (list x0 y0 0.0) (- (* 3.0 s)) (- (* 8.0 s)))
+                    (strcat "S/" circuit) (* 2.0 s) "RMR-LABEL" "RMR-P-ANNO"
+                    *RMR-BRAND-INK*)
+          (RMR:Text (list x0 (- y0 (* 5.0 s)) 0.0)
+                    (strcat (itoa index) " LUMINAIRES  |  CIRCUIT " circuit
+                            "  |  " (RMR:Num (/ (* index watts) 1000.0) 2)
+                            " kW  |  " (RMR:Num sx 0) " x " (RMR:Num sy 0)
+                            " mm GRID")
+                    (* 2.4 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (setq base (getpoint "\nTop-left of the lighting schedule <enter to skip>: "))
+          (if base
+            (RMR:DocTable base "LIGHTING SCHEDULE  |  RMR-LIGHTING"
+                          (strcat (itoa index) " luminaires on circuit "
+                                  circuit)
+                          '("TAG" "WATTS" "CIRCUIT")
+                          (list (* 22.0 s) (* 24.0 s) (* 28.0 s))
+                          rows nil s)
+          )
+          (princ (strcat "\n" (itoa index) " luminaires placed."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- sprinkler layout -----------------------------------------------------------------------
+(defun C:RMR-SPRINKLER (/ c1 c2 spacing cover k s x0 x1 y0 y1 nx ny ix iy
+                      index cx cy count area)
+  (RMR:EnsureReady)
+  (setq c1 (getpoint "\nFirst corner of the protected area: "))
+  (if c1
+    (progn
+      (setq c2 (getcorner c1 "\nOpposite corner: "))
+      (if c2
+        (progn
+          (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+          (setq spacing (RMR:PromptReal "Head spacing in mm" 3000.0))
+          (setq cover (RMR:PromptReal "Coverage radius in mm" 2100.0))
+          (setq s (RMR:Scaled 1.0))
+          (setq x0 (min (car c1) (car c2)))
+          (setq x1 (max (car c1) (car c2)))
+          (setq y0 (min (cadr c1) (cadr c2)))
+          (setq y1 (max (cadr c1) (cadr c2)))
+          (RMR:Rect (list x0 y0 0.0) (- x1 x0) (- y1 y0) "RMR-E-SPRINK"
+                    *RMR-BRAND-SLATE*)
+          (setq nx (max 1 (fix (+ 0.5 (/ (- x1 x0) (RMR:Mm spacing k))))))
+          (setq ny (max 1 (fix (+ 0.5 (/ (- y1 y0) (RMR:Mm spacing k))))))
+          (setq index 0)
+          (setq ix 0)
+          (while (< ix nx)
+            (setq iy 0)
+            (while (< iy ny)
+              (setq cx (+ x0 (* (RMR:Mm spacing k) (+ ix 0.5))))
+              (setq cy (+ y0 (* (RMR:Mm spacing k) (+ iy 0.5))))
+              (if (and (< cx x1) (< cy y1))
+                (progn
+                  (setq index (1+ index))
+                  (RMR:Circle (list cx cy 0.0) (RMR:Mm cover k)
+                              "RMR-E-SPRINK" *RMR-BRAND-SAND*)
+                  (RMR:Circle (list cx cy 0.0) (* 1.1 s) "RMR-E-SPRINK"
+                              *RMR-BRAND-TERRA*)
+                  (RMR:Line (RMR:PT+ (list cx cy 0.0) (- (* 1.8 s)) 0.0)
+                            (RMR:PT+ (list cx cy 0.0) (* 1.8 s) 0.0)
+                            "RMR-E-SPRINK" *RMR-BRAND-TERRA*)
+                  (RMR:Line (RMR:PT+ (list cx cy 0.0) 0.0 (- (* 1.8 s)))
+                            (RMR:PT+ (list cx cy 0.0) 0.0 (* 1.8 s))
+                            "RMR-E-SPRINK" *RMR-BRAND-TERRA*)
+                  (RMR:Text (RMR:PT+ (list cx cy 0.0) (* 2.0 s) (* 0.8 s))
+                            (strcat "S" (RMR:NumPad2 index)) (* 1.8 s)
+                            "RMR-MARK" "RMR-P-ANNO" *RMR-BRAND-SLATE*)
+                )
+              )
+              (setq iy (1+ iy))
+            )
+            (setq ix (1+ ix))
+          )
+          (setq area (/ (* (- x1 x0) (- y1 y0)) (* k k)))
+          (RMR:Text (list x0 (- y0 (* 5.0 s)) 0.0)
+                    (strcat (itoa index) " HEADS  |  "
+                            (RMR:Num spacing 0) " mm GRID  |  "
+                            (RMR:Num cover 0) " mm COVER  |  "
+                            (RMR:Num area 1) " m2 PROTECTED")
+                    (* 2.4 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (princ (strcat "\n" (itoa index) " sprinkler heads over "
+                         (RMR:Num area 1) " m2."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- services schedule ------------------------------------------------------------------------
+(defun C:RMR-MEPSCHED (/ layers rows base s total answer path lines)
+  (RMR:EnsureReady)
+  (setq layers '("RMR-E-DUCT" "RMR-E-GRILLE" "RMR-E-PIPE" "RMR-E-EQUIP"
+                 "RMR-E-POWER" "RMR-E-LIGHT" "RMR-E-TRAY" "RMR-E-DATA"
+                 "RMR-E-SPRINK" "RMR-P-SUPPLY" "RMR-P-DRAIN" "RMR-P-FIXTURE"))
+  (setq rows (RMR:CountByLayer layers))
+  (setq s (RMR:Scaled 1.0))
+  (setq total 0)
+  (foreach row rows (setq total (+ total (nth 2 row))))
+  (princ (strcat "\nServices elements in the drawing: " (itoa total)))
+  (foreach row rows
+    (if (> (nth 2 row) 0)
+      (princ (strcat "\n  " (nth 0 row) "  " (itoa (nth 2 row))))
+    )
+  )
+  (setq base (getpoint "\nTop-left of the services schedule <enter to skip>: "))
+  (if base
+    (RMR:DocTable base "SERVICES SCHEDULE  |  RMR-MEPSCHED"
+                  (strcat (itoa total) " elements  |  counted from the drawing")
+                  '("LAYER" "DESCRIPTION" "COUNT")
+                  (list (* 34.0 s) (* 86.0 s) (* 22.0 s))
+                  (mapcar '(lambda (row)
+                             (list (nth 0 row) (RMR:Shorten (nth 1 row) 40)
+                                   (itoa (nth 2 row))))
+                          rows)
+                  nil s)
+  )
+  (setq answer (RMR:PromptYesNo "Write a services schedule report" "No"))
+  (if (RMR:YesP answer)
+    (progn
+      (setq path (getfiled "Save the services schedule"
+                           "RooMNRooF_Services_Schedule.txt" "txt" 1))
+      (if path
+        (progn
+          (setq lines (list "RooMNRooF SERVICES SCHEDULE"
+                            (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+                            (strcat "Date: " (RMR:TodayDate))
+                            ""
+                            "LAYER                 DESCRIPTION                              COUNT"))
+          (foreach row rows
+            (setq lines (append lines
+                          (list (strcat "  " (nth 0 row) "  "
+                                        (RMR:Shorten (nth 1 row) 40)
+                                        "  " (itoa (nth 2 row))))))
+          )
+          (setq lines (append lines (list "" (strcat "TOTAL  " (itoa total)))))
+          (if (RMR:WriteLines path lines)
+            (princ (strcat "\nWritten: " path))
+            (princ "\nCould not write the report.")
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- vertical clearance coordination -----------------------------------------------------------
+(defun C:RMR-CLEARANCE (/ base s wide zone height total y rgb conflicts
+                     byzone pair layer count names answer path lines
+                     verdict found item)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq wide (* 150.0 s))
+  (setq base (getpoint "\nTop-left of the service zone diagram: "))
+  (if base
+    (progn
+      (setq total (RMR:ZoneTop))
+      (RMR:Text base "VERTICAL SERVICE ZONES  |  RMR-CLEARANCE"
+                (* 4.2 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (RMR:Text (list (car base) (- (cadr base) (* 5.0 s)) 0.0)
+                (strcat (itoa (length *RMR-SERVICE-ZONES*))
+                        " zones  |  structural zone to "
+                        (RMR:Num total 0) " mm")
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (setq y (- (cadr base) (* 14.0 s)))
+      ;; bands stack downwards from the ceiling zone at the top
+      (foreach zone (reverse *RMR-SERVICE-ZONES*)
+        (setq height (* 90.0 s (/ (- (float (nth 2 zone)) (float (nth 1 zone)))
+                                  (if (> total 0.0) total 1.0))))
+        (setq rgb (RMR:BrandRGB (nth 3 zone)))
+        (RMR:Solid (list (car base) (- y height) 0.0) wide height
+                   "RMR-M-FILL" rgb)
+        (RMR:Rect (list (car base) (- y height) 0.0) wide height
+                  "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+        (RMR:Text (list (+ (car base) (* 3.0 s)) (- y (* height 0.55)) 0.0)
+                  (nth 0 zone) (* 2.4 s) "RMR-LABEL" "RMR-A-TEXT"
+                  *RMR-BRAND-INK*)
+        (RMR:Text (list (+ (car base) (* 3.0 s)) (- y (* height 0.85)) 0.0)
+                  (nth 4 zone) (* 1.9 s) "RMR-NOTE" "RMR-A-TEXT"
+                  *RMR-BRAND-SLATE*)
+        (RMR:Text (list (+ (car base) wide (* 3.0 s)) (- y (* height 0.6)) 0.0)
+                  (strcat (RMR:Num (float (nth 1 zone)) 0) " - "
+                          (RMR:Num (float (nth 2 zone)) 0) " mm")
+                  (* 2.1 s) "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (setq y (- y height))
+      )
+      ;; group every services layer that carries geometry by its zone
+      (setq byzone '())
+      (foreach pair *RMR-SERVICE-LAYER-ZONES*
+        (setq layer (nth 0 pair))
+        (setq zone (nth 1 pair))
+        (setq count (RMR:LayerCount layer))
+        (if (> count 0)
+          (progn
+            (setq found nil)
+            (foreach item byzone
+              (if (= (nth 0 item) zone) (setq found T))
+            )
+            (if (not found) (setq byzone (append byzone (list (list zone)))))
+            (setq byzone
+              (mapcar '(lambda (item)
+                         (if (= (nth 0 item) zone)
+                           (append item (list layer))
+                           item))
+                      byzone))
+          )
+        )
+      )
+      (setq conflicts '())
+      (foreach item byzone
+        (if (> (length item) 2)
+          (setq conflicts
+            (append conflicts
+              (list (strcat (nth 0 item) " carries "
+                            (itoa (- (length item) 1))
+                            " services - coordinate: "
+                            (RMR:Shorten
+                              (apply 'strcat
+                                (mapcar '(lambda (name) (strcat name " "))
+                                        (cdr item)))
+                              44)))))
+        )
+      )
+      (setq verdict (if conflicts "REVIEW" "PASS"))
+      (RMR:Text (list (car base) (- y (* 8.0 s)) 0.0)
+                (strcat "VERDICT: " verdict "  |  "
+                        (itoa (length conflicts)) " shared zones")
+                (* 2.8 s) "RMR-HEAD" "RMR-A-TEXT"
+                (if conflicts *RMR-BRAND-TERRA* *RMR-BRAND-TEAL*))
+      (setq y (- y (* 14.0 s)))
+      (if conflicts
+        (progn
+          (RMR:Text (list (car base) y 0.0) "Shared zones to coordinate:"
+                    (* 2.2 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          (setq y (- y (* 5.0 s)))
+          (foreach item conflicts
+            (RMR:Text (list (car base) y 0.0) (strcat "  " item) (* 2.0 s)
+                      "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+            (setq y (- y (* 4.6 s)))
+          )
+        )
+        (RMR:Text (list (car base) y 0.0)
+                  "No zone carries more than one service." (* 2.2 s)
+                  "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TEAL*)
+      )
+      (setq answer (RMR:PromptYesNo "Write a clearance report" "No"))
+      (if (RMR:YesP answer)
+        (progn
+          (setq path (getfiled "Save the clearance report"
+                               "RooMNRooF_Clearance.txt" "txt" 1))
+          (if path
+            (progn
+              (setq lines (list "RooMNRooF VERTICAL CLEARANCE REPORT"
+                                (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+                                (strcat "Date: " (RMR:TodayDate))
+                                ""
+                                "SERVICE ZONES"))
+              (foreach zone *RMR-SERVICE-ZONES*
+                (setq lines (append lines
+                              (list (strcat "  " (nth 0 zone) "  "
+                                            (itoa (nth 1 zone)) " - "
+                                            (itoa (nth 2 zone)) " mm  "
+                                            (nth 4 zone)))))
+              )
+              (setq lines (append lines (list "" "OCCUPANCY")))
+              (foreach item byzone
+                (setq lines (append lines
+                              (list (strcat "  " (nth 0 item) ": "
+                                            (itoa (- (length item) 1))
+                                            " services"))))
+              )
+              (setq lines (append lines (list "" "SHARED ZONES")))
+              (if conflicts
+                (foreach item conflicts
+                  (setq lines (append lines (list (strcat "  " item))))
+                )
+                (setq lines (append lines (list "  none")))
+              )
+              (setq lines (append lines (list ""
+                                              (strcat "Verdict: " verdict))))
+              (if (RMR:WriteLines path lines)
+                (princ (strcat "\nWritten: " path))
+                (princ "\nCould not write the report.")
+              )
+            )
+          )
+        )
+      )
+      (princ (strcat "\nClearance check: " verdict ", "
+                     (itoa (length conflicts)) " shared zones."))
+    )
+  )
+  (princ)
+)
+
 
 (princ (strcat "\nRooMNRooF " *RMR-VERSION* " loaded | " (itoa (length *RMR-LAYER-SPECS*)) " layers, "
                (itoa (length *RMR-HATCH-SPECS*)) " materials, " (itoa (length *RMR-NOTES*)) " notes."))

@@ -22,10 +22,12 @@ from collections import Counter, defaultdict
 OPERATORS = set("""+ - * / = /= < > <= >= 1+ 1- . t nil""".split())
 
 BUILTINS = set("""
-abs and append apply ascii assoc atan atof atoi boole boundp caddr cadddr cadr
+abs alert and angle append apply ascii assoc atan atof atoi boole boundp
+caddr cadddr cadr
 car cdddr cddr cdr chr close command command-s cond cons cos cosh cvunit defun
 defun-q distof
-distance end-list endcons entget entmake entmakex entmod entnext entsel entupd
+distance end-list endcons entdel entget entmake entmakex entmod entnext entsel
+entlast entupd
 eof eq equal eval exit exp expt fillfloat findfile fix float foreach gc gensym
 getangle getcfg getclose getcorner getdist getenv getfiled getint initget
 getkword
@@ -37,6 +39,7 @@ prompt quit read read-line redraw regapp rem repeat reverse rtos set setenv
 setfunhelp setq setvar sin sinh slide_image snvalid sqrt ssadd ssdel ssget
 sslength ssmemb ssname sssetfirst start_list startapp strcase strcat strlen
 subst substr tblnext tblobjname tblsearch term_dialog terpri textbox textpage
+wcmatch
 textscr trace trans type undo untrace vl-catch-all-apply
 vl-catch-all-error-message vl-catch-all-error-p vl-cmdff vl-consp
 vl-directory-files vl-every vl-exit-with-error vl-exit-with-value vl-file-copy

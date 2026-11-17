@@ -1,6 +1,6 @@
 ;;; -----------------------------------------------------------------------------
 ;;; RooMNRooF Master 2D CAD Standard
-;;; Version 3.0 PRO SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
+;;; Version 4.0 STUDIO SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
 ;;;
 ;;; Purpose
 ;;;   Builds a complete, colour-led 2D consultant standard in the active drawing.
@@ -10,6 +10,10 @@
 ;;;   room area schedules, material hatches, issue stamps, revision tables, notes
 ;;;   blocks, graphic scale bars, key plans, standards checks, block takeoffs,
 ;;;   palette CSV import/export, layer group control, page setup and publish lists.
+;;;   Version 4.0 adds the studio suite: layouts with scaled viewports, section,
+;;;   elevation, match, break and revision-cloud markers, a dimension launcher,
+;;;   a parametric RMR-SYM-* symbol library, door schedules, text find/replace,
+;;;   live fields, project data files and timestamped drawing backups.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -46,6 +50,22 @@
 ;;;   RMR-IMPORT-PALETTE  Read a CSV palette and rebuild the standard
 ;;;   RMR-PAGESETUP    Configure the active layout for PDF plotting
 ;;;   RMR-PUBLISH      Write a DSD publish list (optionally start -PUBLISH)
+;;;
+;;; Studio suite commands
+;;;   RMR-LAYOUTS      New layout: paper size, title block, scaled viewport
+;;;   RMR-VPORT        Scaled and locked viewport in the active layout
+;;;   RMR-SECTION      Section cut line with arrows and sheet bubbles
+;;;   RMR-ELEVATION    Elevation marker with direction arrow
+;;;   RMR-MATCHLINE    Match line to the adjoining sheet
+;;;   RMR-BREAKLINE    Break / cut line on RMR-A-MATCH
+;;;   RMR-REVCLOUD     Revision cloud drawn as a bulged polyline
+;;;   RMR-DIM          Dimension launcher: style + linear/aligned/radial/angular
+;;;   RMR-SYMBOLS      Build the parametric RMR-SYM-* symbol library
+;;;   RMR-DOORSCHED    Door schedule from inserted RMR-SYM-DOOR* blocks
+;;;   RMR-FINDTEXT     Find / replace across TEXT, MTEXT and ATTRIB
+;;;   RMR-FIELDS       Insert live fields (date, drawing name, layout...)
+;;;   RMR-PROJECT      Show / set / save / load project data (*RMR-PROJECT*)
+;;;   RMR-BACKUP       Timestamped backup copy of the drawing
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
@@ -128,6 +148,7 @@
    ("RMR-A-LEADER"  "ANNOTATION" (214 163  76) "Continuous" 18 "Leaders and callouts")
    ("RMR-A-ARROW"   "ANNOTATION" (198  93  72) "Continuous" 18 "Section, detail and north arrows")
    ("RMR-A-GRID"    "ANNOTATION" ( 88 112 123) "CENTER"       9 "Annotation grids and bubbles")
+   ("RMR-A-MATCH"   "ANNOTATION" ( 86 104 116) "PHANTOM"      9 "Match, break and cut lines")
    ("RMR-A-FRAME"   "ANNOTATION" ( 31  42  51) "Continuous" 35 "Sheet frame and title block")
    ("RMR-A-DETAIL"  "ANNOTATION" (130  92 160) "Continuous" 18 "Detail markers")
    ("RMR-A-ROOMTAG" "ANNOTATION" ( 31  42  51) "Continuous" 18 "Room number, name and area tags")
@@ -140,6 +161,7 @@
    ("RMR-PRES-KEY"   "PRESENTATION" (214 163  76) "Continuous" 18 "Keynotes and numbered tags")
    ("RMR-PRES-NORTH" "PRESENTATION" ( 57 137 130) "Continuous" 18 "North arrows and orientation")
    ("RMR-PRES-STAMP" "PRESENTATION" ( 57 137 130) "Continuous" 18 "Issue, status and approval stamps")
+   ("RMR-PRES-VPORT" "PRESENTATION" ( 47 116 181) "Continuous"  9 "Viewport frames and labels")
   )
 )
 
@@ -192,7 +214,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "3.0 PRO SUITE")
+(setq *RMR-VERSION* "4.0 STUDIO SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1370,6 +1392,7 @@
   )
   (RMR:EnsureArrowBlock)
   (RMR:EnsureProBlocks)
+  (RMR:BuildTitleBlock)
   (foreach spec *RMR-LAYER-SPECS*
     (RMR:EnsureLayer spec)
   )
@@ -1399,9 +1422,12 @@
   )
   (princ (strcat "\nRooMNRooF " *RMR-VERSION* " | scale " *RMR-DRAW-SCALE-LABEL* " (" *RMR-ANNO-SPACE* ") | symbol factor " (RMR:Num *RMR-ANNO-SCALE* 2)))
   (princ "\nStandard: RMR-PRO-SETUP, RMR-SETLAYER, RMR-LEGEND, RMR-SHEET, RMR-PALETTE")
-  (princ "\nAnnotate: RMR-SCALE, RMR-NORTH, RMR-ROOMTAG, RMR-AREA, RMR-KEYNOTE, RMR-DETAIL, RMR-LEVEL, RMR-REVISION, RMR-MLEADER")
+  (princ "\nAnnotate: RMR-SCALE, RMR-NORTH, RMR-ROOMTAG, RMR-AREA, RMR-KEYNOTE, RMR-DETAIL, RMR-LEVEL, RMR-REVISION, RMR-MLEADER, RMR-DIM")
+  (princ "\nMarkers:  RMR-SECTION, RMR-ELEVATION, RMR-MATCHLINE, RMR-BREAKLINE, RMR-REVCLOUD")
   (princ "\nPresent:  RMR-HATCH, RMR-STAMP, RMR-REVTABLE, RMR-NOTES, RMR-SCALEBAR, RMR-KEYPLAN, RMR-GRID")
-  (princ "\nManage:   RMR-LAYGROUP, RMR-CHECK, RMR-COUNT, RMR-EXPORT-PALETTE, RMR-IMPORT-PALETTE, RMR-PAGESETUP, RMR-PUBLISH, RMR-SAVE-TEMPLATE")
+  (princ "\nSheets:   RMR-LAYOUTS, RMR-VPORT, RMR-PAGESETUP, RMR-PUBLISH")
+  (princ "\nManage:   RMR-LAYGROUP, RMR-CHECK, RMR-COUNT, RMR-SYMBOLS, RMR-DOORSCHED, RMR-FINDTEXT, RMR-FIELDS, RMR-PROJECT, RMR-BACKUP")
+  (princ "\nPalette:  RMR-EXPORT-PALETTE, RMR-IMPORT-PALETTE, RMR-SAVE-TEMPLATE")
   (princ)
 )
 
@@ -2817,6 +2843,14 @@
   (princ "\n  RMR-LEVEL          Level datum marker")
   (princ "\n  RMR-REVISION       Revision triangle and description")
   (princ "\n  RMR-MLEADER        Branded multileader")
+  (princ "\n  RMR-DIM            Dimension launcher on RMR-A-DIMS")
+  (princ "\n")
+  (princ "\n Markers and views")
+  (princ "\n  RMR-SECTION        Section cut line, arrows and sheet bubbles")
+  (princ "\n  RMR-ELEVATION      Elevation marker with direction arrow")
+  (princ "\n  RMR-MATCHLINE      Match line to the adjoining sheet")
+  (princ "\n  RMR-BREAKLINE      Break / cut line on RMR-A-MATCH")
+  (princ "\n  RMR-REVCLOUD       Revision cloud (bulged polyline)")
   (princ "\n")
   (princ "\n Present")
   (princ "\n  RMR-HATCH          Apply a material hatch from the library")
@@ -2830,11 +2864,21 @@
   (princ "\n Manage and issue")
   (princ "\n  RMR-CHECK          Audit the drawing against the standard")
   (princ "\n  RMR-COUNT          Block takeoff with CSV export")
+  (princ "\n  RMR-FINDTEXT       Find / replace text (wildcards allowed)")
   (princ "\n  RMR-EXPORT-PALETTE Write the palette to a CSV file")
   (princ "\n  RMR-IMPORT-PALETTE Read a CSV palette and rebuild")
   (princ "\n  RMR-PAGESETUP      Configure the active layout for PDF")
   (princ "\n  RMR-PUBLISH        Write a DSD publish list")
   (princ "\n  RMR-SAVE-TEMPLATE  Save the drawing as a .DWT")
+  (princ "\n")
+  (princ "\n Studio suite")
+  (princ "\n  RMR-LAYOUTS        New layout: paper, title block, scaled viewport")
+  (princ "\n  RMR-VPORT          Scaled, locked viewport in the active layout")
+  (princ "\n  RMR-SYMBOLS        Build the RMR-SYM-* parametric symbol library")
+  (princ "\n  RMR-DOORSCHED      Door schedule from inserted door blocks")
+  (princ "\n  RMR-FIELDS         Insert live fields (date, drawing, layout...)")
+  (princ "\n  RMR-PROJECT        Show / set / save / load project data")
+  (princ "\n  RMR-BACKUP         Timestamped backup copy of the drawing")
   (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
@@ -2846,6 +2890,8 @@
   (princ "\n  *RMR-STAMP-SPECS*    issue and status stamps")
   (princ "\n  *RMR-NOTES*          general notes wording")
   (princ "\n  *RMR-PLOT-DEVICE*    plotter, plot style and paper defaults")
+  (princ "\n  *RMR-PROJECT*        client, job, sheet and issue data")
+  (princ "\n  *RMR-CLOUD-ARC*      revision cloud bulge factor")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -2859,6 +2905,1082 @@
                  (itoa scale) " scales, " (itoa hatch) " materials, "
                  (itoa stamp) " stamps, " (itoa (length *RMR-NOTES*)) " notes."))
   (princ "\n=================================================")
+  (princ)
+)
+
+;;; =====================================================================
+;;; PRO 4.0 STUDIO SUITE
+;;; Layouts and viewports, section / elevation / match / break markers,
+;;; revision clouds, dimension launcher, parametric symbol library,
+;;; door schedule, text find and replace, live fields, project data and
+;;; timestamped drawing backups.
+;;; =====================================================================
+
+(setq *RMR-PROJECT*
+ '(
+    ("CLIENT"  . "RooMNRooF Studio Client")
+    ("PROJECT" . "RooMNRooF Reference Apartment")
+    ("JOB"     . "2401")
+    ("STAGE"   . "ISSUED FOR REVIEW")
+    ("TITLE"   . "GENERAL ARRANGEMENT")
+    ("DWGNO"   . "A-000")
+    ("REV"     . "01")
+    ("DATE"    . "")
+    ("DRAWN"   . "RMR")
+    ("CHECKED" . "KH")
+    ("SCALE"   . "")
+    ("SIZE"    . "A1")
+  )
+)
+(setq *RMR-CLOUD-ARC* 0.65)
+
+(defun RMR:ProjectValue (tag fallback / entry)
+  (setq entry (assoc tag *RMR-PROJECT*))
+  (cond
+    ((and entry (cdr entry) (/= (cdr entry) "")) (cdr entry))
+    ((= tag "DATE")  (RMR:TodayDate))
+    ((= tag "SCALE") *RMR-DRAW-SCALE-LABEL*)
+    (T (if fallback fallback ""))
+  )
+)
+
+(defun RMR:SetProject (tag value / out item)
+  (setq out nil)
+  (foreach item *RMR-PROJECT*
+    (if (= (car item) tag)
+      (setq out (cons (cons tag value) out))
+      (setq out (cons item out))
+    )
+  )
+  (if (not (assoc tag *RMR-PROJECT*))
+    (setq out (cons (cons tag value) out))
+  )
+  (setq *RMR-PROJECT* (reverse out))
+  value
+)
+
+(defun RMR:ProjectPairs (/ out item)
+  (setq out nil)
+  (foreach item *RMR-PROJECT*
+    (setq out (cons (cons (car item) (RMR:ProjectValue (car item) "")) out))
+  )
+  (reverse out)
+)
+
+;;; --- block-definition primitives (geometry on layer 0, colour BYBLOCK)
+(defun RMR:SymLine (p1 p2)
+  (entmake
+    (list '(0 . "LINE") '(8 . "0") '(62 . 0)
+          (cons 10 (RMR:3D p1)) (cons 11 (RMR:3D p2)))
+  )
+)
+
+(defun RMR:SymArc (c radius a1 a2)
+  (entmake
+    (list '(0 . "ARC") '(8 . "0") '(62 . 0)
+          (cons 10 (RMR:3D c)) (cons 40 radius) (cons 50 a1) (cons 51 a2))
+  )
+)
+
+(defun RMR:SymCircle (c radius)
+  (entmake
+    (list '(0 . "CIRCLE") '(8 . "0") '(62 . 0)
+          (cons 10 (RMR:3D c)) (cons 40 radius))
+  )
+)
+
+(defun RMR:SymPoly (pts bulges closed / items index bulge)
+  (setq items
+    (list '(0 . "LWPOLYLINE") '(8 . "0") '(62 . 0)
+          (cons 90 (length pts)) (cons 70 (if closed 1 0)))
+  )
+  (setq index 0)
+  (foreach p pts
+    (setq items (append items (list (cons 10 p))))
+    (setq bulge (nth index bulges))
+    (if bulge (setq items (append items (list (cons 42 bulge)))))
+    (setq index (1+ index))
+  )
+  (entmake items)
+)
+
+(defun RMR:SymRect (p width height)
+  (RMR:SymPoly
+    (list p
+          (list (+ (car p) width) (cadr p))
+          (list (+ (car p) width) (+ (cadr p) height))
+          (list (car p) (+ (cadr p) height)))
+    nil T
+  )
+)
+
+(defun RMR:SymText (p text height style)
+  (entmake
+    (list '(0 . "TEXT") '(8 . "0") '(62 . 0)
+          (cons 10 (RMR:3D p)) (cons 40 height) (cons 1 text) (cons 7 style))
+  )
+)
+
+(defun RMR:Attdef (tag prompt default height point style)
+  (entmake
+    (list '(0 . "ATTDEF") '(8 . "0") '(62 . 0)
+          (cons 10 (RMR:3D point)) (cons 40 height) (cons 1 default)
+          (cons 7 style) (cons 2 tag) (cons 3 prompt) '(70 . 0))
+  )
+)
+
+(defun RMR:DropBlock (name / doc blk)
+  (vl-load-com)
+  (setq doc (vla-get-activedocument (vlax-get-acad-object)))
+  (setq blk (vl-catch-all-apply 'vla-item (list (vla-get-blocks doc) name)))
+  (if (not (vl-catch-all-error-p blk))
+    (vl-catch-all-apply 'vla-delete (list blk))
+  )
+  T
+)
+
+(defun RMR:SymBegin (name refresh)
+  ;; Returns T when the caller should draw a fresh block body.
+  (if (tblsearch "BLOCK" name)
+    (if refresh (progn (RMR:DropBlock name) T) nil)
+    T
+  )
+)
+
+;;; --- model-space poly with bulges (match lines, break lines, clouds)
+(defun RMR:PolyLine (pts bulges closed layer rgb / items index bulge)
+  (setq items
+    (list '(0 . "LWPOLYLINE") (cons 8 layer) '(62 . 256)
+          (cons 420 (RMR:RGB->420 rgb))
+          (cons 90 (length pts)) (cons 70 (if closed 1 0)))
+  )
+  (setq index 0)
+  (foreach p pts
+    (setq items (append items (list (cons 10 p))))
+    (setq bulge (nth index bulges))
+    (if bulge (setq items (append items (list (cons 42 bulge)))))
+    (setq index (1+ index))
+  )
+  (entmake items)
+)
+
+(defun RMR:SolidTri (tip ux uy size layer rgb / bx by px py q1 q2)
+  (setq bx (- (car tip) (* ux size)))
+  (setq by (- (cadr tip) (* uy size)))
+  (setq px (- uy))
+  (setq py ux)
+  (setq q1 (list (+ bx (* px (* 0.35 size))) (+ by (* py (* 0.35 size)))))
+  (setq q2 (list (- bx (* px (* 0.35 size))) (- by (* py (* 0.35 size)))))
+  (entmake
+    (list '(0 . "SOLID") (cons 8 layer)
+          (cons 10 (RMR:3D tip)) (cons 11 (RMR:3D q1))
+          (cons 12 (RMR:3D q2)) (cons 13 (RMR:3D q2))
+          '(62 . 7) (cons 420 (RMR:RGB->420 rgb)))
+  )
+)
+
+;;; --- attributes -------------------------------------------------------
+(defun RMR:GetAttributes (ename / ent data out)
+  (setq out nil)
+  (if (= (cdr (assoc 66 (entget ename))) 1)
+    (progn
+      (setq ent (entnext ename))
+      (while (and ent (setq data (entget ent))
+                  (/= (cdr (assoc 0 data)) "SEQEND"))
+        (if (= (cdr (assoc 0 data)) "ATTRIB")
+          (setq out (cons (cons (cdr (assoc 2 data)) (cdr (assoc 1 data))) out))
+        )
+        (setq ent (entnext ent))
+      )
+    )
+  )
+  (reverse out)
+)
+
+(defun RMR:FillAttributes (ename pairs / ent data tag hit)
+  (if (= (cdr (assoc 66 (entget ename))) 1)
+    (progn
+      (setq ent (entnext ename))
+      (while (and ent (setq data (entget ent))
+                  (/= (cdr (assoc 0 data)) "SEQEND"))
+        (if (= (cdr (assoc 0 data)) "ATTRIB")
+          (progn
+            (setq tag (cdr (assoc 2 data)))
+            (setq hit (assoc tag pairs))
+            (if hit
+              (entmod (subst (cons 1 (cdr hit)) (assoc 1 data) data))
+            )
+          )
+        )
+        (setq ent (entnext ent))
+      )
+    )
+  )
+  T
+)
+
+(defun RMR:InsertAttributed (name point layer / def ent data defs dp insert)
+  (setq insert nil)
+  (setq def (tblobjname "BLOCK" name))
+  (if def
+    (progn
+      (setq defs nil)
+      (setq ent (entnext def))
+      (while (and ent (setq data (entget ent))
+                  (/= (cdr (assoc 0 data)) "ENDBLK"))
+        (if (= (cdr (assoc 0 data)) "ATTDEF")
+          (setq defs (cons data defs))
+        )
+        (setq ent (entnext ent))
+      )
+      (setq defs (reverse defs))
+      (setq insert
+        (entmake
+          (list '(0 . "INSERT") (cons 8 layer)
+                (cons 66 (if defs 1 0))
+                (cons 2 name) (cons 10 (RMR:3D point))
+                '(41 . 1.0) '(42 . 1.0) '(50 . 0.0)))
+      )
+      (foreach d defs
+        (setq dp (cdr (assoc 10 d)))
+        (entmake
+          (list '(0 . "ATTRIB") (cons 8 layer)
+                (cons 10 (RMR:3D (list (+ (car point) (car dp))
+                                       (+ (cadr point) (cadr dp)))))
+                (cons 40 (cdr (assoc 40 d)))
+                (cons 1 (RMR:ProjectValue (cdr (assoc 2 d)) ""))
+                (cons 7 (cdr (assoc 7 d)))
+                (cons 2 (cdr (assoc 2 d)))
+                '(70 . 0)
+                (cons 3 (cdr (assoc 3 d))))
+        )
+      )
+      (if defs
+        (entmake (list '(0 . "SEQEND") (cons 8 layer)))
+      )
+    )
+  )
+  insert
+)
+
+;;; --- branded title block with live attribute tags ---------------------
+(defun RMR:BuildTitleBlock (/ w h)
+  (if (tblsearch "BLOCK" "RMR-TITLEBLOCK") (RMR:DropBlock "RMR-TITLEBLOCK"))
+  (setq w 180.0 h 60.0)
+  (RMR:BeginBlock "RMR-TITLEBLOCK")
+  (RMR:SymRect (list 0.0 0.0) w h)
+  (RMR:SymLine (list 40.0 0.0) (list 40.0 h))
+  (RMR:SymLine (list 140.0 0.0) (list 140.0 h))
+  (RMR:SymLine (list 40.0 44.0) (list 140.0 44.0))
+  (RMR:SymLine (list 40.0 34.0) (list 140.0 34.0))
+  (RMR:SymLine (list 40.0 12.0) (list 140.0 12.0))
+  (RMR:SymLine (list 70.0 0.0) (list 70.0 12.0))
+  (RMR:SymLine (list 100.0 0.0) (list 100.0 12.0))
+  (RMR:SymLine (list 140.0 44.0) (list w 44.0))
+  (RMR:SymLine (list 160.0 44.0) (list 160.0 h))
+  (RMR:SymLine (list 140.0 16.0) (list w 16.0))
+  (RMR:SymLine (list 6.0 40.0) (list 34.0 40.0))
+  (RMR:SymText (list 6.0 28.0) "RooMNRooF" 6.0 "RMR-TITLE")
+  (RMR:SymText (list 6.0 20.0) "CONSULTANT" 2.4 "RMR-LABEL")
+  (RMR:SymText (list 6.0 8.0) "ROOF THE ROOM" 2.4 "RMR-LABEL")
+  (RMR:SymText (list 42.0 54.0) "CLIENT" 2.0 "RMR-LABEL")
+  (RMR:SymText (list 42.0 40.0) "PROJECT" 2.0 "RMR-LABEL")
+  (RMR:SymText (list 42.0 28.0) "DRAWING TITLE" 2.0 "RMR-LABEL")
+  (RMR:SymText (list 42.0 8.0) "DRAWN" 1.8 "RMR-LABEL")
+  (RMR:SymText (list 72.0 8.0) "CHECKED" 1.8 "RMR-LABEL")
+  (RMR:SymText (list 102.0 8.0) "DATE" 1.8 "RMR-LABEL")
+  (RMR:SymText (list 142.0 54.0) "SIZE" 1.8 "RMR-LABEL")
+  (RMR:SymText (list 162.0 54.0) "SCALE" 1.8 "RMR-LABEL")
+  (RMR:SymText (list 142.0 38.0) "DRAWING NO." 2.0 "RMR-LABEL")
+  (RMR:SymText (list 142.0 12.0) "REV" 1.8 "RMR-LABEL")
+  (RMR:Attdef "CLIENT"  "Client"         "" 3.2 (list 42.0 47.0)  "RMR-BODY")
+  (RMR:Attdef "PROJECT" "Project"        "" 3.0 (list 42.0 35.5)  "RMR-BODY")
+  (RMR:Attdef "TITLE"   "Drawing title"  "" 5.0 (list 42.0 18.0)  "RMR-SUBHEAD")
+  (RMR:Attdef "DRAWN"   "Drawn by"       "" 2.5 (list 42.0 3.0)   "RMR-LABEL")
+  (RMR:Attdef "CHECKED" "Checked by"     "" 2.5 (list 72.0 3.0)   "RMR-LABEL")
+  (RMR:Attdef "DATE"    "Issue date"     "" 2.5 (list 102.0 3.0)  "RMR-LABEL")
+  (RMR:Attdef "SIZE"    "Paper size"     "" 3.5 (list 142.0 47.0) "RMR-NUMBER")
+  (RMR:Attdef "SCALE"   "Plot scale"     "" 3.0 (list 162.0 47.0) "RMR-LABEL")
+  (RMR:Attdef "DWGNO"   "Drawing number" "" 7.0 (list 142.0 22.0) "RMR-HEAD")
+  (RMR:Attdef "REV"     "Revision"       "" 4.0 (list 142.0 4.0)  "RMR-NUMBER")
+  (RMR:EndBlock)
+  T
+)
+
+;;; --- layouts and viewports --------------------------------------------
+(defun C:RMR-LAYOUTS (/ doc name size spec kw ratio lay ps vp p1 p2 w h center)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq doc (vla-get-activedocument (vlax-get-acad-object)))
+  (setq size (RMR:PromptKeyword "Paper size" (RMR:KeywordBar "A0 A1 A2 A3 A4") "A1"))
+  (if size
+    (progn
+      (setq spec (RMR:TableSpec size *RMR-PAPER-SPECS*))
+      (setq w (nth 1 spec))
+      (setq h (nth 2 spec))
+      (setq name (RMR:PromptText "Layout name" (strcat size "-01")))
+      (if (member name (layoutlist))
+        (princ (strcat "\nLayout " name " already exists - nothing created."))
+        (progn
+          (setq lay (vl-catch-all-apply 'vla-add (list (vla-get-layouts doc) name)))
+          (if (vl-catch-all-error-p lay)
+            (princ (strcat "\nLayout creation failed: " (vl-catch-all-error-text lay)))
+            (progn
+              (setvar "CTAB" name)
+              (RMR:SetProject "SIZE" size)
+              (if (not (tblsearch "BLOCK" "RMR-TITLEBLOCK")) (RMR:BuildTitleBlock))
+              (RMR:InsertAttributed "RMR-TITLEBLOCK"
+                                    (list (- w 190.0) 5.0) "RMR-PRES-TITLE")
+              (setq kw (RMR:PromptKeyword
+                         "Viewport scale"
+                         (strcat "NONE " (RMR:KeywordBar (RMR:KeywordList *RMR-SCALE-SPECS*)))
+                         "50"))
+              (if (/= kw "NONE")
+                (progn
+                  (setq spec (RMR:TableSpec kw *RMR-SCALE-SPECS*))
+                  (setq ratio (nth 2 spec))
+                  (setq p1 (list 20.0 75.0 0.0))
+                  (setq p2 (list (- w 20.0) (- h 20.0) 0.0))
+                  (setq center (list (* 0.5 (+ (car p1) (car p2)))
+                                     (* 0.5 (+ (cadr p1) (cadr p2))) 0.0))
+                  (vla-put-activespace doc acPaperSpace)
+                  (setq ps (vla-get-paperspace doc))
+                  (setq vp (vl-catch-all-apply
+                             'vla-addpviewport
+                             (list ps (vlax-3d-point center)
+                                   (- (car p2) (car p1)) (- (cadr p2) (cadr p1)))))
+                  (if (vl-catch-all-error-p vp)
+                    (progn
+                      (command "_.mview" (list (car p1) (cadr p1))
+                               (list (car p2) (cadr p2)))
+                      (setq vp (vl-catch-all-apply
+                                 'vlax-ename->vla-object (list (entlast))))
+                    )
+                  )
+                  (if (vl-catch-all-error-p vp)
+                    (princ "\nViewport could not be created - add it manually.")
+                    (progn
+                      (if ratio (vla-put-customscale vp (/ 1.0 ratio)))
+                      (vla-put-displaylocked vp :vlax-true)
+                      (vl-catch-all-apply 'vla-put-layer (list vp "RMR-PRES-VPORT"))
+                      (princ (strcat "\nViewport placed at " (nth 1 spec) " and locked."))
+                    )
+                  )
+                )
+              )
+              (princ (strcat "\nLayout " name " (" size ") ready - run RMR-PAGESETUP for plot settings."))
+            )
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-VPORT (/ doc p1 p2 kw spec ratio ps vp center w h x1 y1)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (if (= (getvar "CTAB") "Model")
+    (princ "\nSwitch to a layout (paper space) first.")
+    (progn
+      (setq p1 (getpoint "\nFirst viewport corner: "))
+      (if p1
+        (progn
+          (setq p2 (getcorner p1 "\nOther viewport corner: "))
+          (if p2
+            (progn
+              (setq kw (RMR:PromptKeyword
+                         "Viewport scale"
+                         (RMR:KeywordBar (RMR:KeywordList *RMR-SCALE-SPECS*)) "50"))
+              (setq spec (RMR:TableSpec kw *RMR-SCALE-SPECS*))
+              (setq ratio (nth 2 spec))
+              (setq doc (vla-get-activedocument (vlax-get-acad-object)))
+              (vla-put-activespace doc acPaperSpace)
+              (setq ps (vla-get-paperspace doc))
+              (setq w (abs (- (car p2) (car p1))))
+              (setq h (abs (- (cadr p2) (cadr p1))))
+              (setq center (list (* 0.5 (+ (car p1) (car p2)))
+                                 (* 0.5 (+ (cadr p1) (cadr p2))) 0.0))
+              (setq vp (vl-catch-all-apply
+                         'vla-addpviewport
+                         (list ps (vlax-3d-point center) w h)))
+              (if (vl-catch-all-error-p vp)
+                (progn
+                  (command "_.mview" (list (car p1) (cadr p1))
+                           (list (car p2) (cadr p2)))
+                  (setq vp (vl-catch-all-apply
+                             'vlax-ename->vla-object (list (entlast))))
+                )
+              )
+              (if (vl-catch-all-error-p vp)
+                (princ "\nViewport creation failed on this platform.")
+                (progn
+                  (if ratio (vla-put-customscale vp (/ 1.0 ratio)))
+                  (vla-put-displaylocked vp :vlax-true)
+                  (vl-catch-all-apply 'vla-put-layer (list vp "RMR-PRES-VPORT"))
+                  (setq x1 (if (< (car p1) (car p2)) (car p1) (car p2)))
+                  (setq y1 (if (< (cadr p1) (cadr p2)) (cadr p1) (cadr p2)))
+                  (RMR:Text (list x1 (- y1 6.0))
+                            (strcat "VIEWPORT " (nth 1 spec) " - LOCKED")
+                            2.5 "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+                  (princ (strcat "\nViewport created at " (nth 1 spec) " and locked."))
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- section, elevation, match and break markers -----------------------
+(defun RMR:SectionBubble (c number sheet radius)
+  (RMR:Circle c radius "RMR-A-DETAIL" *RMR-BRAND-TERRA*)
+  (RMR:Line (list (- (car c) radius) (cadr c))
+            (list (+ (car c) radius) (cadr c))
+            "RMR-A-DETAIL" *RMR-BRAND-TERRA*)
+  (RMR:CenterText (list (car c) (+ (cadr c) (* radius 0.35))) number
+                  (* radius 0.62) "RMR-NUMBER" "RMR-A-DETAIL" *RMR-BRAND-INK*)
+  (RMR:CenterText (list (car c) (- (cadr c) (* radius 0.62))) sheet
+                  (* radius 0.45) "RMR-LABEL" "RMR-A-DETAIL" *RMR-BRAND-INK*)
+)
+
+(defun C:RMR-SECTION (/ p1 p2 side num sheet s r ang perp mid vx vy ux uy dir t1 t2)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p1 (getpoint "\nStart of section cut: "))
+  (if p1
+    (progn
+      (setq p2 (getpoint p1 "\nEnd of section cut: "))
+      (if p2
+        (progn
+          (setq side (getpoint p2 "\nPick the viewing direction side: "))
+          (if side
+            (progn
+              (setq num (RMR:PromptText "Section number" "1"))
+              (setq sheet (RMR:PromptText "Sheet reference"
+                                          (RMR:ProjectValue "DWGNO" "A-101")))
+              (setq r (* 5.0 s))
+              (setq ang (angle p1 p2))
+              (setq perp (+ ang (/ pi 2.0)))
+              (setq mid (list (* 0.5 (+ (car p1) (car p2)))
+                              (* 0.5 (+ (cadr p1) (cadr p2)))))
+              (setq vx (- (car side) (car mid)))
+              (setq vy (- (cadr side) (cadr mid)))
+              (setq ux (cos perp))
+              (setq uy (sin perp))
+              (if (< (+ (* vx ux) (* vy uy)) 0.0)
+                (progn (setq ux (- ux)) (setq uy (- uy)))
+              )
+              (setq dir (list (cos ang) (sin ang)))
+              (RMR:Line p1 p2 "RMR-A-DETAIL" *RMR-BRAND-TERRA*)
+              (foreach end (list p1 p2)
+                (setq t1 (list (+ (car end) (* ux (* 6.0 s)))
+                               (+ (cadr end) (* uy (* 6.0 s)))))
+                (RMR:Line end t1 "RMR-A-DETAIL" *RMR-BRAND-TERRA*)
+                (setq t2 (list (+ (car t1) (* ux (* 3.0 s)))
+                               (+ (cadr t1) (* uy (* 3.0 s)))))
+                (RMR:SolidTri t2 ux uy (* 3.0 s) "RMR-A-DETAIL" *RMR-BRAND-TERRA*)
+              )
+              (RMR:SectionBubble
+                (list (- (car p1) (* (car dir) (* 9.0 s)))
+                      (- (cadr p1) (* (cadr dir) (* 9.0 s))))
+                num sheet r)
+              (RMR:SectionBubble
+                (list (+ (car p2) (* (car dir) (* 9.0 s)))
+                      (+ (cadr p2) (* (cadr dir) (* 9.0 s))))
+                num sheet r)
+              (princ (strcat "\nSection " num " marked, looking to the picked side."))
+            )
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-ELEVATION (/ p rot num sheet s r ux uy tip)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p (getpoint "\nElevation marker centre: "))
+  (if p
+    (progn
+      (setq rot (RMR:PromptAngle "Viewing direction angle" 0.0))
+      (setq num (RMR:PromptText "Elevation number" "E1"))
+      (setq sheet (RMR:PromptText "Sheet reference"
+                                  (RMR:ProjectValue "DWGNO" "A-101")))
+      (setq r (* 5.0 s))
+      (setq rot (* rot (/ pi 180.0)))
+      (setq ux (cos rot))
+      (setq uy (sin rot))
+      (RMR:Circle p r "RMR-A-DETAIL" *RMR-BRAND-TEAL*)
+      (RMR:Line (list (- (car p) (* ux r)) (- (cadr p) (* uy r)))
+                (list (+ (car p) (* ux r)) (+ (cadr p) (* uy r)))
+                "RMR-A-DETAIL" *RMR-BRAND-TEAL*)
+      (RMR:CenterText (list (+ (car p) (* (- uy) (* r 0.45)))
+                            (+ (cadr p) (* ux (* r 0.45))))
+                      num (* r 0.62) "RMR-NUMBER" "RMR-A-DETAIL" *RMR-BRAND-INK*)
+      (RMR:CenterText (list (+ (car p) (* uy (* r 0.50)))
+                            (+ (cadr p) (* (- ux) (* r 0.50))))
+                      sheet (* r 0.45) "RMR-LABEL" "RMR-A-DETAIL" *RMR-BRAND-INK*)
+      (setq tip (list (+ (car p) (* ux (+ r (* 4.0 s))))
+                      (+ (cadr p) (* uy (+ r (* 4.0 s))))))
+      (RMR:Line (list (+ (car p) (* ux r)) (+ (cadr p) (* uy r))) tip
+                "RMR-A-DETAIL" *RMR-BRAND-TEAL*)
+      (RMR:SolidTri (list (+ (car tip) (* ux (* 3.0 s)))
+                          (+ (cadr tip) (* uy (* 3.0 s))))
+                    ux uy (* 3.0 s) "RMR-A-DETAIL" *RMR-BRAND-TEAL*)
+      (princ (strcat "\nElevation " num " marked."))
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-MATCHLINE (/ p1 p2 sheet s ang lab off u1 u2)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq p1 (getpoint "\nMatch line start: "))
+  (if p1
+    (progn
+      (setq p2 (getpoint p1 "\nMatch line end: "))
+      (if p2
+        (progn
+          (setq sheet (RMR:PromptText "Adjoining sheet" "A-102"))
+          (setq ang (angle p1 p2))
+          ;; (angle ...) returns 0..2pi. Flip 90..270 by 180 degrees and anything
+          ;; past 270 by 360 so the match-line label always reads upright.
+          (cond
+            ((and (> ang (* pi 0.5)) (<= ang (* pi 1.5))) (setq ang (- ang pi)))
+            ((> ang (* pi 1.5)) (setq ang (- ang (* 2.0 pi))))
+          )
+          (RMR:Line p1 p2 "RMR-A-MATCH" *RMR-BRAND-SLATE*)
+          (setq lab (strcat "MATCH LINE - SEE " sheet))
+          (setq off (* 3.0 s))
+          (setq u1 (list (+ (car p1) (* (cos (+ ang (/ pi 2.0))) off))
+                         (+ (cadr p1) (* (sin (+ ang (/ pi 2.0))) off))))
+          (setq u2 (list (+ (car p2) (* (cos (+ ang (/ pi 2.0))) off))
+                         (+ (cadr p2) (* (sin (+ ang (/ pi 2.0))) off))))
+          (RMR:RotText u1 lab (* 2.5 s) "RMR-LABEL" "RMR-A-MATCH" *RMR-BRAND-SLATE* ang)
+          (RMR:RotText u2 lab (* 2.5 s) "RMR-LABEL" "RMR-A-MATCH" *RMR-BRAND-SLATE* ang)
+          (princ "\nMatch line placed on RMR-A-MATCH (phantom).")
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-BREAKLINE (/ p1 p2 d a b c pts bul)
+  (RMR:EnsureReady)
+  (setq p1 (getpoint "\nBreak line start: "))
+  (if p1
+    (progn
+      (setq p2 (getpoint p1 "\nBreak line end: "))
+      (if p2
+        (progn
+          (setq d (list (- (car p2) (car p1)) (- (cadr p2) (cadr p1))))
+          (setq a (list (+ (car p1) (* (car d) 0.40))
+                        (+ (cadr p1) (* (cadr d) 0.40))))
+          (setq b (list (+ (car p1) (* (car d) 0.50))
+                        (+ (cadr p1) (* (cadr d) 0.50))))
+          (setq c (list (+ (car p1) (* (car d) 0.60))
+                        (+ (cadr p1) (* (cadr d) 0.60))))
+          (setq pts (list p1 a b c p2))
+          (setq bul (list nil 0.9 -0.9 nil nil))
+          (RMR:PolyLine pts bul nil "RMR-A-MATCH" *RMR-BRAND-SLATE*)
+          (princ "\nBreak line placed.")
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+(defun RMR:RectSamples (a b step / pts edges e len n i d ang)
+  (setq pts nil)
+  (setq edges (list (list a (list (car b) (cadr a)))
+                    (list (list (car b) (cadr a)) b)
+                    (list b (list (car a) (cadr b)))
+                    (list (list (car a) (cadr b)) a)))
+  (foreach e edges
+    (setq len (distance (car e) (cadr e)))
+    (setq n (fix (/ len step)))
+    (if (< n 2) (setq n 2))
+    (setq d (/ len (float n)))
+    (setq ang (angle (car e) (cadr e)))
+    (setq i 0)
+    (while (< i n)
+      (setq pts (cons (list (+ (car (car e)) (* (cos ang) (* d i)))
+                            (+ (cadr (car e)) (* (sin ang) (* d i))))
+                      pts))
+      (setq i (1+ i))
+    )
+  )
+  (reverse pts)
+)
+
+(defun C:RMR-REVCLOUD (/ p pts next s chord done a b)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq chord (* 10.0 s))
+  (setq p (getpoint "\nFirst cloud point (2 points = rectangle): "))
+  (if p
+    (progn
+      (setq pts (list p))
+      (setq done nil)
+      (while (not done)
+        (setq next (getpoint (last pts) "\nNext cloud point <enter to finish>: "))
+        (if next
+          (setq pts (append pts (list next)))
+          (setq done T)
+        )
+      )
+      (if (= (length pts) 2)
+        (progn
+          (setq a (car pts))
+          (setq b (cadr pts))
+          (setq pts (RMR:RectSamples a b chord))
+        )
+      )
+      (if (< (length pts) 3)
+        (princ "\nA cloud needs at least three points.")
+        (progn
+          (RMR:PolyLine pts
+                        (mapcar '(lambda (x) *RMR-CLOUD-ARC*) pts)
+                        T "RMR-A-REVISION" *RMR-BRAND-TERRA*)
+          (princ "\nRevision cloud placed - tag it with RMR-REVISION.")
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- dimension launcher ------------------------------------------------
+(defun C:RMR-DIM (/ kw ty style)
+  (RMR:EnsureReady)
+  (setq kw (RMR:PromptKeyword "Dimension style"
+                              (RMR:KeywordBar "PLAN DETAIL LARGE") "PLAN"))
+  (if kw
+    (progn
+      (setq style (strcat "RMR-DIM-" kw))
+      (setq ty (RMR:PromptKeyword "Dimension type"
+                                  (RMR:KeywordBar "LINEAR ALIGN ORD RAD ANG CONT")
+                                  "LINEAR"))
+      (if ty
+        (progn
+          (setvar "CLAYER" "RMR-A-DIMS")
+          (command "_.-dimstyle" "_R" style)
+          (princ (strcat "\n" style " current on RMR-A-DIMS - pick dimension points."))
+          (cond
+            ((= ty "LINEAR") (command "_.dimlinear"))
+            ((= ty "ALIGN")  (command "_.dimaligned"))
+            ((= ty "ORD")    (command "_.dimordinate"))
+            ((= ty "RAD")    (command "_.dimradius"))
+            ((= ty "ANG")    (command "_.dimangular"))
+            ((= ty "CONT")   (command "_.dimcontinue"))
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- text search and replace -------------------------------------------
+(defun RMR:ReplaceAll (str find rep / pos out)
+  (if (= find "")
+    str
+    (progn
+      (setq out "")
+      (while (setq pos (vl-string-search find str))
+        (setq out (strcat out (substr str 1 pos) rep))
+        (setq str (substr str (+ pos (strlen find) 1)))
+      )
+      (strcat out str)
+    )
+  )
+)
+
+(defun C:RMR-FINDTEXT (/ search replace ss i ent data str new wild count)
+  (RMR:EnsureReady)
+  (setq search (RMR:PromptText "Text to find (wildcards allowed)" ""))
+  (if (/= search "")
+    (progn
+      (setq replace (RMR:PromptText "Replacement (empty removes the match)" ""))
+      (setq wild (vl-string-search "*" search))
+      (setq ss (ssget "X" '((0 . "TEXT,MTEXT,ATTRIB"))))
+      (if ss
+        (progn
+          (setq count 0 i 0)
+          (repeat (sslength ss)
+            (setq ent (ssname ss i))
+            (setq data (entget ent))
+            (setq str (cdr (assoc 1 data)))
+            (if (and str (RMR:MatchFilter str search))
+              (progn
+                (cond
+                  (wild (setq new replace))
+                  (T (setq new (RMR:ReplaceAll str search replace)))
+                )
+                (entmod (subst (cons 1 new) (assoc 1 data) data))
+                (setq count (1+ count))
+              )
+            )
+            (setq i (1+ i))
+          )
+          (princ (strcat "\nUpdated " (itoa count) " text object(s)."))
+        )
+        (princ "\nNo TEXT, MTEXT or ATTRIB entities in this drawing.")
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- parametric symbol library -----------------------------------------
+(defun RMR:BuildDoor (name width double / w)
+  (RMR:BeginBlock name)
+  (setq w width)
+  (if double
+    (progn
+      (RMR:SymLine (list 0.0 0.0) (list 0.0 (/ w 2.0)))
+      (RMR:SymArc (list 0.0 0.0) (/ w 2.0) 0.0 (/ pi 2.0))
+      (RMR:SymLine (list w 0.0) (list w (/ w 2.0)))
+      (RMR:SymArc (list w 0.0) (/ w 2.0) (/ pi 2.0) pi)
+    )
+    (progn
+      (RMR:SymLine (list 0.0 0.0) (list 0.0 w))
+      (RMR:SymArc (list 0.0 0.0) w 0.0 (/ pi 2.0))
+    )
+  )
+  (RMR:Attdef "TAG"   "Door tag"   "D01" 2.5 (list (* 0.5 w) -12.0) "RMR-NUMBER")
+  (RMR:Attdef "WIDTH" "Leaf width" (itoa (fix w)) 2.5 (list (* 0.5 w) -18.0) "RMR-LABEL")
+  (RMR:EndBlock)
+)
+
+(defun C:RMR-SYMBOLS (/ refresh built spec)
+  (RMR:EnsureReady)
+  (setq refresh (RMR:YesP (RMR:PromptYesNo "Rebuild existing symbol blocks" "No")))
+  (setq built 0)
+  (foreach spec '(("RMR-SYM-DOOR-07"  700.0  nil)
+                  ("RMR-SYM-DOOR-08"  800.0  nil)
+                  ("RMR-SYM-DOOR-09"  900.0  nil)
+                  ("RMR-SYM-DOOR-10" 1000.0  nil)
+                  ("RMR-SYM-DOORD-15" 1500.0 T))
+    (if (RMR:SymBegin (nth 0 spec) refresh)
+      (progn
+        (RMR:BuildDoor (nth 0 spec) (nth 1 spec) (nth 2 spec))
+        (setq built (1+ built))
+      )
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-WINDOW" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-WINDOW")
+      (RMR:SymRect (list 0.0 0.0) 1200.0 200.0)
+      (RMR:SymLine (list 0.0 70.0) (list 1200.0 70.0))
+      (RMR:SymLine (list 0.0 130.0) (list 1200.0 130.0))
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-WC" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-WC")
+      (RMR:SymRect (list 0.0 350.0) 400.0 150.0)
+      (RMR:SymCircle (list 200.0 175.0) 175.0)
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-BASIN" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-BASIN")
+      (RMR:SymRect (list 0.0 0.0) 500.0 400.0)
+      (RMR:SymCircle (list 250.0 200.0) 90.0)
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-SHOWER" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-SHOWER")
+      (RMR:SymRect (list 0.0 0.0) 900.0 900.0)
+      (RMR:SymLine (list 0.0 0.0) (list 900.0 900.0))
+      (RMR:SymLine (list 900.0 0.0) (list 0.0 900.0))
+      (RMR:SymCircle (list 450.0 450.0) 60.0)
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-BED-S" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-BED-S")
+      (RMR:SymRect (list 0.0 0.0) 1000.0 2000.0)
+      (RMR:SymLine (list 0.0 1700.0) (list 1000.0 1700.0))
+      (RMR:SymRect (list 300.0 1750.0) 400.0 200.0)
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-BED-D" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-BED-D")
+      (RMR:SymRect (list 0.0 0.0) 1500.0 2000.0)
+      (RMR:SymLine (list 0.0 1700.0) (list 1500.0 1700.0))
+      (RMR:SymRect (list 200.0 1750.0) 450.0 200.0)
+      (RMR:SymRect (list 850.0 1750.0) 450.0 200.0)
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-DESK" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-DESK")
+      (RMR:SymRect (list 0.0 0.0) 1400.0 700.0)
+      (RMR:SymLine (list 0.0 600.0) (list 1400.0 600.0))
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-CHAIR" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-CHAIR")
+      (RMR:SymRect (list 0.0 0.0) 450.0 450.0)
+      (RMR:SymRect (list 0.0 450.0) 450.0 80.0)
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-SOFA" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-SOFA")
+      (RMR:SymRect (list 0.0 0.0) 1800.0 850.0)
+      (RMR:SymLine (list 0.0 700.0) (list 1800.0 700.0))
+      (RMR:SymLine (list 150.0 0.0) (list 150.0 850.0))
+      (RMR:SymLine (list 1650.0 0.0) (list 1650.0 850.0))
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (if (RMR:SymBegin "RMR-SYM-WASHER" refresh)
+    (progn
+      (RMR:BeginBlock "RMR-SYM-WASHER")
+      (RMR:SymRect (list 0.0 0.0) 600.0 600.0)
+      (RMR:SymCircle (list 300.0 300.0) 200.0)
+      (RMR:EndBlock)
+      (setq built (1+ built))
+    )
+  )
+  (princ (strcat "\nSymbol library: " (itoa built)
+                 " block(s) built or refreshed (RMR-SYM-*)."))
+  (princ "\nPlace them with -INSERT, DesignCenter or the tool palettes.")
+  (princ)
+)
+
+;;; --- door schedule -----------------------------------------------------
+(defun RMR:DrawDoorTable (base rows / s colw rowh width y text i row)
+  (setq s (RMR:Scaled 1.0))
+  (setq text (* 2.5 s))
+  (setq colw (list (* 16.0 s) (* 54.0 s) (* 34.0 s) (* 36.0 s)))
+  (setq width (+ (nth 0 colw) (nth 1 colw) (nth 2 colw) (nth 3 colw)))
+  (setq rowh (* 8.0 s))
+  (setq y (cadr base))
+  (RMR:Text base "DOOR SCHEDULE" (* 4.5 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (RMR:Text (RMR:PT+ base 0.0 (- (* 5.5 s)))
+            (strcat "PROJECT " (RMR:ProjectValue "PROJECT" "") "   |   SCALE "
+                    *RMR-DRAW-SCALE-LABEL*)
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq y (- y (* 13.0 s)))
+  (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+  (RMR:Text (RMR:PT+ (list (car base) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "NO." text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "TAG" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "TYPE" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw) (nth 2 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "WIDTH mm" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+  (setq y (- y rowh))
+  (setq i 0)
+  (foreach row rows
+    (RMR:Rect (list (car base) (- y rowh) 0.0) width rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:Text (RMR:PT+ (list (car base) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (itoa (1+ i)) text "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+    (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (nth 0 row) text "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (nth 2 row) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw) (nth 2 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (nth 1 row) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+    (setq i (1+ i))
+    (setq y (- y rowh))
+  )
+  (princ (strcat "\nDoor schedule: " (itoa (length rows)) " door(s) listed."))
+  T
+)
+
+(defun C:RMR-DOORSCHED (/ ss i ent data name attrs tag width typ rows pt)
+  (RMR:EnsureReady)
+  (setq ss (ssget '((0 . "INSERT") (66 . 1))))
+  (if ss
+    (progn
+      (setq rows nil i 0)
+      (repeat (sslength ss)
+        (setq ent (ssname ss i))
+        (setq data (entget ent))
+        (setq name (cdr (assoc 2 data)))
+        (if (wcmatch (strcase name) "RMR-SYM-DOOR*")
+          (progn
+            (setq attrs (RMR:GetAttributes ent))
+            (setq tag (cdr (assoc "TAG" attrs)))
+            (setq width (cdr (assoc "WIDTH" attrs)))
+            (if (not tag) (setq tag ""))
+            (if (not width) (setq width ""))
+            (if (wcmatch (strcase name) "RMR-SYM-DOORD*")
+              (setq typ "DOUBLE LEAF")
+              (setq typ "SINGLE LEAF")
+            )
+            (setq rows (cons (list tag width typ) rows))
+          )
+        )
+        (setq i (1+ i))
+      )
+      (setq rows
+        (vl-sort rows '(lambda (a b) (< (car a) (car b)))))
+      (if rows
+        (progn
+          (setq pt (getpoint "\nTop-left of door schedule: "))
+          (if pt (RMR:DrawDoorTable pt rows))
+        )
+        (princ "\nNo RMR-SYM-DOOR* blocks with TAG / WIDTH attributes were selected.")
+      )
+    )
+    (princ "\nNo attributed blocks selected - run RMR-SYMBOLS and insert doors first.")
+  )
+  (princ)
+)
+
+;;; --- live fields and project data --------------------------------------
+(defun C:RMR-FIELDS (/ kw pt code)
+  (RMR:EnsureReady)
+  (setq kw (RMR:PromptKeyword
+             "Field to insert"
+             (RMR:KeywordBar "DATE JOBSHEET DRAWING LAYOUT TITLE DWGNO REV AREA BLOCKNAME")
+             "DATE"))
+  (if kw
+    (progn
+      (setq pt (getpoint "\nField insertion point: "))
+      (if pt
+        (progn
+          (setq code
+            (cond
+              ((= kw "DATE")     "\\AcVar Date")
+              ((= kw "JOBSHEET") "\\AcObjProp Object(%<\\_ObjId 0>%).Scale")
+              ((= kw "DRAWING")  "\\AcVar DWGNAME")
+              ((= kw "LAYOUT")   "\\AcVar CTAB")
+              ((= kw "TITLE")    "\\AcVar DWGTITLE")
+              ((= kw "DWGNO")    "\\AcVar DWGPREFIX")
+              ((= kw "AREA")     "\\AcObjProp Object(%<\\_ObjId 0>%).Area")
+              ((= kw "BLOCKNAME") "\\AcObjProp Object(%<\\_ObjId 0>%).Name")
+            )
+          )
+          (if (member kw '("TITLE" "DWGNO" "REV"))
+            (setq code (RMR:ProjectValue kw kw))
+          )
+          (RMR:Text pt code (* 3.0 (RMR:Scaled 1.0)) "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          (if (member kw '("DATE" "JOBSHEET" "DRAWING" "LAYOUT" "AREA" "BLOCKNAME"))
+            (princ "\nField code inserted - regen or UPDATEFIELD refreshes it.")
+            (princ (strcat "\nProject value \"" code "\" inserted as static text."))
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-PROJECT (/ kw value item ss i path)
+  (RMR:EnsureReady)
+  (setq kw (RMR:PromptKeyword
+             "Project data"
+             (RMR:KeywordBar "SHOW SET FILLTITLE SAVE LOAD") "SHOW"))
+  (cond
+    ((= kw "SHOW")
+      (princ "\n-------------------------------------------------")
+      (foreach item (RMR:ProjectPairs)
+        (princ (strcat "\n " (car item) " = " (cdr item)))
+      )
+      (princ "\n-------------------------------------------------")
+    )
+    ((= kw "SET")
+      (foreach item (RMR:ProjectPairs)
+        (setq value (RMR:PromptText (car item) (cdr item)))
+        (RMR:SetProject (car item) value)
+      )
+      (princ "\nProject data stored in *RMR-PROJECT*.")
+    )
+    ((= kw "FILLTITLE")
+      (if (not (tblsearch "BLOCK" "RMR-TITLEBLOCK")) (RMR:BuildTitleBlock))
+      (setq ss (ssget "X" '((0 . "INSERT") (2 . "RMR-TITLEBLOCK"))))
+      (if ss
+        (progn
+          (setq i 0)
+          (repeat (sslength ss)
+            (RMR:FillAttributes (ssname ss i) (RMR:ProjectPairs))
+            (setq i (1+ i))
+          )
+          (princ (strcat "\nFilled " (itoa (sslength ss)) " title block(s)."))
+        )
+        (princ "\nNo RMR-TITLEBLOCK inserted - run RMR-LAYOUTS first.")
+      )
+    )
+    ((= kw "SAVE")
+      (if (RMR:WriteLines (getfiled "Save project data" (strcat (RMR:ProjectValue "JOB" "job") ".rmr") "rmr" 1)
+                          (mapcar '(lambda (x) (strcat (car x) "=" (cdr x)))
+                                  (RMR:ProjectPairs)))
+        (princ "\nProject data written.")
+        (princ "\nProject data not written.")
+      )
+    )
+    ((= kw "LOAD")
+      (setq path (getfiled "Load project data" "" "rmr" 4))
+      (if path
+        (foreach item (RMR:ReadLines path)
+          (if (vl-string-search "=" item)
+            (RMR:SetProject
+              (substr item 1 (vl-string-search "=" item))
+              (substr item (+ 2 (vl-string-search "=" item))))
+          )
+        )
+      )
+      (princ "\nProject data loaded.")
+    )
+  )
+  (princ)
+)
+
+;;; --- timestamped backup -------------------------------------------------
+(defun C:RMR-BACKUP (/ pre src dst stamp cdate)
+  (RMR:EnsureReady)
+  (setq src (getvar "DWGNAME"))
+  (if (or (not src) (= src "") (= src "Drawing1.dwg"))
+    (princ "\nSave the drawing at least once before backing it up.")
+    (progn
+      (setq pre (RMR:PromptText "Backup prefix" "BACKUP_"))
+      (setq cdate (rtos (getvar "CDATE") 2 6))
+      (setq stamp (strcat (substr cdate 1 8) "-" (substr cdate 10 4)))
+      (setq dst (strcat (getvar "DWGPREFIX") pre stamp "_" src))
+      (command "_.saveas" "" dst)
+      (if (findfile dst)
+        (princ (strcat "\nBackup saved to " dst " - returning you to the backup drawing."))
+        (princ "\nBackup not written - check the folder permissions.")
+      )
+    )
+  )
   (princ)
 )
 

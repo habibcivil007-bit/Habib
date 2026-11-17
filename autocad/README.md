@@ -1,13 +1,16 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 3.0 PRO SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 4.0 STUDIO SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
 list of layers: brand colours, lineweight hierarchy, modern font fallback, rich text /
 dimension / multileader styles, annotation symbols, sheet graphics and a full production
 suite (scale, grids, areas, stamps, revisions, notes, hatch library, layer control,
-QA, page setup and publishing).
+QA, page setup and publishing) plus the 4.0 studio suite (layouts with scaled
+viewports, section / elevation / match / break / cloud markers, dimension launcher,
+parametric symbol library, door schedules, text find/replace, live fields, project
+data files and timestamped backups).
 
-Version string inside the LISP: `*RMR-VERSION* = "3.0 PRO SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "4.0 STUDIO SUITE"`.
 
 ## Package contents
 
@@ -18,6 +21,8 @@ Version string inside the LISP: `*RMR-VERSION* = "3.0 PRO SUITE"`.
 | `preview/RooMNRooF_PRO_Standard_Preview.dxf` | A1 preview sheet generated from the shipped palette data (open in AutoCAD or any DXF viewer). |
 | `preview/RooMNRooF_PRO_Standard_Preview.png` | Rendered A1 preview sheet (dark presentation ground). |
 | `preview/RooMNRooF_PRO_Plan_Detail.png` | Zoomed 1:50 sample apartment plan from the same sheet. |
+| `preview/RooMNRooF_PRO_Studio_Suite.dxf` | A1 sheet showing the 4.0 studio suite: layouts, viewports, title block, markers, symbol library and door schedules. |
+| `preview/RooMNRooF_PRO_Studio_Suite.png` | Rendered studio-suite sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 
@@ -36,7 +41,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (31 commands)
+## Command reference (45 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -68,6 +73,25 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-SCALEBAR` | Graphic scale bar for the active drawing scale. |
 | `RMR-KEYPLAN` | Mini key plan box with north arrow and outline. |
 
+### Studio suite (new in 4.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-LAYOUTS` | Creates a new layout: paper size (A0–A4), branded `RMR-TITLEBLOCK` with live attributes, and an optional scaled viewport. |
+| `RMR-VPORT` | Adds a scaled, display-locked viewport to the active layout (falls back to `MVIEW` where ActiveX is unavailable). |
+| `RMR-SECTION` | Section cut line with viewing-direction arrows and numbered sheet bubbles at both ends. |
+| `RMR-ELEVATION` | Elevation marker with direction arrow, number and sheet reference. |
+| `RMR-MATCHLINE` | Phantom match line to the adjoining sheet, with upright labels at both ends. |
+| `RMR-BREAKLINE` | Break / cut line drawn as a bulged polyline. |
+| `RMR-REVCLOUD` | Revision cloud: pick points, or pick two corners for a rectangular cloud. |
+| `RMR-DIM` | Dimension launcher: pick a style (`RMR-DIM-PLAN/DETAIL/LARGE`) then linear, aligned, ordinate, radial, angular or continue. |
+| `RMR-SYMBOLS` | Builds the parametric `RMR-SYM-*` library: doors (700/800/900/1000 single, 1500 double), window, WC, basin, shower, single/double bed, desk, chair, sofa, washer. |
+| `RMR-DOORSCHED` | Door schedule table built from inserted `RMR-SYM-DOOR*` blocks and their `TAG` / `WIDTH` attributes, sorted by tag. |
+| `RMR-FINDTEXT` | Find / replace across `TEXT`, `MTEXT` and `ATTRIB`, with `*` wildcards. |
+| `RMR-FIELDS` | Inserts live fields (date, drawing name, layout, area, block name) or project values as static text. |
+| `RMR-PROJECT` | Show / set / save / load project data (`*RMR-PROJECT*`), and fill every inserted title block from it. |
+| `RMR-BACKUP` | Timestamped backup copy of the drawing into the drawing folder. |
+
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -94,9 +118,14 @@ All visual data lives in plain editable tables near the top of the LISP:
 - `*RMR-BRAND-*` — INK / TERRACOTTA / TEAL / GOLD / SAND / BLUE / SLATE RGB triples
 - `*RMR-HATCH-SPECS*`, `*RMR-STAMP-SPECS*`, `*RMR-NOTES*`, `*RMR-PAPER-SPECS*`,
   `*RMR-SCALE-SPECS*`, `*RMR-GRID-LETTERS*`, plot/publish defaults
+- `*RMR-PROJECT*` — dotted-pair project data (CLIENT, PROJECT, JOB, STAGE, TITLE,
+  DWGNO, REV, DATE, DRAWN, CHECKED, SCALE, SIZE) used by the title block,
+  fields and schedules; save/load it with `RMR-PROJECT`.
+- `*RMR-CLOUD-ARC*` — revision cloud bulge factor (default `0.65`)
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
-Annotation, Presentation**. Add a row (or a whole new group) and every generator,
+Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
+lines, phantom) and `RMR-PRES-VPORT` (viewport frames and labels) to those groups. Add a row (or a whole new group) and every generator,
 legend, layer-group command and the preview tool pick it up automatically. For
 non-LISP workflows use `RMR-EXPORT-PALETTE` / `RMR-IMPORT-PALETTE` (CSV round-trip).
 
@@ -108,23 +137,34 @@ show up in the Layer Properties Manager.
 
 ```text
 RMR-PRO-SETUP        ; once per office / template
-RMR-SHEET  A1        ; frame + title block
+RMR-LAYOUTS  A1      ; layout: paper + title block + scaled viewport
+RMR-SHEET  A1        ; frame + title block (model-space sheet)
 RMR-SCALE  1:50 LAYOUT
 RMR-GRID             ; structural bubbles
 RMR-HATCH            ; materials
 RMR-ROOMTAG          ; room tags with areas
 RMR-AREA             ; area schedule
+RMR-SECTION RMR-ELEVATION RMR-MATCHLINE RMR-BREAKLINE RMR-REVCLOUD
+RMR-DIM                ; dimensions on the right style and layer
+RMR-SYMBOLS RMR-DOORSCHED
 RMR-KEYNOTE RMR-LEVEL RMR-DETAIL RMR-NORTH
 RMR-NOTES  RMR-REVTABLE  RMR-STAMP
+RMR-FINDTEXT         ; global wording fixes
+RMR-PROJECT FILLTITLE ; push project data into every title block
 RMR-CHECK            ; QA before issue
 RMR-PAGESETUP  RMR-PUBLISH
+RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ```
 
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds the A1 preview sheet: sample 1:50 apartment plan with walls,
+values) and rebuilds two A1 sheets: the standard sheet (below) and
+`RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
+viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
+cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
+panel. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -138,7 +178,8 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings.
+variables). Current state: **PASS**, 0 findings (154,848 bytes / 3,990 lines, 158 defuns,
+45 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -146,6 +187,10 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 
 ## Notes and limitations
 
+- `RMR-LAYOUTS` / `RMR-VPORT` create viewports through ActiveX and fall back to the
+  `MVIEW` command where `vla-addpviewport` is unavailable (some 64-bit builds).
+- `RMR-BACKUP` leaves you in the newly saved backup drawing, matching AutoCAD's
+  `SAVEAS` behaviour.
 - Requires full AutoCAD 2018+ (ActiveX paths degrade gracefully on AutoCAD LT /
   restricted environments; hatch, COM styling and plotting are wrapped in
   `vl-catch-all-apply` and report failures instead of crashing).

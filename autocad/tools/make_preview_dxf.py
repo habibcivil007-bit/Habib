@@ -150,6 +150,10 @@ def load_lisp_data():
         "version": _extract_form(src, "*RMR-VERSION*"),
         "brand": {name: _extract_form(src, "*RMR-BRAND-%s*" % name)
                   for name in ("INK", "TERRA", "TEAL", "GOLD", "SAND", "BLUE", "SLATE")},
+        # dotted pairs arrive as [tag, ".", value]
+        "project": [(item[0], item[2]) if len(item) > 2 else (item[0], "")
+                    for item in _extract_form(src, "*RMR-PROJECT*")],
+        "cloud_arc": _extract_form(src, "*RMR-CLOUD-ARC*"),
     }
 
 
@@ -312,6 +316,13 @@ class Sheet(object):
         e.set_location(p)
         return self._color(e, layer, rgb)
 
+    def poly(self, pts, bulges, closed, layer, rgb=None):
+        """LWPolyline with per-vertex bulges (break lines and revision clouds)."""
+        data = [(float(x), float(y), float(b)) for (x, y), b in zip(pts, bulges)]
+        e = self.msp.add_lwpolyline(data, format="xyb", close=bool(closed),
+                                    dxfattribs={"layer": layer})
+        return self._color(e, layer, rgb)
+
     def hatch_solid(self, pts, layer, rgb):
         h = self.msp.add_hatch(dxfattribs={"layer": layer})
         h.set_solid_fill(rgb=tuple(int(v) for v in rgb))
@@ -354,6 +365,11 @@ def draw_frame(sh):
         sh.solid((cx + 1.5, cy + 1.5), 3.5, 3.5, "RMR-PRES-KEY", GOLD)
 
 
+SHEET_TITLE = "PRO SUITE PREVIEW SHEET"
+SHEET_SUBTITLE = "LAYER PALETTE, TEXT STYLES, MATERIALS, ANNOTATION AND PRODUCTION TOOLS"
+SHEET_NOTE = "Sample apartment plan drawn at 1:50 to demonstrate the RooMNRooF standard."
+
+
 def draw_header(sh):
     y0 = SHEET_H - MARGIN - 38.0
     sh.solid((MARGIN, y0), 46.0, 38.0, "RMR-PRES-TITLE", TERRA)
@@ -364,10 +380,10 @@ def draw_header(sh):
     sh.text((MARGIN + 4, y0 + 3.5), "ROOF THE ROOM", 1.8, "RMR-MARK", "RMR-PRES-TITLE", SAND)
 
     x = MARGIN + 54
-    sh.text((x, y0 + 24), "PRO SUITE PREVIEW SHEET", 8.0, "RMR-TITLE", "RMR-PRES-TITLE", TERRA)
-    sh.text((x, y0 + 15), "LAYER PALETTE, TEXT STYLES, MATERIALS, ANNOTATION AND PRODUCTION TOOLS",
+    sh.text((x, y0 + 24), SHEET_TITLE, 8.0, "RMR-TITLE", "RMR-PRES-TITLE", TERRA)
+    sh.text((x, y0 + 15), SHEET_SUBTITLE,
             3.0, "RMR-HEAD", "RMR-A-TEXT", INK)
-    sh.text((x, y0 + 9), "Sample apartment plan drawn at 1:50 to demonstrate the RooMNRooF standard.",
+    sh.text((x, y0 + 9), SHEET_NOTE,
             2.4, "RMR-NOTE", "RMR-A-TEXT", SLATE)
     sh.text((x, y0 + 4), "Standard %s | metric | true-colour layers | generated from RooMNRooF_Master.lsp"
             % VERSION, 2.2, "RMR-MARK", "RMR-A-TEXT", SLATE)
@@ -396,15 +412,16 @@ def draw_title_block(sh):
         sh.text((cp[0] + 2, cp[1] + 2.2), value, size, style, "RMR-A-TEXT", rgb if rgb else INK)
 
     x, y, colw = p[0] + 42.0, p[1], 74.0
+    third = colw / 3.0
     cell((x, y + 35), colw, 15, "PROJECT", "RooMNRooF RESIDENCE")
     cell((x, y + 20), colw, 15, "DRAWING TITLE", "PRO STANDARD PREVIEW PLAN")
-    cell((x, y), 37.0, 20, "DRAWN BY", "RMR")
-    cell((x + 37.0, y), 37.0, 20, "CHECKED BY", "RMR")
-    cell((x + 74.0, y), 37.0, 20, "DATE", "2026-09-30")
+    cell((x, y), third, 20, "DRAWN BY", "RMR")
+    cell((x + third, y), third, 20, "CHECKED BY", "RMR")
+    cell((x + 2 * third, y), third, 20, "DATE", "2026-09-30")
     x2 = x + colw
-    cell((x2, y + 35), 37.0, 15, "DRAWING NO.", "A-000", "RMR-NUMBER", TERRA, 3.4)
-    cell((x2, y + 20), 37.0, 15, "SCALE", "1:50", "RMR-NUMBER", None, 3.0)
-    cell((x2, y), 37.0, 20, "REVISION", "01", "RMR-NUMBER", None, 3.4)
+    cell((x2, y + 35), colw, 15, "DRAWING NO.", "A-000", "RMR-NUMBER", TERRA, 3.4)
+    cell((x2, y + 20), colw, 15, "SCALE", "1:50", "RMR-NUMBER", None, 3.0)
+    cell((x2, y), colw, 20, "REVISION", "01", "RMR-NUMBER", None, 3.4)
     sh.solid((p[0] + 182, p[1] + 44), 4.0, 4.0, "RMR-PRES-NORTH", TEAL)
     sh.solid((p[0] + 182, p[1] + 38), 4.0, 4.0, "RMR-PRES-KEY", GOLD)
 
@@ -951,8 +968,10 @@ def draw_revision_table(sh):
 
 def draw_command_panel(sh):
     x, y = 480.0, 92.0
-    sh.text((x, y), "PRODUCTION SUITE COMMANDS", 3.0, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((x, y), "PRODUCTION + STUDIO SUITE COMMANDS", 3.0, "RMR-HEAD", "RMR-A-TEXT", TERRA)
     sh.line((x, y - 3.0), (635.0, y - 3.0), "RMR-A-TEXT", GOLD)
+    sh.text((x, y - 7.0), "31 shown of 45 - type RMR-PALETTE for the full guide", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
     commands = [
         ("RMR-SCALE", "scale + annotation size"),
         ("RMR-GRID", "labelled structural grid"),
@@ -960,22 +979,467 @@ def draw_command_panel(sh):
         ("RMR-HATCH", "material hatch library"),
         ("RMR-STAMP", "issue / status stamp"),
         ("RMR-NOTES", "numbered general notes"),
-        ("RMR-REVTABLE", "revision history"),
-        ("RMR-SCALEBAR", "graphic scale bar"),
-        ("RMR-KEYPLAN", "key plan box"),
-        ("RMR-LAYGROUP", "freeze / lock a group"),
+        ("RMR-REVTABLE", "revision history table"),
         ("RMR-CHECK", "standard compliance audit"),
         ("RMR-COUNT", "block takeoff + CSV"),
-        ("RMR-EXPORT-PALETTE", "palette to CSV"),
-        ("RMR-IMPORT-PALETTE", "palette from CSV"),
-        ("RMR-PAGESETUP", "layout PDF page setup"),
-        ("RMR-PUBLISH", "DSD publish list"),
+        ("RMR-LAYOUTS", "layout + title block + viewport"),
+        ("RMR-VPORT", "scaled locked viewport"),
+        ("RMR-SECTION", "cut line, arrows, bubbles"),
+        ("RMR-ELEVATION", "elevation direction marker"),
+        ("RMR-MATCHLINE", "phantom sheet match line"),
+        ("RMR-BREAKLINE", "bulged break / cut line"),
+        ("RMR-REVCLOUD", "rectangular or picked cloud"),
+        ("RMR-SYMBOLS", "RMR-SYM-* block library"),
+        ("RMR-DOORSCHED", "door schedule from blocks"),
+        ("RMR-FINDTEXT", "find / replace text"),
+        ("RMR-PROJECT", "project data show / set / save"),
     ]
-    y -= 8.0
+    cy = y - 11.0
     for name, desc in commands:
-        sh.text((x, y), name, 2.1, "RMR-MARK", "RMR-A-TEXT", TEAL)
-        sh.text((x + 44.0, y), desc, 2.0, "RMR-NOTE", "RMR-A-TEXT", INK)
-        y -= 4.4
+        sh.text((x, cy), name, 2.1, "RMR-MARK", "RMR-A-TEXT", TEAL)
+        sh.text((x + 44.0, cy), desc, 2.0, "RMR-NOTE", "RMR-A-TEXT", INK)
+        cy -= 3.4
+    sh.text((x, cy - 0.8), "RMR-BACKUP           timestamped drawing backup", 2.0,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+# --------------------------------------------------------------------------- #
+# 8. studio suite sheet (4.0): layouts, title block, markers, symbols,
+#    door schedule, project data and the new command set.
+# --------------------------------------------------------------------------- #
+
+def _panel(sh, x, y, w, h, title):
+    sh.rect((x, y), w, h, "RMR-A-FRAME", SLATE)
+    sh.solid((x, y + h - 7.0), w, 7.0, "RMR-PRES-TITLE", TERRA)
+    sh.text((x + 3.0, y + h - 5.0), title, 2.6, "RMR-HEAD", "RMR-PRES-TITLE", SAND)
+    return y + h - 12.0
+
+
+def draw_studio_layouts(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 148.0
+    ty = _panel(sh, x, y, w, h, "LAYOUTS AND SCALED VIEWPORTS  |  RMR-LAYOUTS / RMR-VPORT")
+
+    # an A3 sheet drawn at 0.30 inside the panel to show the layout recipe
+    k = 0.30
+    sheet_w, sheet_h = 420.0 * k, 297.0 * k      # 126.0 x 89.1
+    sx, sy = x + 12.0, y + 34.0
+    sh.rect((sx, sy), sheet_w, sheet_h, "RMR-PRES-VPORT", BLUE)
+    sh.rect((sx + 6, sy + 6), sheet_w - 12, sheet_h - 12, "RMR-A-FRAME", INK)
+
+    # viewport (locked) with a 1:50 label
+    vpx, vpy = sx + 12.0, sy + 26.0
+    vpw, vph = sheet_w - 24.0, sheet_h - 62.0
+    sh.rect((vpx, vpy), vpw, vph, "RMR-PRES-VPORT", BLUE)
+    sh.text((vpx + 4, vpy + vph - 8), "MODEL VIEW AT 1:50", 2.6, "RMR-LABEL",
+            "RMR-A-TEXT", SLATE)
+    sh.line((vpx + 4, vpy + vph - 12), (vpx + vpw - 4, vpy + vph - 12),
+            "RMR-A-DIMS", TEAL)
+    sh.text((vpx + 2, vpy - 4.0), "VIEWPORT 1:50 - LOCKED", 2.0, "RMR-LABEL",
+            "RMR-A-TEXT", TEAL)
+
+    # the branded title block strip along the bottom of the layout
+    tb_w, tb_h = 99.0, 33.0
+    tb_x, tb_y = sx + (sheet_w - tb_w) / 2.0, sy + 3.0
+    sh.rect((tb_x, tb_y), tb_w, tb_h, "RMR-A-FRAME", INK)
+    sh.line((tb_x + 22.0, tb_y), (tb_x + 22.0, tb_y + tb_h), "RMR-A-FRAME", INK)
+    sh.line((tb_x + 77.0, tb_y), (tb_x + 77.0, tb_y + tb_h), "RMR-A-FRAME", INK)
+    sh.line((tb_x, tb_y + tb_h - 9.0), (tb_x + 77.0, tb_y + tb_h - 9.0),
+            "RMR-A-FRAME", INK)
+    sh.line((tb_x, tb_y + 6.6), (tb_x + 77.0, tb_y + 6.6), "RMR-A-FRAME", INK)
+    sh.text((tb_x + 2.0, tb_y + tb_h - 6.5), "RooMNRooF", 3.4, "RMR-TITLE",
+            "RMR-A-TEXT", TERRA)
+    sh.text((tb_x + 24.0, tb_y + tb_h - 5.0), "CLIENT", 1.4, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((tb_x + 24.0, tb_y + tb_h - 8.0), project("CLIENT"), 2.0, "RMR-BODY",
+            "RMR-A-TEXT", INK)
+    sh.text((tb_x + 24.0, tb_y + 8.6), "DRAWING TITLE", 1.4, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((tb_x + 24.0, tb_y + 2.0), project("TITLE"), 2.4, "RMR-SUBHEAD",
+            "RMR-A-TEXT", INK)
+    sh.text((tb_x + 79.0, tb_y + tb_h - 5.0), "DWG NO.", 1.4, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((tb_x + 79.0, tb_y + tb_h - 8.6), project("DWGNO"), 3.0, "RMR-NUMBER",
+            "RMR-A-TEXT", TERRA)
+
+    notes = [
+        "RMR-LAYOUTS  creates the layout, sets the paper size,",
+        "inserts RMR-TITLEBLOCK with live attributes and places",
+        "a viewport at a chosen scale, then locks its display.",
+        "RMR-VPORT     adds further scaled, locked viewports.",
+    ]
+    ny = sy + sheet_h - 6.0
+    for i, line in enumerate(notes):
+        sh.text((sx, ny - i * 4.4), line, 2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_studio_titleblock(sh):
+    x, y, w, h = 20.0, 232.0, 286.0, 156.0
+    ty = _panel(sh, x, y, w, h, "BRANDED TITLE BLOCK  |  RMR-TITLEBLOCK + RMR-PROJECT")
+
+    k = 1.45                      # block is 180 x 60 mm
+    bw, bh = 180.0 * k, 60.0 * k  # 261 x 87
+    bx, by = x + 12.0, y + 8.0
+
+    sh.rect((bx, by), bw, bh, "RMR-A-FRAME", INK)
+    # the same division lines the AutoLISP block builds
+    for fx in (40.0, 140.0):
+        sh.line((bx + fx * k, by), (bx + fx * k, by + bh), "RMR-A-FRAME", INK)
+    for fy in (44.0, 34.0, 12.0):
+        sh.line((bx + 40.0 * k, by + fy * k), (bx + 140.0 * k, by + fy * k),
+                "RMR-A-FRAME", INK)
+    sh.line((bx + 70.0 * k, by), (bx + 70.0 * k, by + 12.0 * k), "RMR-A-FRAME", INK)
+    sh.line((bx + 100.0 * k, by), (bx + 100.0 * k, by + 12.0 * k), "RMR-A-FRAME", INK)
+    sh.line((bx + 140.0 * k, by + 44.0 * k), (bx + bw, by + 44.0 * k), "RMR-A-FRAME", INK)
+    sh.line((bx + 160.0 * k, by + 44.0 * k), (bx + 160.0 * k, by + bh), "RMR-A-FRAME", INK)
+    sh.line((bx + 140.0 * k, by + 16.0 * k), (bx + bw, by + 16.0 * k), "RMR-A-FRAME", INK)
+    sh.line((bx + 6.0 * k, by + 40.0 * k), (bx + 34.0 * k, by + 40.0 * k),
+            "RMR-A-FRAME", INK)
+
+    sh.text((bx + 6.0 * k, by + 28.0 * k), "RooMNRooF", 6.0 * k, "RMR-TITLE",
+            "RMR-A-TEXT", TERRA)
+    sh.text((bx + 6.0 * k, by + 20.0 * k), "CONSULTANT", 2.4 * k, "RMR-LABEL",
+            "RMR-A-TEXT", SLATE)
+    sh.text((bx + 6.0 * k, by + 8.0 * k), "ROOF THE ROOM", 2.4 * k, "RMR-LABEL",
+            "RMR-A-TEXT", SLATE)
+
+    def lbl(px, py, text, size=2.0, style="RMR-LABEL", rgb=None):
+        sh.text((bx + px * k, by + py * k), text, size * k, style, "RMR-A-TEXT",
+                rgb if rgb else SLATE)
+
+    def val(px, py, text, size=3.2, style="RMR-BODY", rgb=None):
+        sh.text((bx + px * k, by + py * k), text, size * k, style, "RMR-A-TEXT",
+                rgb if rgb else INK)
+
+    lbl(42.0, 54.0, "CLIENT")
+    val(42.0, 47.0, project("CLIENT"))
+    lbl(42.0, 40.0, "PROJECT")
+    val(42.0, 35.5, project("PROJECT"), 3.0)
+    lbl(42.0, 28.0, "DRAWING TITLE")
+    val(42.0, 18.0, project("TITLE"), 5.0, "RMR-SUBHEAD")
+    lbl(42.0, 8.0, "DRAWN", 1.8)
+    val(42.0, 3.0, project("DRAWN"), 2.5, "RMR-LABEL")
+    lbl(72.0, 8.0, "CHECKED", 1.8)
+    val(72.0, 3.0, project("CHECKED"), 2.5, "RMR-LABEL")
+    lbl(102.0, 8.0, "DATE", 1.8)
+    val(102.0, 3.0, project("DATE"), 2.5, "RMR-LABEL")
+    lbl(142.0, 54.0, "SIZE", 1.8)
+    val(142.0, 47.0, project("SIZE"), 3.5, "RMR-NUMBER")
+    lbl(162.0, 54.0, "SCALE", 1.8)
+    val(162.0, 47.0, project("SCALE"), 3.0, "RMR-LABEL")
+    lbl(142.0, 38.0, "DRAWING NO.")
+    val(142.0, 22.0, project("DWGNO"), 7.0, "RMR-HEAD", TERRA)
+    lbl(142.0, 12.0, "REV", 1.8)
+    val(142.0, 4.0, project("REV"), 4.0, "RMR-NUMBER", TERRA)
+
+    sh.text((x + 3.0, y + 4.0),
+            "Attributes are filled from *RMR-PROJECT* by RMR-PROJECT / FILLTITLE.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_studio_project(sh):
+    x, y, w, h = 20.0, 74.0, 286.0, 150.0
+    ty = _panel(sh, x, y, w, h, "PROJECT DATA  |  *RMR-PROJECT*  |  RMR-PROJECT")
+
+    pairs = DATA["project"]
+    half = (len(pairs) + 1) // 2
+    columns = (pairs[:half], pairs[half:])
+    for col, items in enumerate(columns):
+        cx = x + 6.0 + col * 142.0
+        cy = ty
+        for tag, value in items:
+            sh.text((cx, cy), tag, 2.1, "RMR-MARK", "RMR-A-TEXT", TEAL)
+            text = value if value else "(blank - set by RMR-PROJECT)"
+            sh.text((cx + 26.0, cy), text, 2.1, "RMR-BODY", "RMR-A-TEXT",
+                    INK if value else SLATE)
+            cy -= 5.0
+
+    cy -= 4.0
+    sh.text((x + 6.0, cy), "RMR-PROJECT SHOW / SET / FILLTITLE / SAVE / LOAD", 2.2,
+            "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    cy -= 5.0
+    sh.text((x + 6.0, cy), "RMR-FIELDS inserts live fields (date, drawing, layout,",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    cy -= 4.0
+    sh.text((x + 6.0, cy), "area, block name) or project values as static text.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    cy -= 4.0
+    sh.text((x + 6.0, cy), "RMR-BACKUP writes BACKUP_YYYYMMDD-HHMM_<drawing>.dwg",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    cy -= 4.0
+    sh.text((x + 6.0, cy), "Cloud bulge factor *RMR-CLOUD-ARC* = %.2f" % DATA["cloud_arc"],
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_studio_markers(sh):
+    x, y, w, h = 316.0, 74.0, 250.0, 470.0
+    ty = _panel(sh, x, y, w, h, "MARKERS  |  SECTION, ELEVATION, MATCH, BREAK, CLOUD")
+
+    s = 1.0
+    # --- section -----------------------------------------------------------
+    sy = ty - 6.0
+    sh.text((x + 6.0, sy), "RMR-SECTION", 2.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((x + 66.0, sy), "cut line, arrows, numbered sheet bubbles", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    p1 = (x + 20.0, sy - 34.0)
+    p2 = (x + 130.0, sy - 34.0)
+    sh.line(p1, p2, "RMR-A-DETAIL", TERRA)
+    for end in (p1, p2):
+        sh.line(end, (end[0], end[1] + 12.0), "RMR-A-DETAIL", TERRA)
+        sh.tri((end[0] - 3.0, end[1] + 12.0), 6.0, "RMR-A-DETAIL", TERRA)
+    for cx, num in ((p1[0] - 18.0, "1"), (p2[0] + 18.0, "1")):
+        c = (cx, sy - 34.0)
+        r = 7.0
+        sh.circle(c, r, "RMR-A-DETAIL", TERRA)
+        sh.line((c[0] - r, c[1]), (c[0] + r, c[1]), "RMR-A-DETAIL", TERRA)
+        sh.text((c[0], c[1] + 2.4), num, 4.4, "RMR-NUMBER", "RMR-A-DETAIL", INK,
+                align="middle")
+        sh.text((c[0], c[1] - 4.4), project("DWGNO"), 3.0, "RMR-LABEL",
+                "RMR-A-DETAIL", INK, align="middle")
+    sh.text((x + 6.0, sy - 52.0), "Viewing side is picked, so the arrows always point",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 6.0, sy - 55.4), "away from the cut towards the drawn elevation.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # --- elevation ---------------------------------------------------------
+    ey = sy - 66.0
+    sh.text((x + 6.0, ey), "RMR-ELEVATION", 2.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((x + 66.0, ey), "direction angle, number, sheet reference", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    c = (x + 26.0, ey - 26.0)
+    r = 7.0
+    sh.circle(c, r, "RMR-A-DETAIL", TEAL)
+    sh.line((c[0] - r, c[1]), (c[0] + r, c[1]), "RMR-A-DETAIL", TEAL)
+    sh.text((c[0], c[1] + 2.4), "E1", 4.4, "RMR-NUMBER", "RMR-A-DETAIL", INK,
+            align="middle")
+    sh.text((c[0], c[1] - 4.6), project("DWGNO"), 3.0, "RMR-LABEL", "RMR-A-DETAIL",
+            INK, align="middle")
+    tip_x = c[0] + r + 10.0
+    sh.line((c[0] + r, c[1]), (tip_x, c[1]), "RMR-A-DETAIL", TEAL)
+    sh.tri((tip_x - 6.0, c[1] - 3.0), 6.0, "RMR-A-DETAIL", TEAL)
+    sh.text((x + 60.0, ey - 26.0), "Number above the bar, sheet below, arrow along the",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 60.0, ey - 29.4), "viewing direction you type in degrees.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # --- match line --------------------------------------------------------
+    my = ey - 46.0
+    sh.text((x + 6.0, my), "RMR-MATCHLINE", 2.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((x + 66.0, my), "phantom line, upright labels both ends", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    m1 = (x + 16.0, my - 22.0)
+    m2 = (x + 150.0, my - 22.0)
+    sh.line(m1, m2, "RMR-A-MATCH", SLATE)
+    sh.text((m1[0], m1[1] + 3.0), "MATCH LINE - SEE A-102", 2.2, "RMR-LABEL",
+            "RMR-A-MATCH", SLATE)
+    sh.text((m2[0], m2[1] + 3.0), "MATCH LINE - SEE A-102", 2.2, "RMR-LABEL",
+            "RMR-A-MATCH", SLATE)
+    sh.text((x + 16.0, my - 34.0), "Text is flipped through 180 degrees in the 90..270",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 16.0, my - 37.4), "range so every label stays readable.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # --- break line --------------------------------------------------------
+    by = my - 50.0
+    sh.text((x + 6.0, by), "RMR-BREAKLINE", 2.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((x + 66.0, by), "bulged polyline on RMR-A-MATCH", 1.9, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    b1 = (x + 16.0, by - 20.0)
+    b2 = (x + 150.0, by - 20.0)
+    span = b2[0] - b1[0]
+    pts = [b1,
+           (b1[0] + span * 0.40, b1[1]),
+           (b1[0] + span * 0.50, b1[1]),
+           (b1[0] + span * 0.60, b1[1]),
+           b2]
+    sh.poly(pts, [0.0, 0.9, -0.9, 0.0, 0.0], False, "RMR-A-MATCH", SLATE)
+
+    # --- revision cloud ----------------------------------------------------
+    cy = by - 44.0
+    sh.text((x + 6.0, cy), "RMR-REVCLOUD", 2.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((x + 66.0, cy), "two corners build a rectangular cloud", 1.9, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    ca = (x + 16.0, cy - 74.0)
+    cb = (x + 150.0, cy - 14.0)
+    step = 16.0
+    cloud = [(round(v, 4), round(w, 4)) for v, w in _rect_samples(ca, cb, step)]
+    sh.poly(cloud, [DATA["cloud_arc"]] * len(cloud), True, "RMR-A-REVISION", TERRA)
+    sh.text((ca[0] + 6.0, ca[1] + 4.0), "REV 01 ISSUED FOR REVIEW", 2.2, "RMR-NOTE",
+            "RMR-A-REVISION", TERRA)
+
+    # --- dimension launcher ------------------------------------------------
+    dy = cy - 86.0
+    sh.text((x + 6.0, dy), "RMR-DIM", 2.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((x + 66.0, dy), "style + linear / aligned / radial / angular", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 6.0, dy - 6.0),
+            "Puts the chosen RMR-DIM-* style current on RMR-A-DIMS, then starts",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 6.0, dy - 9.4),
+            "the AutoCAD dimension command you pick from the list.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 6.0, dy - 16.0), "RMR-FINDTEXT  find / replace TEXT, MTEXT, ATTRIB",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 6.0, dy - 19.4), "RMR-SYMBOLS   rebuild the RMR-SYM-* library",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def _rect_samples(a, b, step):
+    """Same sampling the LISP RMR:RectSamples uses for rectangular clouds."""
+    import math
+    edges = ((a, (b[0], a[1])), ((b[0], a[1]), b), (b, (a[0], b[1])),
+             ((a[0], b[1]), a))
+    pts = []
+    for p, q in edges:
+        length = math.dist(p, q)
+        n = max(2, int(length / step))
+        d = length / float(n)
+        ang = math.atan2(q[1] - p[1], q[0] - p[0])
+        for i in range(n):
+            pts.append((p[0] + math.cos(ang) * d * i, p[1] + math.sin(ang) * d * i))
+    return pts
+
+
+def project(tag):
+    for key, value in DATA["project"]:
+        if key == tag:
+            return value if value else tag
+    return tag
+
+
+def _sym(sh, name, ox, oy, cell):
+    """Draw one RMR-SYM-* block scaled to fit the cell (mm in, sheet mm out)."""
+    import math
+    rects, lines, arcs, circles = SYMBOLS[name]
+    xs = [v for item in rects for v in (item[0], item[0] + item[2])]
+    xs += [v for item in lines for v in (item[0], item[2])]
+    xs += [c[0] - c[2] for c in circles] + [c[0] + c[2] for c in circles]
+    ys = [v for item in rects for v in (item[1], item[1] + item[3])]
+    ys += [v for item in lines for v in (item[1], item[3])]
+    ys += [c[1] - c[2] for c in circles] + [c[1] + c[2] for c in circles]
+    xs += [a[0] + a[2] for a in arcs] + [a[0] - a[2] for a in arcs]
+    ys += [a[1] + a[2] for a in arcs] + [a[1] - a[2] for a in arcs]
+    span = max(max(xs) - min(xs), max(ys) - min(ys), 1.0)
+    k = (cell - 10.0) / span
+    kx = ox - min(xs) * k
+    ky = oy - min(ys) * k
+
+    def tp(p):
+        return (kx + p[0] * k, ky + p[1] * k)
+
+    for rx, ry, rw, rh in rects:
+        sh.rect(tp((rx, ry)), rw * k, rh * k, "RMR-F-FURNITURE", TEAL)
+    for x1, y1, x2, y2 in lines:
+        sh.line(tp((x1, y1)), tp((x2, y2)), "RMR-F-FURNITURE", TEAL)
+    for cx, cy, r, a1, a2 in arcs:
+        # angles are stored in degrees, ezdxf wants radians
+        sh.arc(tp((cx, cy)), r * k, math.radians(a1), math.radians(a2),
+               "RMR-F-FURNITURE", TEAL)
+    for cx, cy, r in circles:
+        sh.circle(tp((cx, cy)), r * k, "RMR-F-FURNITURE", TEAL)
+
+
+SYMBOLS = {
+    # name: (rects, lines, arcs(cx,cy,r,a1,a2 deg), circles(cx,cy,r)) - mm
+    "DOOR-07":  ([], [(0, 0, 0, 700)], [(0, 0, 700, 0, 90)], []),
+    "DOOR-08":  ([], [(0, 0, 0, 800)], [(0, 0, 800, 0, 90)], []),
+    "DOOR-09":  ([], [(0, 0, 0, 900)], [(0, 0, 900, 0, 90)], []),
+    "DOORD-15": ([], [(0, 0, 0, 750), (1500, 0, 1500, 750)],
+                [(0, 0, 750, 0, 90), (1500, 0, 750, 90, 180)], []),
+    "WINDOW":   ([(0, 0, 1200, 200)], [(0, 70, 1200, 70), (0, 130, 1200, 130)], [], []),
+    "WC":       ([(0, 350, 400, 150)], [], [], [(200, 175, 175)]),
+    "BASIN":    ([(0, 0, 500, 400)], [], [], [(250, 200, 90)]),
+    "SHOWER":   ([(0, 0, 900, 900)], [(0, 0, 900, 900), (900, 0, 0, 900)],
+                [], [(450, 450, 60)]),
+    "BED-S":    ([(0, 0, 1000, 2000), (300, 1750, 400, 200)],
+                [(0, 1700, 1000, 1700)], [], []),
+    "BED-D":    ([(0, 0, 1500, 2000), (200, 1750, 450, 200), (850, 1750, 450, 200)],
+                [(0, 1700, 1500, 1700)], [], []),
+    "DESK":     ([(0, 0, 1400, 700)], [(0, 600, 1400, 600)], [], []),
+    "CHAIR":    ([(0, 0, 450, 450), (0, 450, 450, 80)], [], [], []),
+    "SOFA":     ([(0, 0, 1800, 850)], [(0, 700, 1800, 700), (150, 0, 150, 850),
+                                      (1650, 0, 1650, 850)], [], []),
+    "WASHER":   ([(0, 0, 600, 600)], [], [], [(300, 300, 200)]),
+}
+
+
+def draw_studio_symbols(sh):
+    x, y, w, h = 576.0, 300.0, 250.0, 244.0
+    ty = _panel(sh, x, y, w, h, "PARAMETRIC SYMBOL LIBRARY  |  RMR-SYMBOLS")
+
+    order = ["DOOR-07", "DOOR-08", "DOOR-09", "DOORD-15", "WINDOW", "WC", "BASIN",
+             "SHOWER", "BED-S", "BED-D", "DESK", "CHAIR", "SOFA", "WASHER"]
+    cols, cell = 5, 46.0
+    gy = ty - 4.0
+    for i, name in enumerate(order):
+        col, row = i % cols, i // cols
+        cx = x + 4.0 + col * 49.0
+        cy = gy - row * 58.0 - 46.0
+        sh.rect((cx, cy), 45.0, 45.0, "RMR-00-REF", SLATE)
+        _sym(sh, name, cx + 3.0, cy + 3.0, 42.0)
+        sh.text((cx + 22.5, cy - 4.0), "RMR-SYM-%s" % name, 1.7, "RMR-MARK",
+                "RMR-A-TEXT", INK, align="center")
+    sh.text((x + 4.0, y + 4.0),
+            "Doors carry TAG and WIDTH attributes for RMR-DOORSCHED.", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+DOOR_ROWS = [("D01", "900", "SINGLE LEAF"), ("D02", "800", "SINGLE LEAF"),
+         ("D03", "700", "SINGLE LEAF"), ("D04", "900", "SINGLE LEAF"),
+         ("D05", "1500", "DOUBLE LEAF"), ("D06", "800", "SINGLE LEAF")]
+
+
+def draw_studio_doors(sh):
+    x, y, w, h = 576.0, 74.0, 250.0, 216.0
+    ty = _panel(sh, x, y, w, h, "DOOR SCHEDULE  |  RMR-DOORSCHED")
+
+    colw = [22.0, 46.0, 96.0, 66.0]
+    width = sum(colw)
+    rowh = 8.0
+    header = ["NO.", "TAG", "TYPE", "WIDTH mm"]
+    top = ty - 6.0
+    sh.solid((x + 4.0, top - rowh), width, rowh, "RMR-PRES-TITLE", SAND)
+    cx = x + 4.0
+    for i, label in enumerate(header):
+        sh.text((cx + 2.0, top - rowh + 2.2), label, 2.4, "RMR-HEAD", "RMR-A-TEXT",
+                INK)
+        if i < len(colw) - 1:
+            cx += colw[i]
+            sh.line((cx, top - rowh), (cx, top), "RMR-A-FRAME", INK)
+    cy = top - rowh
+    for i, (tag, wid, typ) in enumerate(DOOR_ROWS):
+        sh.rect((x + 4.0, cy - rowh), width, rowh, "RMR-A-FRAME", SLATE)
+        cx = x + 4.0
+        values = [str(i + 1), tag, typ, wid]
+        for j in range(len(colw) - 1):
+            cx += colw[j]
+            sh.line((cx, cy - rowh), (cx, cy), "RMR-A-FRAME", SLATE)
+        sh.text((x + 6.0, cy - rowh + 2.2), values[0], 2.3, "RMR-NUMBER",
+                "RMR-A-TEXT", TERRA)
+        sh.text((x + 4.0 + colw[0] + 2.0, cy - rowh + 2.2), values[1], 2.3,
+                "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((x + 4.0 + colw[0] + colw[1] + 2.0, cy - rowh + 2.2), values[2],
+                2.3, "RMR-BODY", "RMR-A-TEXT", INK)
+        sh.text((x + 4.0 + colw[0] + colw[1] + colw[2] + 2.0, cy - rowh + 2.2),
+                values[3], 2.3, "RMR-BODY", "RMR-A-TEXT", SLATE)
+        cy -= rowh
+    sh.text((x + 4.0, y + 4.0),
+            "Sorted by tag from the TAG / WIDTH attributes of inserted blocks.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def build_studio():
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_studio_layouts(sh)
+    draw_studio_titleblock(sh)
+    draw_studio_project(sh)
+    draw_studio_markers(sh)
+    draw_studio_symbols(sh)
+    draw_studio_doors(sh)
+    draw_title_block(sh)
+    return doc
 
 
 # --------------------------------------------------------------------------- #
@@ -1056,9 +1520,20 @@ def main():
                                    figsize=(330 / 25.4, 380 / 25.4)))
     except Exception as exc:
         print("PNG render skipped:", exc)
+    std = build_studio()
+    std_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Studio_Suite.dxf")
+    std.saveas(std_path)
+    print("DXF  :", std_path, os.path.getsize(std_path), "bytes")
+    try:
+        print("PNG  :", render_png(std, os.path.join(OUT_DIR, "RooMNRooF_PRO_Studio_Suite.png"),
+                                   dpi=150))
+    except Exception as exc:
+        print("Studio PNG render skipped:", exc)
     print("layers: %d | styles: %d | dimstyles: %d | materials: %d | notes: %d | version: %s"
           % (len(DATA["layers"]), len(DATA["styles"]), len(DATA["dimstyles"]),
              len(DATA["hatches"]), len(DATA["notes"]), VERSION))
+    print("project tags: %d | symbols: %d | doors: %d | cloud arc: %s"
+          % (len(DATA["project"]), len(SYMBOLS), len(DOOR_ROWS), DATA["cloud_arc"]))
     return 0
 
 

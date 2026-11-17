@@ -27,3 +27,4 @@ yalc.lock
 # RooMNRooF CAD tooling
 .venv-rmr/
 autocad/preview/*.dxf
+__pycache__/

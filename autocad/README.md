@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 7.0 COORDINATION SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 8.0 DOCUMENTATION SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -18,9 +18,14 @@ and a stray-layer audit) plus the 7.0 coordination suite (bounding-box clash
 checks between layer groups, parametric gable / hip / shed roof plans, balustrades
 with spaced posts, a glazing schedule counted from the symbol library, zone plans
 hatched by area band, block swap, tag renumbering, text-to-baseline alignment, a
-full object information report and true-north orientation).
+full object information report and true-north orientation) plus the 8.0
+documentation suite (a specification clause library and index, an abbreviations
+legend, a data-driven revision history, a pre-issue checklist, a room data
+schedule built from picked boundaries, a folder document list, a sheet index, a
+project cover sheet and one command that lays out a complete documentation
+sheet).
 
-Version string inside the LISP: `*RMR-VERSION* = "7.0 COORDINATION SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "8.0 DOCUMENTATION SUITE"`.
 
 ## Package contents
 
@@ -39,6 +44,8 @@ Version string inside the LISP: `*RMR-VERSION* = "7.0 COORDINATION SUITE"`.
 | `preview/RooMNRooF_PRO_Site_Services_Suite.png` | Rendered site and services sheet. |
 | `preview/RooMNRooF_PRO_Coordination_Suite.dxf` | A1 sheet showing the 7.0 coordination suite: clash check, roof plans, balustrade and glazing schedule, zone plan with the band legend, the swap / renumber / align fixes and the object information report. |
 | `preview/RooMNRooF_PRO_Coordination_Suite.png` | Rendered coordination sheet. |
+| `preview/RooMNRooF_PRO_Documentation_Suite.dxf` | A1 sheet showing the 8.0 documentation suite: a specification clause note, the clause index grouped by trade, the abbreviations legend, the revision history with the current revision marked, the room data schedule, the sheet index grid, the pre-issue checklist, a cover-sheet thumbnail and the command list. |
+| `preview/RooMNRooF_PRO_Documentation_Suite.png` | Rendered documentation sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 | `tools/check_preview_sheets.py` | Layout audit for the generated sheets: text outside the frame and copy that would overprint other copy. |
@@ -58,7 +65,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (77 commands)
+## Command reference (87 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -156,6 +163,21 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-ORIENT` | Rotates every object in model space about a picked base point by a prompted angle so drawing north matches true north; answer `No` to only read the current angle. |
 
 
+### Documentation suite (new in 8.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-SPECNOTE` | Places one clause from `*RMR-SPEC-CLAUSES*` as a note: a filled tab with the clause code, the work-section title, a trade line and the clause text wrapped to the width you pick. |
+| `RMR-SPECINDEX` | Draws the whole clause index grouped by trade, with a terra band for every trade heading and one row per clause. |
+| `RMR-ABBREV` | Two-column abbreviations legend from `*RMR-ABBREV-SPECS*`, so a long list takes half the sheet height. |
+| `RMR-REVLIB` | Revision history table from `*RMR-REVISIONS*` (revision, date, description, by). The revision that matches `*RMR-PROJECT*` is highlighted, so the table and the title block can never drift apart. |
+| `RMR-CHECKLIST` | Prints the pre-issue checklist from `*RMR-CHECKLIST-SPECS*` to the command line and can draw it grouped, with an empty tick box beside every item. |
+| `RMR-ROOMSCHED` | Builds a room data schedule interactively: select each closed boundary, name the room, and it records the area in m² plus the floor, wall and ceiling finish pulled from `*RMR-FINISH-SPECS*` when the room name matches. Rows are numbered and totalled in m² and sq ft. |
+| `RMR-DOCLIST` | Lists every DWG and PDF next to the current drawing with its size in KB, draws it as a table and optionally writes a CSV document list. |
+| `RMR-SHEETINDEX` | Cover-sheet style sheet index grid from `*RMR-SHEET-LIST*` with the number, title, scale, revision and status in each cell; the current sheet number is highlighted. |
+| `RMR-COVER` | Complete project cover sheet (A0-A4): frame, brand strip, project and client identity, job / stage / date, the drawing set listing and the title block. |
+| `RMR-DOCSHEET` | Lays out a whole A1 documentation sheet in one command: frame, banner, specification index, abbreviations, revision history, checklist and title block. |
+
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -195,6 +217,11 @@ All visual data lives in plain editable tables near the top of the LISP:
 - `*RMR-SUN-CITIES*` — reference latitudes for `RMR-SUNPATH`: `(City Latitude)`
 - `*RMR-ZONE-BANDS*` — zone bands for `RMR-ZONE`: `(Label MaxArea_m2 (R G B) Pattern)`,
   a teal ramp `UNDER 5 → 5 TO 15 → 15 TO 30 → 30 TO 60 → OVER 60` m², all `ANSI31`
+- `*RMR-SPEC-CLAUSES*` — specification clauses: `(Code Trade WorkSection ClauseText)`,
+  12 clauses across 6 trades
+- `*RMR-ABBREV-SPECS*` — abbreviation legend: `(Abbreviation Meaning)`
+- `*RMR-REVISIONS*` — revision log: `(Revision Date Description By)`
+- `*RMR-CHECKLIST-SPECS*` — pre-issue checklist: `(Group Item)`
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -241,6 +268,11 @@ RMR-ROOF  RMR-RAIL                 ; roof plan and balustrade
 RMR-WINDOWSCHED                    ; glazing quantities
 RMR-BLKSWAP  RMR-RENUMBER  RMR-TEXTALIGN
 RMR-INFO  RMR-ORIENT               ; interrogate and orientate
+RMR-SPECNOTE  RMR-SPECINDEX         ; specification clauses
+RMR-ABBREV  RMR-REVLIB              ; legend and revision history
+RMR-ROOMSCHED  RMR-DOCLIST          ; room data and folder contents
+RMR-SHEETINDEX  RMR-COVER           ; index and cover sheet
+RMR-CHECKLIST  RMR-DOCSHEET         ; check, then lay out the doc sheet
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -249,7 +281,7 @@ RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds five A1 sheets: the standard sheet (below) and
+values) and rebuilds six A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
@@ -264,8 +296,12 @@ and a report excerpt, and `RooMNRooF_PRO_Coordination_Suite.dxf`, which previews
 7.0 coordination suite: a clash check on two overlapping service runs, hip and gable
 roof plans with the ridge lengths, a balustrade with spaced posts and the glazing
 schedule, the zone plan with its band legend, the block swap / renumber / text-align
-fixes and the object information report with the true-north rotation. The standard
-sheet contains: sample 1:50 apartment plan with walls,
+fixes and the object information report with the true-north rotation, and
+`RooMNRooF_PRO_Documentation_Suite.dxf`, which previews the 8.0 documentation
+suite: a specification clause note, the clause index grouped by trade, the
+abbreviations legend, the revision history with the current revision marked, the
+room data schedule, the sheet index grid, the pre-issue checklist and a cover-sheet
+thumbnail. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -279,13 +315,14 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 
 `tools/check_preview_sheets.py` reads the generated DXFs back and reports copy that
 runs outside the sheet frame and text boxes that would print on top of each other.
-Current state across the five sheets: **0 problems** (1,179 text entities checked).
+Current state across the six sheets: **0 problems** (1,470 text entities and 2,683
+geometry entities checked).
 
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (255,703 bytes / 6,382 lines, 211 defuns,
-77 commands).
+variables). Current state: **PASS**, 0 findings (288,874 bytes / 7,130 lines, 226 defuns,
+87 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -293,6 +330,17 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 
 ## Notes and limitations
 
+- `RMR-ROOMSCHED` reads the area of whatever object you pick, so any closed
+  polyline, circle or hatch works; objects with no `Area` property are skipped
+  and the finish columns fall back to `-` when the room name is not in
+  `*RMR-FINISH-SPECS*`.
+- `RMR-DOCLIST` uses `vl-directory-files` on `DWGPREFIX`, so it lists the folder
+  of the saved drawing, not the folder you last browsed to.
+- `RMR-COVER` and `RMR-DOCSHEET` draw at paper size in model space (the same
+  convention as `RMR-SHEET`), so their text is sized by the sheet scale factor
+  rather than the annotation scale. Give them a scale of `1.0` for a true A1.
+- `RMR-SPECINDEX` groups *contiguous* trades only: sort `*RMR-SPEC-CLAUSES*` by
+  trade if you reorder it, or the same trade will head two bands.
 - `RMR-CLASH` compares bounding boxes, not solids: two objects whose boxes overlap
   but whose geometry does not will still be listed. Treat the output as a review
   list to walk through, not as a clash engine result.

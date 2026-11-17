@@ -26,6 +26,11 @@
 ;;;   layer groups, parametric roofs and balustrades, glazing and zone schedules,
 ;;;   block swapping, tag renumbering, text alignment, entity information and
 ;;;   true-north orientation.
+;;;   Version 8.0 adds the documentation suite: a specification clause library
+;;;   and index, an abbreviations legend, a data-driven revision history, a
+;;;   pre-issue checklist, a room data schedule built from picked boundaries,
+;;;   a folder document list, a sheet index, a project cover sheet and one
+;;;   command that lays out a complete documentation sheet.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -116,6 +121,18 @@
 ;;;   RMR-TEXTALIGN   Align selected text onto a picked baseline
 ;;;   RMR-INFO        Full information report for one object
 ;;;   RMR-ORIENT      Rotate the model to true north
+;;;
+;;; Documentation suite commands
+;;;   RMR-SPECNOTE    Place one specification clause as a titled note
+;;;   RMR-SPECINDEX   Specification index grouped by trade
+;;;   RMR-ABBREV      Abbreviations legend in two columns
+;;;   RMR-REVLIB      Revision history from *RMR-REVISIONS*
+;;;   RMR-CHECKLIST   Pre-issue checklist with tick boxes
+;;;   RMR-ROOMSCHED   Room data schedule from picked boundaries
+;;;   RMR-DOCLIST     Document list for the drawing folder (with CSV)
+;;;   RMR-SHEETINDEX  Sheet index grid with the current sheet marked
+;;;   RMR-COVER       Project cover sheet with the drawing set listing
+;;;   RMR-DOCSHEET    Complete documentation sheet in one command
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
@@ -264,7 +281,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "7.0 COORDINATION SUITE")
+(setq *RMR-VERSION* "8.0 DOCUMENTATION SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1484,6 +1501,9 @@
   (princ "\nData:   RMR-LEVELSCHED, RMR-KEYLIB, RMR-REPORT, RMR-STRAY")
   (princ "\nCoordinate: RMR-CLASH, RMR-ROOF, RMR-RAIL, RMR-WINDOWSCHED, RMR-ZONE")
   (princ "\nFix:    RMR-BLKSWAP, RMR-RENUMBER, RMR-TEXTALIGN, RMR-INFO, RMR-ORIENT")
+  (princ "\nSpec:   RMR-SPECNOTE, RMR-SPECINDEX, RMR-ABBREV, RMR-REVLIB")
+  (princ "\nDocs:   RMR-ROOMSCHED, RMR-DOCLIST, RMR-SHEETINDEX, RMR-COVER")
+  (princ "\nSet:    RMR-CHECKLIST, RMR-DOCSHEET")
   (princ)
 )
 
@@ -2974,6 +2994,18 @@
   (princ "\n  RMR-INFO           Full report for one object")
   (princ "\n  RMR-ORIENT         Rotate the model to true north")
   (princ "\n")
+  (princ "\n Documentation suite")
+  (princ "\n  RMR-SPECNOTE       Place one specification clause as a note")
+  (princ "\n  RMR-SPECINDEX      Specification index grouped by trade")
+  (princ "\n  RMR-ABBREV         Abbreviations legend (*RMR-ABBREV-SPECS*)")
+  (princ "\n  RMR-REVLIB         Revision history (*RMR-REVISIONS*)")
+  (princ "\n  RMR-CHECKLIST      Pre-issue checklist (*RMR-CHECKLIST-SPECS*)")
+  (princ "\n  RMR-ROOMSCHED      Room data schedule from picked boundaries")
+  (princ "\n  RMR-DOCLIST        Document list for the folder, with CSV")
+  (princ "\n  RMR-SHEETINDEX     Sheet index grid, current sheet marked")
+  (princ "\n  RMR-COVER          Project cover sheet with the drawing set")
+  (princ "\n  RMR-DOCSHEET       Complete documentation sheet in one go")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -2993,6 +3025,10 @@
   (princ "\n  *RMR-KEYNOTES*       keynote library entries")
   (princ "\n  *RMR-SUN-CITIES*     reference latitudes for RMR-SUNPATH")
   (princ "\n  *RMR-ZONE-BANDS*     zone bands: label, max m2, colour, pattern")
+  (princ "\n  *RMR-SPEC-CLAUSES*   specification clauses: code, trade, title, text")
+  (princ "\n  *RMR-ABBREV-SPECS*   abbreviation legend entries")
+  (princ "\n  *RMR-REVISIONS*      revision log: revision, date, description, by")
+  (princ "\n  *RMR-CHECKLIST-SPECS* pre-issue checklist groups and items")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -6371,6 +6407,718 @@
       )
     )
     (princ "\nAngle is zero - nothing to do.")
+  )
+  (princ)
+)
+
+;;; =====================================================================
+;;; PRO 8.0 DOCUMENTATION SUITE
+;;; Specification clauses and index, abbreviations legend, revision log,
+;;; pre-issue checklist, room data schedule, document list, sheet index,
+;;; cover sheet and the complete documentation sheet.
+;;; =====================================================================
+
+;;; --- specification clause library -----------------------------------------
+;;; (Code Trade WorkSection Clause)
+(setq *RMR-SPEC-CLAUSES*
+ '(
+    ("M10" "MASONRY"     "BLOCKWORK WALLS"      "Blockwork laid in stretcher bond with 10mm joints, built to the setting out grid and tied to the frame at every course.") 
+    ("M20" "MASONRY"     "PLASTER AND SCREED"   "Cement sand render to internal faces, two coats, steel trowelled to a smooth finish ready for decoration.")
+    ("F10" "FINISHES"    "FLOOR FINISHES"       "Floor finishes laid to falls where shown, with movement joints at door thresholds and at 6m centres.")
+    ("F20" "FINISHES"    "WALL FINISHES"        "Internal walls prepared, mist coated and finished with two coats of matte emulsion to the approved colour.")
+    ("F30" "FINISHES"    "CEILING FINISHES"     "Gypsum board ceilings on a suspended grid, taped, jointed and decorated to match the wall finish.")
+    ("J10" "WATERPROOF"  "TANKING TO WET AREAS" "Waterproof tanking to wet areas, turned up 150mm above finished floor level and dressed into the floor waste.")
+    ("K10" "JOINERY"     "INTERNAL DOORSETS"    "Internal doorsets supplied with frames, architraves, ironmongery and acoustic seals, hung to open as shown.")
+    ("K20" "JOINERY"     "BUILT-IN FITMENTS"    "Built-in joinery manufactured to the room data, with adjustable shelving and soft-close fittings throughout.")
+    ("L10" "SERVICES"    "PLUMBING AND DRAINAGE" "Soil and waste pipework in uPVC, falls at 1:80 minimum, with access points at every change of direction.")
+    ("L20" "SERVICES"    "ELECTRICAL"           "Electrical installation to the current wiring regulations, with circuits, accessories and fittings as scheduled.")
+    ("P10" "EXTERNAL"    "ROOF COVERINGS"       "Roof finish laid to the falls shown, with eaves, verges and abutments dressed to shed water clear of the walls.")
+    ("P20" "EXTERNAL"    "RAINWATER GOODS"      "Gutters and downpipes sized for the roof area, discharged to the drainage system through a trapped gully.")
+  )
+)
+
+;;; Abbreviation legend: (Abbreviation Meaning)
+(setq *RMR-ABBREV-SPECS*
+ '(
+    ("AFFL"  "ABOVE FINISHED FLOOR LEVEL")
+    ("BWK"   "BLOCKWORK")
+    ("CL"    "CENTRE LINE")
+    ("CLG"   "CEILING")
+    ("DPC"   "DAMP PROOF COURSE")
+    ("DWG"   "DRAWING")
+    ("EXT"   "EXTERNAL")
+    ("FFL"   "FINISHED FLOOR LEVEL")
+    ("FW"    "FLOOR WASTE")
+    ("INT"   "INTERNAL")
+    ("MH"    "MANHOLE")
+    ("NTS"   "NOT TO SCALE")
+    ("RC"    "REINFORCED CONCRETE")
+    ("SSL"   "STRUCTURAL SLAB LEVEL")
+    ("T/O"   "TOP OF")
+    ("TC"    "TILE CREASE")
+    ("U/S"   "UNDERSIDE")
+    ("WC"    "WATER CLOSET")
+  )
+)
+
+;;; Revision log: (Revision Date Description By)
+(setq *RMR-REVISIONS*
+ '(
+    ("00" "2026-01-12" "FIRST ISSUE FOR COORDINATION" "RMR")
+    ("01" "2026-02-03" "LAYOUT REVISED TO CLIENT COMMENTS" "RMR")
+    ("02" "2026-02-24" "DOOR AND WINDOW SCHEDULES UPDATED" "KH")
+    ("03" "2026-03-10" "WET AREAS RE-DETAILED AFTER SITE SURVEY" "RMR")
+    ("04" "2026-03-31" "FINISHES AND SPECIFICATION ADDED" "KH")
+  )
+)
+
+;;; Pre-issue checklist: (Group Item)
+(setq *RMR-CHECKLIST-SPECS*
+ '(
+    ("DRAWING"    "All layers set to ByLayer colour, linetype and lineweight")
+    ("DRAWING"    "Drawing purged and audited with no errors")
+    ("DRAWING"    "External references bound or paths resolved")
+    ("LAYERS"     "No objects left on layer 0 or Defpoints")
+    ("LAYERS"     "No stray layers outside *RMR-LAYER-SPECS*")
+    ("ANNOTATION" "Text, dimension and leader styles are RooMNRooF styles")
+    ("ANNOTATION" "Room numbers, areas and tags all present and legible")
+    ("ANNOTATION" "Keynotes, levels and north arrow shown on every plan")
+    ("SHEETS"     "Title block filled with the current project data")
+    ("SHEETS"     "Revision letter matches the revision history table")
+    ("SHEETS"     "Scale bar and drawing scale agree")
+    ("ISSUE"      "Specification clauses referenced on the drawings")
+    ("ISSUE"      "Abbreviations legend included in the set")
+    ("ISSUE"      "Drawing register matches the sheets issued")
+  )
+)
+
+;;; --- documentation helpers -------------------------------------------------
+(defun RMR:Shorten (text limit / out)
+  ;; Cuts a long string to limit characters and marks the cut with a full stop.
+  ;; The parameter is called limit so it cannot shadow the builtin max.
+  (if (<= (strlen text) limit)
+    text
+    (strcat (substr text 1 (max 1 (- limit 1))) ".")
+  )
+)
+
+(defun RMR:DocTable (base title subtitle headers colw rows highlight scale / s text
+                     rowh width y label cx i row band value)
+  ;; Generic documentation table. scale is 1.0 for a paper-size sheet and
+  ;; (RMR:Scaled 1.0) for model-space annotation. Returns the bottom y.
+  (setq s (if (and scale (> scale 0.0)) scale (RMR:Scaled 1.0)))
+  (setq text (* 2.3 s))
+  (setq rowh (* 7.6 s))
+  (setq width (apply '+ colw))
+  (setq y (cadr base))
+  (if (and title (/= title ""))
+    (progn
+      (RMR:Text base title (* 4.2 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 5.0 s)))
+    )
+  )
+  (if (and subtitle (/= subtitle ""))
+    (progn
+      (RMR:Text (list (car base) y 0.0) subtitle (* 2.2 s) "RMR-NOTE"
+                "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (setq y (- y (* 6.0 s)))
+    )
+  )
+  (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE"
+             *RMR-BRAND-SAND*)
+  (setq cx (car base))
+  (setq i 0)
+  (foreach label headers
+    (RMR:Text (list (+ cx (* 1.6 s)) (+ (- y rowh) (* 2.2 s)) 0.0) label
+              text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (setq cx (+ cx (nth i colw)))
+    (setq i (1+ i))
+  )
+  (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+  (setq y (- y rowh))
+  (foreach row rows
+    (setq band (and highlight (= (strcase (nth 0 row)) (strcase highlight))))
+    (if band
+      (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-KEY"
+                 *RMR-BRAND-SAND*)
+    )
+    (RMR:Rect (list (car base) (- y rowh) 0.0) width rowh "RMR-A-FRAME"
+              *RMR-BRAND-SLATE*)
+    (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME"
+                       *RMR-BRAND-SLATE*)
+    (setq cx (car base))
+    (setq i 0)
+    (foreach value row
+      (RMR:Text (list (+ cx (* 1.6 s)) (+ (- y rowh) (* 2.2 s)) 0.0) value
+                text (if (= i 0) "RMR-LABEL" "RMR-BODY") "RMR-A-TEXT"
+                (if (= i 0) *RMR-BRAND-TERRA* *RMR-BRAND-INK*))
+      (setq cx (+ cx (nth i colw)))
+      (setq i (1+ i))
+    )
+    (setq y (- y rowh))
+  )
+  y
+)
+
+(defun RMR:DrawSpecIndex (base scale / s text rowh width colw y spec trade last-trade)
+  ;; Specification index grouped by trade. Returns the y of the bottom.
+  (setq s (if (and scale (> scale 0.0)) scale (RMR:Scaled 1.0)))
+  (setq text (* 2.3 s))
+  (setq rowh (* 7.2 s))
+  (setq colw (list (* 24.0 s) (* 116.0 s)))
+  (setq width (apply '+ colw))
+  (setq y (cadr base))
+  (RMR:Text base "SPECIFICATION INDEX  |  RMR-SPECINDEX" (* 4.2 s) "RMR-HEAD"
+            "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (setq y (- y (* 5.0 s)))
+  (RMR:Text (list (car base) y 0.0)
+            (strcat "JOB " (RMR:ProjectValue "JOB" "") "   |   "
+                    (RMR:ProjectValue "PROJECT" ""))
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq y (- y (* 6.0 s)))
+  (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE"
+             *RMR-BRAND-SAND*)
+  (RMR:Text (list (+ (car base) (* 1.6 s)) (+ (- y rowh) (* 2.2 s)) 0.0)
+            "CLAUSE" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:Text (list (+ (car base) (nth 0 colw) (* 1.6 s)) (+ (- y rowh) (* 2.2 s)) 0.0)
+            "WORK SECTION" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+  (setq y (- y rowh))
+  (setq last-trade "")
+  (foreach spec *RMR-SPEC-CLAUSES*
+    (setq trade (nth 1 spec))
+    (if (/= (strcase trade) (strcase last-trade))
+      (progn
+        (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE"
+                   *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ (car base) (* 1.6 s)) (+ (- y rowh) (* 2.2 s)) 0.0)
+                  trade text "RMR-HEAD" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+        (setq y (- y rowh))
+        (setq last-trade trade)
+      )
+    )
+    (RMR:Rect (list (car base) (- y rowh) 0.0) width rowh "RMR-A-FRAME"
+              *RMR-BRAND-SLATE*)
+    (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME"
+                       *RMR-BRAND-SLATE*)
+    (RMR:Text (list (+ (car base) (* 1.6 s)) (+ (- y rowh) (* 2.2 s)) 0.0)
+              (nth 0 spec) text "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+    (RMR:Text (list (+ (car base) (nth 0 colw) (* 1.6 s)) (+ (- y rowh) (* 2.2 s)) 0.0)
+              (nth 2 spec) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (setq y (- y rowh))
+  )
+  y
+)
+
+(defun RMR:DrawAbbrev (base scale / s text count half index row y1 y2)
+  ;; Two-column abbreviation legend. Returns the lower of the two column ends.
+  (setq s (if (and scale (> scale 0.0)) scale (RMR:Scaled 1.0)))
+  (setq text (* 2.2 s))
+  (setq count (length *RMR-ABBREV-SPECS*))
+  (setq half (+ (fix (/ count 2.0)) (if (= (rem count 2) 0) 0 1)))
+  (RMR:Text base "ABBREVIATIONS  |  RMR-ABBREV" (* 4.2 s) "RMR-HEAD"
+            "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (setq y1 (- (cadr base) (* 5.0 s)))
+  (RMR:Text (list (car base) y1 0.0)
+            (strcat (itoa count) " standard abbreviations")
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq y1 (- y1 (* 6.0 s)))
+  (RMR:Line (list (car base) y1 0.0)
+            (list (+ (car base) (* 230.0 s)) y1 0.0) "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+  (setq y1 (- y1 (* 5.0 s)))
+  (setq y2 y1)
+  (setq index 0)
+  (foreach row *RMR-ABBREV-SPECS*
+    (if (< index half)
+      (progn
+        (RMR:Text (list (car base) y1 0.0) (nth 0 row) text "RMR-LABEL"
+                  "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ (car base) (* 22.0 s)) y1 0.0) (nth 1 row) text
+                  "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (setq y1 (- y1 (* 5.0 s)))
+      )
+      (progn
+        (RMR:Text (list (+ (car base) (* 118.0 s)) y2 0.0) (nth 0 row) text
+                  "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ (car base) (* 140.0 s)) y2 0.0) (nth 1 row) text
+                  "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (setq y2 (- y2 (* 5.0 s)))
+      )
+    )
+    (setq index (1+ index))
+  )
+  (min y1 y2)
+)
+
+(defun RMR:DrawChecklist (base scale / s text rowh width y row group last-group box)
+  ;; Pre-issue checklist with empty tick boxes. Returns the y of the bottom.
+  (setq s (if (and scale (> scale 0.0)) scale (RMR:Scaled 1.0)))
+  (setq text (* 2.2 s))
+  (setq rowh (* 5.4 s))
+  (setq width (* 150.0 s))
+  (setq y (cadr base))
+  (RMR:Text base "PRE-ISSUE CHECKLIST  |  RMR-CHECKLIST" (* 4.2 s) "RMR-HEAD"
+            "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (setq y (- y (* 5.0 s)))
+  (RMR:Text (list (car base) y 0.0)
+            (strcat (itoa (length *RMR-CHECKLIST-SPECS*)) " items  |  tick by hand or with a revision cloud")
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq y (- y (* 6.0 s)))
+  (setq last-group "")
+  (foreach row *RMR-CHECKLIST-SPECS*
+    (setq group (nth 0 row))
+    (if (/= (strcase group) (strcase last-group))
+      (progn
+        (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-KEY"
+                   *RMR-BRAND-SAND*)
+        (RMR:Text (list (+ (car base) (* 1.6 s)) (+ (- y rowh) (* 1.6 s)) 0.0)
+                  group (* 2.1 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (setq y (- y rowh))
+        (setq last-group group)
+      )
+    )
+    (setq box (* 3.0 s))
+    (RMR:Rect (list (+ (car base) (* 1.6 s)) (+ (- y rowh) (* 1.2 s)) 0.0)
+              box box "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:Text (list (+ (car base) (* 7.0 s)) (+ (- y rowh) (* 1.6 s)) 0.0)
+              (nth 1 row) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (setq y (- y rowh))
+  )
+  y
+)
+
+;;; --- specification notes ---------------------------------------------------
+(defun C:RMR-SPECNOTE (/ keys code spec point width s trade title clause y)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-SPEC-CLAUSES*))
+  (setq code (RMR:PromptKeyword "Specification clause" keys
+                                (nth 0 (nth 0 *RMR-SPEC-CLAUSES*))))
+  (if code
+    (progn
+      (setq spec (RMR:TableSpec code *RMR-SPEC-CLAUSES*))
+      (if spec
+        (progn
+          (setq point (getpoint "\nTop-left of the specification note: "))
+          (if point
+            (progn
+              (setq s (RMR:Scaled 1.0))
+              (setq width (RMR:PromptReal "Note width" (* 130.0 s)))
+              (setq trade (nth 1 spec))
+              (setq title (nth 2 spec))
+              (setq clause (nth 3 spec))
+              (RMR:Solid point (* 30.0 s) (* 7.0 s) "RMR-PRES-TITLE"
+                         *RMR-BRAND-TERRA*)
+              (RMR:Text (RMR:PT+ point (* 2.0 s) (* 2.2 s)) code (* 3.2 s)
+                        "RMR-HEAD" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+              (RMR:Text (RMR:PT+ point (* 34.0 s) (* 2.2 s)) title (* 3.4 s)
+                        "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+              (setq y (- (cadr point) (* 8.0 s)))
+              (RMR:Text (list (car point) y 0.0)
+                        (strcat "TRADE " trade "   |   CLAUSE " code)
+                        (* 2.0 s) "RMR-MARK" "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+              (setq y (- y (* 5.0 s)))
+              (RMR:MText (list (car point) y 0.0) clause width (* 2.4 s)
+                         "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK* 1)
+              (princ (strcat "\nSpecification clause " code " (" title ") placed."))
+            )
+          )
+        )
+        (princ "\nClause not found in *RMR-SPEC-CLAUSES*.")
+      )
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-SPECINDEX (/ point s)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the specification index: "))
+  (if point
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (RMR:DrawSpecIndex point s)
+      (princ (strcat "\nSpecification index placed with "
+                     (itoa (length *RMR-SPEC-CLAUSES*))
+                     " clauses from *RMR-SPEC-CLAUSES*."))
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-ABBREV (/ point s)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the abbreviations legend: "))
+  (if point
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (RMR:DrawAbbrev point s)
+      (princ (strcat "\nAbbreviations placed: "
+                     (itoa (length *RMR-ABBREV-SPECS*))
+                     " entries from *RMR-ABBREV-SPECS*."))
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-REVLIB (/ point s rows row)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the revision history: "))
+  (if point
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq rows '())
+      (foreach row *RMR-REVISIONS*
+        (setq rows (append rows (list (list (nth 0 row) (nth 1 row)
+                                            (nth 2 row) (nth 3 row)))))
+      )
+      (RMR:DocTable point "REVISION HISTORY  |  RMR-REVLIB"
+                    (strcat "Current revision " (RMR:ProjectValue "REV" "")
+                            " is highlighted")
+                    '("REV" "DATE" "DESCRIPTION" "BY")
+                    (list (* 16.0 s) (* 30.0 s) (* 92.0 s) (* 24.0 s))
+                    rows (RMR:ProjectValue "REV" "") s)
+      (princ (strcat "\nRevision history placed with "
+                     (itoa (length *RMR-REVISIONS*))
+                     " revisions from *RMR-REVISIONS*."))
+    )
+  )
+  (princ)
+)
+
+(defun C:RMR-CHECKLIST (/ row answer point s)
+  (RMR:EnsureReady)
+  (princ "\nRooMNRooF pre-issue checklist")
+  (foreach row *RMR-CHECKLIST-SPECS*
+    (princ (strcat "\n  [ ]  " (nth 0 row) "  -  " (nth 1 row)))
+  )
+  (princ "\n")
+  (setq answer (RMR:PromptYesNo "Draw the checklist on the drawing" "No"))
+  (if (RMR:YesP answer)
+    (progn
+      (setq point (getpoint "\nTop-left of the checklist: "))
+      (if point
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (RMR:DrawChecklist point s)
+          (princ (strcat "\nChecklist drawn with "
+                         (itoa (length *RMR-CHECKLIST-SPECS*)) " items."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- room data schedule ----------------------------------------------------
+(defun C:RMR-ROOMSCHED (/ point s rows pick ename area sqm name finish floor
+                         wall ceiling number total)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq s (RMR:Scaled 1.0))
+  (setq rows '())
+  (setq number 1)
+  (setq total 0.0)
+  (princ "\nSelect the closed boundary of each room. Press Enter when finished.")
+  (setq pick (entsel "\nSelect room boundary <finish>: "))
+  (while pick
+    (setq ename (car pick))
+    (setq area (RMR:EntityArea ename))
+    (if (and area (> area 0.0))
+      (progn
+        (setq sqm (RMR:AreaToSqm area))
+        (setq name (RMR:PromptText (strcat "Room " (itoa number) " name")
+                                   (strcat "ROOM " (RMR:NumPad2 number))))
+        (setq finish (RMR:TableSpec name *RMR-FINISH-SPECS*))
+        (setq floor (if finish (nth 1 finish) "-"))
+        (setq wall (if finish (nth 3 finish) "-"))
+        (setq ceiling (if finish (nth 4 finish) "-"))
+        (setq rows (append rows
+                     (list (list (RMR:NumPad2 number) name (RMR:Num sqm 2)
+                                 floor wall ceiling))))
+        (setq total (+ total sqm))
+        (setq number (1+ number))
+        (princ (strcat "\n  " name "  " (RMR:Num sqm 2) " m2"))
+      )
+      (princ "\nThat object has no measurable area - skipped.")
+    )
+    (setq pick (entsel "\nSelect next room boundary <finish>: "))
+  )
+  (if rows
+    (progn
+      (setq point (getpoint "\nTop-left of the room schedule: "))
+      (if point
+        (RMR:DocTable point "ROOM SCHEDULE  |  RMR-ROOMSCHED"
+                      (strcat (itoa (length rows)) " rooms  |  total "
+                              (RMR:Num total 2) " m2  |  "
+                              (RMR:Num (* total 10.7639) 1) " sq ft")
+                      '("NO." "ROOM" "AREA M2" "FLOOR" "WALL" "CEILING")
+                      (list (* 14.0 s) (* 40.0 s) (* 22.0 s) (* 50.0 s)
+                            (* 46.0 s) (* 30.0 s))
+                      rows nil s)
+      )
+      (princ (strcat "\nRoom schedule: " (itoa (length rows)) " rooms, "
+                     (RMR:Num total 2) " m2 total."))
+      (princ "\nFinishes come from *RMR-FINISH-SPECS* when the room name matches.")
+    )
+    (princ "\nNo rooms selected - nothing drawn.")
+  )
+  (princ)
+)
+
+;;; --- document list ---------------------------------------------------------
+(defun C:RMR-DOCLIST (/ folder names name rows size point s answer path lines row)
+  (RMR:EnsureReady)
+  (setq folder (getvar "DWGPREFIX"))
+  (setq s (RMR:Scaled 1.0))
+  (setq rows '())
+  (setq names (vl-directory-files folder "*.dwg" 1))
+  (if names
+    (foreach name names
+      (setq size (vl-file-size (strcat folder name)))
+      (setq rows (append rows
+                   (list (list (strcase (RMR:StripExtension name)) "DWG"
+                               (RMR:Num (/ (float (if size size 0)) 1024.0) 0)))))
+    )
+  )
+  (setq names (vl-directory-files folder "*.pdf" 1))
+  (if names
+    (foreach name names
+      (setq size (vl-file-size (strcat folder name)))
+      (setq rows (append rows
+                   (list (list (strcase (RMR:StripExtension name)) "PDF"
+                               (RMR:Num (/ (float (if size size 0)) 1024.0) 0)))))
+    )
+  )
+  (princ (strcat "\nDocuments in " folder))
+  (foreach row rows
+    (princ (strcat "\n  " (nth 0 row) "  " (nth 1 row) "  " (nth 2 row) " KB"))
+  )
+  (if rows
+    (progn
+      (setq answer (RMR:PromptYesNo "Write a CSV document list" "Yes"))
+      (if (RMR:YesP answer)
+        (progn
+          (setq path (strcat folder "RMR-Document-List.csv"))
+          (setq lines (list "FILE,TYPE,SIZE KB"))
+          (foreach row rows
+            (setq lines (append lines
+                          (list (strcat (nth 0 row) "," (nth 1 row) ","
+                                        (nth 2 row)))))
+          )
+          (if (RMR:WriteLines path lines)
+            (princ (strcat "\nWritten: " path))
+            (princ "\nCould not write the CSV file.")
+          )
+        )
+      )
+      (setq point (getpoint "\nTop-left of the document list <skip>: "))
+      (if point
+        (RMR:DocTable point "DOCUMENT LIST  |  RMR-DOCLIST"
+                      folder
+                      '("FILE" "TYPE" "SIZE KB")
+                      (list (* 86.0 s) (* 20.0 s) (* 24.0 s))
+                      rows nil s)
+      )
+    )
+    (princ "\nNo DWG or PDF files found next to the current drawing.")
+  )
+  (princ)
+)
+
+;;; --- sheet index -----------------------------------------------------------
+(defun C:RMR-SHEETINDEX (/ point s cols cw ch index row x y current)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the sheet index: "))
+  (if point
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq cols (RMR:PromptInt "Columns" 4))
+      (setq cw (* 62.0 s))
+      (setq ch (* 30.0 s))
+      (setq current (RMR:ProjectValue "DWGNO" ""))
+      (RMR:Text point "SHEET INDEX  |  RMR-SHEETINDEX" (* 4.2 s) "RMR-HEAD"
+                "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- (cadr point) (* 5.0 s)))
+      (RMR:Text (list (car point) y 0.0)
+                (strcat (itoa (length *RMR-SHEET-LIST*))
+                        " sheets  |  current sheet " current " is highlighted")
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (setq y (- y (* 8.0 s)))
+      (setq index 0)
+      (foreach row *RMR-SHEET-LIST*
+        (if (and (> index 0) (= (rem index cols) 0))
+          (setq y (- y (+ ch (* 8.0 s))))
+        )
+        (setq x (+ (car point) (* (rem index cols) cw)))
+        (if (= (strcase (nth 0 row)) (strcase current))
+          (progn
+            (RMR:Solid (list x (- y (* 8.0 s)) 0.0) cw (* 8.0 s) "RMR-PRES-TITLE"
+                       *RMR-BRAND-TERRA*)
+            (RMR:Text (list (+ x (* 2.0 s)) (- y (* 5.6 s)) 0.0) (nth 0 row)
+                      (* 3.4 s) "RMR-NUMBER" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+            (RMR:Rect (list x (- y ch) 0.0) cw ch "RMR-A-FRAME" *RMR-BRAND-TERRA*)
+          )
+          (progn
+            (RMR:Solid (list x (- y (* 8.0 s)) 0.0) cw (* 8.0 s) "RMR-PRES-KEY"
+                       *RMR-BRAND-SAND*)
+            (RMR:Text (list (+ x (* 2.0 s)) (- y (* 5.6 s)) 0.0) (nth 0 row)
+                      (* 3.4 s) "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (RMR:Rect (list x (- y ch) 0.0) cw ch "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+          )
+        )
+        (RMR:Text (list (+ x (* 2.0 s)) (- y (* 14.0 s)) 0.0)
+                  (RMR:Shorten (nth 1 row) 26) (* 2.1 s) "RMR-BODY"
+                  "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (RMR:Text (list (+ x (* 2.0 s)) (- y (* 18.4 s)) 0.0)
+                  (strcat (nth 2 row) "   REV " (nth 3 row)) (* 2.0 s)
+                  "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (RMR:Text (list (+ x (* 2.0 s)) (- y (* 26.0 s)) 0.0)
+                  (RMR:Shorten (nth 4 row) 26) (* 2.0 s) "RMR-MARK"
+                  "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+        (setq index (1+ index))
+      )
+      (princ (strcat "\nSheet index drawn from *RMR-SHEET-LIST*: "
+                     (itoa (length *RMR-SHEET-LIST*)) " sheets."))
+    )
+  )
+  (princ)
+)
+
+;;; --- cover sheet -----------------------------------------------------------
+(defun C:RMR-COVER (/ size dims scale base outer inset iw ih top y row)
+  (RMR:EnsureReady)
+  (initget "A0 A1 A2 A3 A4")
+  (setq size (getkword "\nCover sheet size [A0/A1/A2/A3/A4] <A1>: "))
+  (if (not size) (setq size "A1"))
+  (setq dims (RMR:SheetSize size))
+  (setq scale (getreal "\nSheet scale factor <1.0>: "))
+  (if (or (not scale) (<= scale 0.0)) (setq scale 1.0))
+  (setq base (getpoint "\nPick lower-left cover sheet point: "))
+  (if base
+    (progn
+      (setq outer (list (car base) (cadr base) 0.0))
+      (setq inset (* 10.0 scale))
+      (setq iw (- (* (car dims) scale) (* 2.0 inset)))
+      (setq ih (- (* (cadr dims) scale) (* 2.0 inset)))
+      (RMR:Rect outer (* (car dims) scale) (* (cadr dims) scale) "RMR-A-FRAME"
+                *RMR-BRAND-INK*)
+      (RMR:Rect (RMR:PT+ outer inset inset) iw ih "RMR-A-FRAME" *RMR-BRAND-TEAL*)
+      ;; brand strip
+      (setq top (+ (cadr outer) (* (cadr dims) scale) (- inset)))
+      (RMR:Solid (list (+ (car outer) inset) (- top (* 42.0 scale)) 0.0) iw
+                 (* 42.0 scale) "RMR-PRES-TITLE" *RMR-BRAND-TERRA*)
+      (RMR:Text (list (+ (car outer) inset (* 10.0 scale)) (- top (* 27.0 scale)) 0.0)
+                "RooMNRooF" (* 17.0 scale) "RMR-TITLE" "RMR-PRES-TITLE"
+                *RMR-BRAND-SAND*)
+      (RMR:Text (list (+ (car outer) inset (* 10.0 scale)) (- top (* 13.0 scale)) 0.0)
+                "CONSULTANT   |   2D CAD STANDARD" (* 4.2 scale) "RMR-HEAD"
+                "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+      ;; project identity
+      (setq y (- top (* 68.0 scale)))
+      (RMR:Text (list (+ (car outer) inset) y 0.0)
+                (strcase (RMR:ProjectValue "PROJECT" "PROJECT TITLE"))
+                (* 11.0 scale) "RMR-TITLE" "RMR-A-TEXT" *RMR-BRAND-INK*)
+      (setq y (- y (* 13.0 scale)))
+      (RMR:Text (list (+ (car outer) inset) y 0.0)
+                (strcase (RMR:ProjectValue "CLIENT" "CLIENT NAME"))
+                (* 5.4 scale) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 9.0 scale)))
+      (RMR:Text (list (+ (car outer) inset) y 0.0)
+                (strcat "JOB " (RMR:ProjectValue "JOB" "0000")
+                        "   |   " (RMR:ProjectValue "STAGE" "STAGE")
+                        "   |   " (RMR:TodayDate))
+                (* 3.4 scale) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      ;; drawing set listing
+      (setq y (- y (* 12.0 scale)))
+      (RMR:Line (list (+ (car outer) inset) y 0.0)
+                (list (+ (car outer) inset iw) y 0.0) "RMR-A-TEXT"
+                *RMR-BRAND-GOLD*)
+      (setq y (- y (* 12.0 scale)))
+      (RMR:Text (list (+ (car outer) inset) y 0.0)
+                "DRAWING SET  |  *RMR-SHEET-LIST*" (* 4.4 scale) "RMR-HEAD"
+                "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 9.0 scale)))
+      (foreach row *RMR-SHEET-LIST*
+        (RMR:Text (list (+ (car outer) inset) y 0.0) (nth 0 row)
+                  (* 3.4 scale) "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ (car outer) inset (* 28.0 scale)) y 0.0)
+                  (RMR:Shorten (nth 1 row) 46) (* 3.2 scale) "RMR-BODY"
+                  "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (RMR:Text (list (+ (car outer) inset (* 300.0 scale)) y 0.0)
+                  (nth 2 row) (* 3.0 scale) "RMR-BODY" "RMR-A-TEXT"
+                  *RMR-BRAND-SLATE*)
+        (RMR:Text (list (+ (car outer) inset (* 350.0 scale)) y 0.0)
+                  (strcat "REV " (nth 3 row)) (* 3.0 scale) "RMR-MARK"
+                  "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+        (setq y (- y (* 6.4 scale)))
+      )
+      ;; title block anchored lower right
+      (RMR:DrawTitleBlock
+        (RMR:PT+ outer (- (* (car dims) scale) inset (* 190.0 scale)) inset)
+        190.0 50.0 scale)
+      (princ (strcat "\n" size " cover sheet created with "
+                     (itoa (length *RMR-SHEET-LIST*)) " sheets listed."))
+    )
+  )
+  (princ)
+)
+
+;;; --- complete documentation sheet -----------------------------------------
+(defun C:RMR-DOCSHEET (/ size dims base outer inset iw ih top p1 p2 p3 p4
+                       rows row)
+  (RMR:EnsureReady)
+  (initget "A0 A1 A2 A3 A4")
+  (setq size (getkword "\nDocumentation sheet size [A0/A1/A2/A3/A4] <A1>: "))
+  (if (not size) (setq size "A1"))
+  (setq dims (RMR:SheetSize size))
+  (setq base (getpoint "\nPick lower-left documentation sheet point: "))
+  (if base
+    (progn
+      (setq outer (list (car base) (cadr base) 0.0))
+      (setq inset 10.0)
+      (setq iw (- (car dims) (* 2.0 inset)))
+      (setq ih (- (cadr dims) (* 2.0 inset)))
+      (RMR:Rect outer (car dims) (cadr dims) "RMR-A-FRAME" *RMR-BRAND-INK*)
+      (RMR:Rect (RMR:PT+ outer inset inset) iw ih "RMR-A-FRAME" *RMR-BRAND-TEAL*)
+      (setq top (+ (cadr outer) (cadr dims) (- inset)))
+      (RMR:Solid (list (+ (car outer) inset) (- top 26.0) 0.0) iw 26.0
+                 "RMR-PRES-TITLE" *RMR-BRAND-TERRA*)
+      (RMR:Text (list (+ (car outer) inset 8.0) (- top 17.0) 0.0)
+                "DOCUMENTATION SHEET" 9.0 "RMR-TITLE" "RMR-PRES-TITLE"
+                *RMR-BRAND-SAND*)
+      (RMR:Text (list (+ (car outer) inset 8.0) (- top 6.0) 0.0)
+                (strcat (RMR:ProjectValue "PROJECT" "")
+                        "   |   JOB " (RMR:ProjectValue "JOB" "")
+                        "   |   REV " (RMR:ProjectValue "REV" "")
+                        "   |   " (RMR:TodayDate))
+                3.0 "RMR-HEAD" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+      ;; left: specification index, right: abbreviations
+      (setq p1 (list (+ (car outer) 24.0) (- top 44.0) 0.0))
+      (RMR:DrawSpecIndex p1 1.0)
+      (setq p2 (list (+ (car outer) 210.0) (- top 44.0) 0.0))
+      (RMR:DrawAbbrev p2 1.0)
+      ;; right column: revision history and checklist
+      (setq rows '())
+      (foreach row *RMR-REVISIONS*
+        (setq rows (append rows (list (list (nth 0 row) (nth 1 row)
+                                            (nth 2 row) (nth 3 row)))))
+      )
+      (setq p3 (list (+ (car outer) 470.0) (- top 44.0) 0.0))
+      (RMR:DocTable p3 "REVISION HISTORY"
+                    (strcat "Current revision " (RMR:ProjectValue "REV" ""))
+                    '("REV" "DATE" "DESCRIPTION" "BY")
+                    (list 16.0 30.0 84.0 22.0) rows (RMR:ProjectValue "REV" "") 1.0)
+      (setq p4 (list (+ (car outer) 470.0) (- top 300.0) 0.0))
+      (RMR:DrawChecklist p4 1.0)
+      ;; title block
+      (RMR:DrawTitleBlock (RMR:PT+ outer (- (car dims) 200.0) 10.0)
+                          190.0 50.0 1.0)
+      (princ (strcat "\n" size " documentation sheet created: specification index, "))
+      (princ (strcat "\n" (itoa (length *RMR-ABBREV-SPECS*))
+                     " abbreviations, " (itoa (length *RMR-REVISIONS*))
+                     " revisions and " (itoa (length *RMR-CHECKLIST-SPECS*))
+                     " checklist items."))
+    )
   )
   (princ)
 )

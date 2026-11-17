@@ -164,6 +164,10 @@ def load_lisp_data():
         "cities": [(item[0], item[1])
                    for item in _extract_form(src, "*RMR-SUN-CITIES*")],
         "zones": _extract_form(src, "*RMR-ZONE-BANDS*"),
+        "specs": _extract_form(src, "*RMR-SPEC-CLAUSES*"),
+        "abbrevs": _extract_form(src, "*RMR-ABBREV-SPECS*"),
+        "revisions": _extract_form(src, "*RMR-REVISIONS*"),
+        "checklist": _extract_form(src, "*RMR-CHECKLIST-SPECS*"),
     }
 
 
@@ -2489,6 +2493,362 @@ def build_coordination():
 
 
 # --------------------------------------------------------------------------- #
+# 12. documentation sheet (8.0): specification clauses and index,
+#     abbreviations, revision log, room data, sheet index, checklist,
+#     cover sheet and the complete documentation sheet.
+# --------------------------------------------------------------------------- #
+
+
+def draw_doc_specnote(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h, "SPECIFICATION CLAUSE  |  RMR-SPECNOTE")
+
+    clause = None
+    for code, trade, title, text in DATA["specs"]:
+        if code == "F10":
+            clause = (code, trade, title, text)
+    if clause is None:
+        clause = DATA["specs"][0]
+    code, trade, title, text = clause
+
+    # the clause tab exactly as the command draws it
+    ox, oy = x + 12.0, ty - 8.0
+    sh.solid((ox, oy - 7.0), 30.0, 7.0, "RMR-PRES-TITLE", TERRA)
+    sh.text((ox + 2.0, oy - 4.6), code, 3.2, "RMR-HEAD", "RMR-PRES-TITLE", SAND)
+    sh.text((ox + 34.0, oy - 4.4), title, 3.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((ox, oy - 15.0), "TRADE %s   |   CLAUSE %s" % (trade, code), 2.0,
+            "RMR-MARK", "RMR-A-TEXT", GOLD)
+    sh.mtext((ox, oy - 22.0), text, 200.0, 2.4, "RMR-BODY", "RMR-A-TEXT", INK)
+
+    ly = ty - 56.0
+    sh.text((x + 12.0, ly), "HOW IT WORKS", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 4.6
+    for line in ("Pick a clause code from *RMR-SPEC-CLAUSES*.",
+                 "The tab carries the code, the work section",
+                 "carries the title and the body is wrapped",
+                 "to the width you give it. Edit the table to",
+                 "add your office clauses."):
+        sh.text((x + 12.0, ly), line, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 3.5
+
+
+def draw_doc_specindex(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h, "SPECIFICATION INDEX  |  RMR-SPECINDEX")
+
+    ox = x + 12.0
+    oy = ty - 5.0
+    sh.text((ox, oy), "JOB %s   |   %s" % ("2401", "ROOMNRROOF REFERENCE APARTMENT"),
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    oy -= 8.0
+    colw = (30.0, 160.0)
+    rowh = 5.0
+    _doc_head(sh, ox, oy, colw, rowh, ("CLAUSE", "WORK SECTION"))
+    oy -= rowh
+    last = ""
+    for code, trade, title, text in DATA["specs"]:
+        if trade != last:
+            sh.solid((ox, oy - rowh), sum(colw), rowh, "RMR-PRES-TITLE", TERRA)
+            sh.text((ox + 1.6, oy - rowh + 1.4), trade, 2.0, "RMR-HEAD",
+                    "RMR-PRES-TITLE", SAND)
+            oy -= rowh
+            last = trade
+        sh.rect((ox, oy - rowh), sum(colw), rowh, "RMR-A-FRAME", SLATE)
+        sh.line((ox + colw[0], oy - rowh), (ox + colw[0], oy), "RMR-A-FRAME", SLATE)
+        sh.text((ox + 1.6, oy - rowh + 1.4), code, 2.0, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+        sh.text((ox + colw[0] + 1.6, oy - rowh + 1.4), title, 2.0, "RMR-BODY",
+                "RMR-A-TEXT", INK)
+        oy -= rowh
+
+
+def _doc_head(sh, x, y, colw, rowh, labels):
+    """Header band of a documentation table, drawn from y down by rowh."""
+    sh.solid((x, y - rowh), sum(colw), rowh, "RMR-PRES-TITLE", SAND)
+    cx = x
+    for i, label in enumerate(labels):
+        sh.text((cx + 1.6, y - rowh + 1.4), label, 2.0, "RMR-HEAD", "RMR-A-TEXT", INK)
+        cx += colw[i]
+        if i < len(colw) - 1:
+            sh.line((cx, y - rowh), (cx, y), "RMR-A-FRAME", INK)
+
+
+def draw_doc_abbrev(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h, "ABBREVIATIONS  |  RMR-ABBREV")
+
+    ox = x + 12.0
+    oy = ty - 5.0
+    rows = DATA["abbrevs"]
+    sh.text((ox, oy), "%d standard abbreviations" % len(rows), 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    oy -= 6.0
+    sh.line((ox, oy), (ox + 210.0, oy), "RMR-A-TEXT", GOLD)
+    oy -= 5.0
+    count = len(rows)
+    half = count // 2 + (0 if count % 2 == 0 else 1)
+    y1, y2 = oy, oy
+    for i, (abbrev, meaning) in enumerate(rows):
+        if i < half:
+            sh.text((ox, y1), abbrev, 2.0, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+            sh.text((ox + 22.0, y1), meaning, 2.0, "RMR-BODY", "RMR-A-TEXT", SLATE)
+            y1 -= 5.0
+        else:
+            sh.text((ox + 116.0, y2), abbrev, 2.0, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+            sh.text((ox + 138.0, y2), meaning, 2.0, "RMR-BODY", "RMR-A-TEXT", SLATE)
+            y2 -= 5.0
+
+
+def draw_doc_revisions(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "REVISION HISTORY  |  RMR-REVLIB")
+
+    ox = x + 12.0
+    oy = ty - 5.0
+    sh.text((ox, oy), "Current revision 03 is highlighted", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    oy -= 6.0
+    colw = (20.0, 44.0, 110.0, 26.0)
+    rowh = 6.0
+    _doc_head(sh, ox, oy, colw, rowh, ("REV", "DATE", "DESCRIPTION", "BY"))
+    oy -= rowh
+    for rev, date, description, by in DATA["revisions"]:
+        if rev == "03":
+            sh.solid((ox, oy - rowh), sum(colw), rowh, "RMR-PRES-KEY", SAND)
+        sh.rect((ox, oy - rowh), sum(colw), rowh, "RMR-A-FRAME", SLATE)
+        cx = ox
+        for i in range(len(colw) - 1):
+            cx += colw[i]
+            sh.line((cx, oy - rowh), (cx, oy), "RMR-A-FRAME", SLATE)
+        sh.text((ox + 1.6, oy - rowh + 1.7), rev, 2.1, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+        sh.text((ox + colw[0] + 1.6, oy - rowh + 1.7), date, 2.0, "RMR-BODY",
+                "RMR-A-TEXT", INK)
+        sh.text((ox + colw[0] + colw[1] + 1.6, oy - rowh + 1.7), description, 2.0,
+                "RMR-BODY", "RMR-A-TEXT", INK)
+        sh.text((ox + colw[0] + colw[1] + colw[2] + 1.6, oy - rowh + 1.7), by, 2.0,
+                "RMR-BODY", "RMR-A-TEXT", INK)
+        oy -= rowh
+
+    oy -= 4.0
+    sh.text((ox, oy), "Rows come from *RMR-REVISIONS*, so the", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((ox, oy - 3.4), "table and the title block never drift apart.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+ROOMSCHED = (
+    ("01", "LIVING / DINING", "32.40", "Porcelain tile 600x600", "Matte emulsion"),
+    ("02", "KITCHEN", "14.85", "Porcelain tile 600x600", "Ceramic tile"),
+    ("03", "MASTER BEDROOM", "18.60", "Engineered oak", "Matte emulsion"),
+    ("04", "BEDROOM 02", "12.40", "Engineered oak", "Matte emulsion"),
+    ("05", "BATHROOM", "6.20", "Non-slip tile 300x300", "Ceramic tile"),
+    ("06", "BALCONY", "8.75", "External tile 300x300", "External paint"),
+)
+
+
+def draw_doc_roomsched(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "ROOM DATA SCHEDULE  |  RMR-ROOMSCHED")
+
+    ox = x + 10.0
+    oy = ty - 5.0
+    total = sum(float(r[2]) for r in ROOMSCHED)
+    sh.text((ox, oy), "%d rooms  |  total %.2f m2  |  %.1f sq ft"
+            % (len(ROOMSCHED), total, total * 10.7639), 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    oy -= 6.0
+    colw = (16.0, 48.0, 24.0, 74.0, 54.0)
+    rowh = 6.0
+    _doc_head(sh, ox, oy, colw, rowh, ("NO.", "ROOM", "M2", "FLOOR", "WALL"))
+    oy -= rowh
+    for row in ROOMSCHED:
+        sh.rect((ox, oy - rowh), sum(colw), rowh, "RMR-A-FRAME", SLATE)
+        cx = ox
+        for i in range(len(colw) - 1):
+            cx += colw[i]
+            sh.line((cx, oy - rowh), (cx, oy), "RMR-A-FRAME", SLATE)
+        cx = ox
+        for i, value in enumerate(row):
+            sh.text((cx + 1.4, oy - rowh + 1.7), value, 1.9,
+                    "RMR-LABEL" if i < 2 else "RMR-BODY", "RMR-A-TEXT",
+                    TERRA if i == 0 else INK)
+            cx += colw[i]
+        oy -= rowh
+    sh.solid((ox, oy - rowh), sum(colw), rowh, "RMR-PRES-KEY", SAND)
+    sh.text((ox + 1.4, oy - rowh + 1.7), "TOTAL", 2.0, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((ox + colw[0] + colw[1] + 1.4, oy - rowh + 1.7), "%.2f" % total, 2.0,
+            "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    oy -= rowh
+
+    oy -= 4.0
+    sh.text((ox, oy), "Finishes are pulled from *RMR-FINISH-SPECS*", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((ox, oy - 3.4), "whenever the room name matches a row.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_doc_sheetindex(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "SHEET INDEX  |  RMR-SHEETINDEX")
+
+    ox = x + 12.0
+    oy = ty - 5.0
+    sheets = DATA["sheets"]
+    sh.text((ox, oy), "%d sheets  |  current sheet A-000 is highlighted" % len(sheets),
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    oy -= 8.0
+    cw, ch, gap = 82.0, 34.0, 8.0
+    cols = 3
+    for i, (number, title, scale, rev, status) in enumerate(sheets):
+        if i > 0 and i % cols == 0:
+            oy -= ch + gap
+        cx = ox + (i % cols) * cw
+        if number == "A-000":
+            sh.solid((cx, oy - 8.0), cw - 4.0, 8.0, "RMR-PRES-TITLE", TERRA)
+            sh.text((cx + 2.0, oy - 5.6), number, 3.4, "RMR-NUMBER",
+                    "RMR-PRES-TITLE", SAND)
+            sh.rect((cx, oy - ch), cw - 4.0, ch, "RMR-A-FRAME", TERRA)
+        else:
+            sh.solid((cx, oy - 8.0), cw - 4.0, 8.0, "RMR-PRES-KEY", SAND)
+            sh.text((cx + 2.0, oy - 5.6), number, 3.4, "RMR-NUMBER", "RMR-A-TEXT", INK)
+            sh.rect((cx, oy - ch), cw - 4.0, ch, "RMR-A-FRAME", SLATE)
+        sh.text((cx + 2.0, oy - 15.0), _shorten(title, 22), 2.0, "RMR-BODY",
+                "RMR-A-TEXT", INK)
+        sh.text((cx + 2.0, oy - 19.4), "%s   REV %s" % (scale, rev), 1.9, "RMR-NOTE",
+                "RMR-A-TEXT", SLATE)
+        sh.text((cx + 2.0, oy - 26.0), _shorten(status, 22), 1.9, "RMR-MARK",
+                "RMR-A-TEXT", GOLD)
+
+
+def _shorten(text, limit):
+    return text if len(text) <= limit else text[:max(1, limit - 1)] + "."
+
+
+def draw_doc_checklist(sh):
+    x, y, w, h = 20.0, 74.0, 286.0, 158.0
+    ty = _panel(sh, x, y, w, h, "PRE-ISSUE CHECKLIST  |  RMR-CHECKLIST")
+
+    ox = x + 12.0
+    oy = ty - 5.0
+    rows = DATA["checklist"]
+    sh.text((ox, oy), "%d items  |  tick by hand or with a revision cloud" % len(rows),
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    oy -= 6.0
+    rowh = 5.4
+    last = ""
+    for group, item in rows:
+        if group != last:
+            sh.solid((ox, oy - rowh), 254.0, rowh, "RMR-PRES-KEY", SAND)
+            sh.text((ox + 1.6, oy - rowh + 1.6), group, 2.1, "RMR-HEAD",
+                    "RMR-A-TEXT", INK)
+            oy -= rowh
+            last = group
+        sh.rect((ox + 1.6, oy - rowh + 1.2), 3.0, 3.0, "RMR-A-FRAME", SLATE)
+        sh.text((ox + 7.0, oy - rowh + 1.6), item, 2.0, "RMR-BODY", "RMR-A-TEXT", INK)
+        oy -= rowh
+
+
+def draw_doc_cover(sh):
+    x, y, w, h = 316.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "COVER SHEET  |  RMR-COVER / RMR-DOCSHEET")
+
+    # miniature A1 cover sheet, sized so the caption sits clear above it
+    cw = 140.0
+    chh = cw / (841.0 / 594.0)
+    ox = x + 20.0
+    oy = y + 12.0
+    sh.rect((ox, oy), cw, chh, "RMR-A-FRAME", INK)
+    sh.rect((ox + 2.0, oy + 2.0), cw - 4.0, chh - 4.0, "RMR-A-FRAME", TEAL)
+    sh.solid((ox + 2.0, oy + chh - 13.0), cw - 4.0, 9.0, "RMR-PRES-TITLE", TERRA)
+    sh.text((ox + 5.0, oy + chh - 10.0), "RooMNRooF", 4.2, "RMR-TITLE",
+            "RMR-PRES-TITLE", SAND)
+    cy = oy + chh - 20.0
+    sh.text((ox + 4.0, cy), "ROOMNRROOF APARTMENT", 3.4, "RMR-TITLE", "RMR-A-TEXT", INK)
+    cy -= 5.0
+    sh.text((ox + 4.0, cy), "CLIENT NAME", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    cy -= 4.0
+    sh.text((ox + 4.0, cy), "JOB 2401  |  ISSUED FOR REVIEW", 1.7, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    cy -= 4.0
+    sh.line((ox + 4.0, cy), (ox + cw - 6.0, cy), "RMR-A-TEXT", GOLD)
+    cy -= 5.0
+    sh.text((ox + 4.0, cy), "DRAWING SET", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    cy -= 4.5
+    for number, title, scale, rev, status in DATA["sheets"]:
+        sh.text((ox + 4.0, cy), number, 1.9, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+        sh.text((ox + 18.0, cy), _shorten(title, 24), 1.8, "RMR-BODY",
+                "RMR-A-TEXT", INK)
+        sh.text((ox + 118.0, cy), scale, 1.7, "RMR-BODY", "RMR-A-TEXT", SLATE)
+        cy -= 3.6
+    # title block stub
+    sh.rect((ox + cw - 46.0, oy + 2.0), 44.0, 12.0, "RMR-A-FRAME", INK)
+    sh.solid((ox + cw - 46.0, oy + 2.0), 10.0, 12.0, "RMR-PRES-TITLE", TERRA)
+
+    ly = ty - 4.0
+    sh.text((x + 12.0, ly), "RMR-COVER builds the sheet above from", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ly - 3.4), "*RMR-PROJECT* and *RMR-SHEET-LIST*.", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ly - 6.8), "RMR-DOCSHEET lays the specification", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ly - 10.2), "index, abbreviations, revisions and", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ly - 13.6), "the checklist onto one A1 sheet, and", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ly - 17.0), "RMR-DOCLIST lists every DWG and PDF", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, ly - 20.4), "next to the drawing, with a CSV.", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_doc_commands(sh):
+    x, y, w, h = 576.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "DOCUMENTATION SUITE  |  10 NEW COMMANDS")
+
+    entries = (
+        ("RMR-SPECNOTE", "One specification clause as a", "titled, wrapped note."),
+        ("RMR-SPECINDEX", "Clause index grouped by trade", "from the clause table."),
+        ("RMR-ABBREV", "Two-column abbreviations", "legend for the set."),
+        ("RMR-REVLIB", "Revision history with the", "current revision marked."),
+        ("RMR-CHECKLIST", "Pre-issue checklist with", "tick boxes, printed too."),
+        ("RMR-ROOMSCHED", "Room areas and finishes from", "picked boundaries."),
+        ("RMR-DOCLIST", "Folder contents as a table", "and a CSV document list."),
+        ("RMR-SHEETINDEX", "Sheet index grid with the", "current sheet highlighted."),
+        ("RMR-COVER", "Cover sheet: brand, project", "data and the drawing set."),
+        ("RMR-DOCSHEET", "The whole documentation", "sheet in one command."),
+    )
+    ly = ty - 4.0
+    for name, line1, line2 in entries:
+        sh.text((x + 10.0, ly), name, 2.3, "RMR-MARK", "RMR-A-TEXT", TEAL)
+        sh.text((x + 10.0, ly - 3.4), line1, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        sh.text((x + 10.0, ly - 6.3), line2, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 12.6
+
+
+def build_documentation():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "DOCUMENTATION SUITE SHEET"
+    SHEET_SUBTITLE = ("SPECIFICATIONS, ABBREVIATIONS, REVISIONS, ROOM DATA, "
+                      "SHEET INDEX AND ISSUE CHECKS")
+    SHEET_NOTE = ("The 8.0 documentation suite: the written information that turns "
+                  "a coordinated drawing set into an issued one.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_doc_specnote(sh)
+    draw_doc_specindex(sh)
+    draw_doc_abbrev(sh)
+    draw_doc_revisions(sh)
+    draw_doc_roomsched(sh)
+    draw_doc_sheetindex(sh)
+    draw_doc_checklist(sh)
+    draw_doc_cover(sh)
+    draw_doc_commands(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -2612,6 +2972,18 @@ def main():
     except Exception as exc:
         print("Coordination PNG render skipped:", exc)
     print("zone bands: %d" % len(DATA["zones"]))
+    documentation = build_documentation()
+    doc_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Documentation_Suite.dxf")
+    documentation.saveas(doc_path)
+    print("DXF  :", doc_path, os.path.getsize(doc_path), "bytes")
+    try:
+        print("PNG  :", render_png(documentation, os.path.join(
+            OUT_DIR, "RooMNRooF_PRO_Documentation_Suite.png"), dpi=150))
+    except Exception as exc:
+        print("Documentation PNG render skipped:", exc)
+    print("clauses: %d | abbrevs: %d | revisions: %d | checklist: %d"
+          % (len(DATA["specs"]), len(DATA["abbrevs"]),
+             len(DATA["revisions"]), len(DATA["checklist"])))
     return 0
 
 

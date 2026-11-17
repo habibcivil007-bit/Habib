@@ -23,6 +23,8 @@ OUT_DIR = os.path.normpath(os.path.join(HERE, "..", "preview"))
 SHEET_W, SHEET_H = 841.0, 594.0
 MARGIN = 10.0
 INNER = (MARGIN + 2.0, MARGIN + 2.0, SHEET_W - MARGIN - 2.0, SHEET_H - MARGIN - 2.0)
+# the printed sheet itself: nothing may be drawn off the paper
+OUTER = (0.0, 0.0, SHEET_W, SHEET_H)
 
 # average glyph advance as a fraction of the cap height, per nominal style width
 ADVANCE = 0.58
@@ -76,10 +78,33 @@ def overlap(a, b, tol=0.4):
     return (ix, iy)
 
 
+def geometry_outside_frame(path):
+    """Every entity has to sit inside the printed sheet frame."""
+    from ezdxf import bbox
+    doc = ezdxf.readfile(path)
+    bad = []
+    for e in doc.modelspace():
+        try:
+            ext = bbox.extents([e])
+        except Exception:
+            continue
+        if not ext.has_data:
+            continue
+        if (ext.extmin.x < OUTER[0] or ext.extmin.y < OUTER[1]
+                or ext.extmax.x > OUTER[2] or ext.extmax.y > OUTER[3]):
+            bad.append((e.dxftype(), e.dxf.layer,
+                        "%.1f,%.1f -> %.1f,%.1f" % (ext.extmin.x, ext.extmin.y,
+                                                    ext.extmax.x, ext.extmax.y)))
+    return bad
+
+
 def audit(path):
     doc = ezdxf.readfile(path)
     boxes = text_boxes(doc)
     problems = []
+
+    for kind, layer, box in geometry_outside_frame(path):
+        problems.append(("GEOMETRY-OUT", layer, kind, box))
 
     for layer, value, x0, y0, x1, y1, rot in boxes:
         if rot:

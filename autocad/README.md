@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 4.0 STUDIO SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 5.0 DELIVERY SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -8,9 +8,12 @@ suite (scale, grids, areas, stamps, revisions, notes, hatch library, layer contr
 QA, page setup and publishing) plus the 4.0 studio suite (layouts with scaled
 viewports, section / elevation / match / break / cloud markers, dimension launcher,
 parametric symbol library, door schedules, text find/replace, live fields, project
-data files and timestamped backups).
+data files and timestamped backups) plus the 5.0 delivery suite (parametric walls
+and stairs, linear takeoff, bill of materials, room finishes and drawing registers,
+xref register, transmittal records, layer states, ByLayer standardisation, drawing
+clean-up and project-driven drawing properties).
 
-Version string inside the LISP: `*RMR-VERSION* = "4.0 STUDIO SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "5.0 DELIVERY SUITE"`.
 
 ## Package contents
 
@@ -23,6 +26,8 @@ Version string inside the LISP: `*RMR-VERSION* = "4.0 STUDIO SUITE"`.
 | `preview/RooMNRooF_PRO_Plan_Detail.png` | Zoomed 1:50 sample apartment plan from the same sheet. |
 | `preview/RooMNRooF_PRO_Studio_Suite.dxf` | A1 sheet showing the 4.0 studio suite: layouts, viewports, title block, markers, symbol library and door schedules. |
 | `preview/RooMNRooF_PRO_Studio_Suite.png` | Rendered studio-suite sheet. |
+| `preview/RooMNRooF_PRO_Delivery_Suite.dxf` | A1 sheet showing the 5.0 delivery suite: parametric walls and stair, takeoff, bill of materials, finishes, register, transmittal, xrefs and housekeeping. |
+| `preview/RooMNRooF_PRO_Delivery_Suite.png` | Rendered delivery-suite sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 
@@ -41,7 +46,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (45 commands)
+## Command reference (57 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -92,6 +97,23 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-BACKUP` | Timestamped backup copy of the drawing into the drawing folder. |
 
 
+### Delivery suite (new in 5.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-WALL` | Parametric double-line wall: pick a wall type (`*RMR-WALL-SPECS*`) then a path; corners are mitred so both faces stay exactly on thickness, with cap lines and a type label. |
+| `RMR-STAIR` | Parametric straight stair: width, risers, going and direction of travel produce the outline, treads, walking line, direction arrow and an "UP 16R @ 280" label. |
+| `RMR-LENGTH` | Linear takeoff across LINE / LWPOLYLINE / ARC / CIRCLE / ELLIPSE / SPLINE, with an optional in-drawing label and CSV export. |
+| `RMR-BOM` | Bill of materials from block inserts, counted per block name **and** layer, sorted by quantity, drawn as a table and/or written to CSV. |
+| `RMR-FINISHES` | Room finishes schedule (room, floor, skirting, wall, ceiling, notes) straight from the editable `*RMR-FINISH-SPECS*` table. |
+| `RMR-SHEETREG` | Drawing register / sheet index from the editable `*RMR-SHEET-LIST*` table. |
+| `RMR-XREFLIST` | Lists attached xrefs with resolved source paths and draws an xref register table. |
+| `RMR-TRANSMITTAL` | Issue / transmittal record for the whole set: sheet, title, revision, issue date and a signature column, headed with the live project data. |
+| `RMR-LAYERSTATE` | Save / restore / list / delete layer states in a plain `.rms` text file (`Name;Colour;Linetype;Lineweight;Frozen;Off;Locked`). Restore preserves xref-dependent flags and reports what it skipped. |
+| `RMR-STANDARDIZE` | Forces colour, linetype and lineweight of a selection (or the whole drawing) to `BYLAYER`. |
+| `RMR-CLEAN` | Three `-PURGE` passes plus an `AUDIT`, then optionally runs `RMR-STANDARDIZE`. |
+| `RMR-DWGPROPS` | Writes title, subject, author, category, keywords and comments from `*RMR-PROJECT*` into the drawing properties. |
+
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -122,6 +144,10 @@ All visual data lives in plain editable tables near the top of the LISP:
   DWGNO, REV, DATE, DRAWN, CHECKED, SCALE, SIZE) used by the title block,
   fields and schedules; save/load it with `RMR-PROJECT`.
 - `*RMR-CLOUD-ARC*` — revision cloud bulge factor (default `0.65`)
+- `*RMR-WALL-SPECS*` — wall types: `(Key Thickness Layer Description)`
+- `*RMR-FINISH-SPECS*` — room finishes: `(Room Floor Skirting Wall Ceiling Notes)`
+- `*RMR-SHEET-LIST*` — drawing register / transmittal rows:
+  `(SheetNumber Title Scale Revision Status)`
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -144,15 +170,22 @@ RMR-GRID             ; structural bubbles
 RMR-HATCH            ; materials
 RMR-ROOMTAG          ; room tags with areas
 RMR-AREA             ; area schedule
+RMR-WALL  RMR-STAIR        ; parametric walls and stairs
 RMR-SECTION RMR-ELEVATION RMR-MATCHLINE RMR-BREAKLINE RMR-REVCLOUD
 RMR-DIM                ; dimensions on the right style and layer
 RMR-SYMBOLS RMR-DOORSCHED
 RMR-KEYNOTE RMR-LEVEL RMR-DETAIL RMR-NORTH
 RMR-NOTES  RMR-REVTABLE  RMR-STAMP
+RMR-FINISHES  RMR-SHEETREG   ; finishes and drawing register
+RMR-BOM  RMR-LENGTH          ; quantities
+RMR-XREFLIST                 ; check attached references
 RMR-FINDTEXT         ; global wording fixes
 RMR-PROJECT FILLTITLE ; push project data into every title block
+RMR-LAYERSTATE SAVE / RMR-STANDARDIZE  ; freeze a state, force BYLAYER
+RMR-CLEAN  RMR-DWGPROPS      ; clean up and stamp the properties
 RMR-CHECK            ; QA before issue
 RMR-PAGESETUP  RMR-PUBLISH
+RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ```
@@ -164,7 +197,10 @@ values) and rebuilds two A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
-panel. The standard sheet contains: sample 1:50 apartment plan with walls,
+panel — and `RooMNRooF_PRO_Delivery_Suite.dxf`, which previews the 5.0 delivery
+suite: a mitred parametric wall plan, a 16-riser stair, the takeoff readout and
+bill of materials, the finishes schedule, drawing register, transmittal record,
+xref register and the housekeeping panel. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -178,8 +214,8 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (154,848 bytes / 3,990 lines, 158 defuns,
-45 commands).
+variables). Current state: **PASS**, 0 findings (190,775 bytes / 4,849 lines, 180 defuns,
+57 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -187,6 +223,10 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 
 ## Notes and limitations
 
+- `RMR-WALL` mitres corners by bisecting the offset; extremely sharp corners are
+  clamped to four times the offset so geometry can never run away.
+- `RMR-LAYERSTATE` uses its own `.rms` text format instead of the `-LAYERSTATE`
+  command line, so it behaves identically on every AutoCAD build.
 - `RMR-LAYOUTS` / `RMR-VPORT` create viewports through ActiveX and fall back to the
   `MVIEW` command where `vla-addpviewport` is unavailable (some 64-bit builds).
 - `RMR-BACKUP` leaves you in the newly saved backup drawing, matching AutoCAD's

@@ -154,6 +154,9 @@ def load_lisp_data():
         "project": [(item[0], item[2]) if len(item) > 2 else (item[0], "")
                     for item in _extract_form(src, "*RMR-PROJECT*")],
         "cloud_arc": _extract_form(src, "*RMR-CLOUD-ARC*"),
+        "walls": _extract_form(src, "*RMR-WALL-SPECS*"),
+        "finishes": _extract_form(src, "*RMR-FINISH-SPECS*"),
+        "sheets": _extract_form(src, "*RMR-SHEET-LIST*"),
     }
 
 
@@ -970,7 +973,7 @@ def draw_command_panel(sh):
     x, y = 480.0, 92.0
     sh.text((x, y), "PRODUCTION + STUDIO SUITE COMMANDS", 3.0, "RMR-HEAD", "RMR-A-TEXT", TERRA)
     sh.line((x, y - 3.0), (635.0, y - 3.0), "RMR-A-TEXT", GOLD)
-    sh.text((x, y - 7.0), "31 shown of 45 - type RMR-PALETTE for the full guide", 1.9,
+    sh.text((x, y - 7.0), "Selected commands - type RMR-PALETTE for all 57", 1.9,
             "RMR-NOTE", "RMR-A-TEXT", SLATE)
     commands = [
         ("RMR-SCALE", "scale + annotation size"),
@@ -1443,6 +1446,397 @@ def build_studio():
 
 
 # --------------------------------------------------------------------------- #
+# 9. delivery suite sheet (5.0): parametric walls and stairs, quantification,
+#    finishes, drawing register, transmittal, xrefs and housekeeping.
+# --------------------------------------------------------------------------- #
+
+WALL_K = 0.019          # millimetres -> sheet units for the sample plans
+
+
+def _plan(ox, oy, pts, k=WALL_K):
+    return [(ox + p[0] * k, oy + p[1] * k) for p in pts]
+
+
+def _offset_path(pts, d):
+    """Mirror of the LISP RMR:OffsetPath (mitred polyline offset)."""
+    import math
+    out = []
+    n = len(pts)
+    for i, cur in enumerate(pts):
+        if i == 0:
+            n1 = _unit_normal(cur, pts[i + 1])
+        elif i == n - 1:
+            n1 = _unit_normal(pts[i - 1], cur)
+        else:
+            n1, n2 = _unit_normal(pts[i - 1], cur), _unit_normal(cur, pts[i + 1])
+            mx, my = n1[0] + n2[0], n1[1] + n2[1]
+            L = math.hypot(mx, my)
+            if L < 1e-6:
+                mx, my, L = n1[0], n1[1], 1.0
+            sc = d / ((mx * n1[0] + my * n1[1]) / L)
+            if abs(sc) > 4 * abs(d):
+                sc = 4 * abs(d) * (1 if d >= 0 else -1)
+            if abs(sc) < abs(d):
+                sc = d
+            n1 = (mx / L * sc, my / L * sc)
+            out.append((cur[0] + n1[0], cur[1] + n1[1]))
+            continue
+        out.append((cur[0] + n1[0] * d, cur[1] + n1[1] * d))
+    return out
+
+
+def _unit_normal(p1, p2):
+    import math
+    dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+    L = math.hypot(dx, dy)
+    return (0.0, 0.0) if L < 1e-6 else (-dy / L, dx / L)
+
+
+def _wall(sh, ox, oy, pts, thickness, layer, rgb, k=WALL_K):
+    d = thickness / 2.0
+    left = _plan(ox, oy, _offset_path(pts, d), k)
+    right = _plan(ox, oy, _offset_path(pts, -d), k)
+    sh.poly(left, [0.0] * len(left), False, layer, rgb)
+    sh.poly(right, [0.0] * len(right), False, layer, rgb)
+    sh.line(left[0], right[0], layer, rgb)
+    sh.line(left[-1], right[-1], layer, rgb)
+    return left, right
+
+
+def _stair(sh, ox, oy, width, going, risers, angle_deg, layer, rgb, k=WALL_K):
+    import math
+    a = math.radians(angle_deg)
+    dx, dy = math.cos(a), math.sin(a)
+    nx, ny = -dy, dx
+    total = risers * going
+    p1 = (0.0, 0.0)
+    p2 = (nx * width, ny * width)
+    p3 = (p2[0] + dx * total, p2[1] + dy * total)
+    p4 = (dx * total, dy * total)
+    outline = _plan(ox, oy, [p1, p4, p3, p2], k)
+    sh.poly(outline, [0.0] * 4, True, layer, rgb)
+    for i in range(1, risers):
+        t = i * going
+        sh.line(_plan(ox, oy, [(dx * t, dy * t),
+                               (p2[0] + dx * t, p2[1] + dy * t)], k)[0],
+                _plan(ox, oy, [(dx * t, dy * t),
+                               (p2[0] + dx * t, p2[1] + dy * t)], k)[1],
+                layer, rgb)
+    mx, my = nx * width / 2.0, ny * width / 2.0
+    sh.line(_plan(ox, oy, [(mx, my)], k)[0],
+            _plan(ox, oy, [(mx + dx * total, my + dy * total)], k)[0],
+            "RMR-A-ARROW", TERRA)
+    tip = _plan(ox, oy, [(mx + dx * total, my + dy * total)], k)[0]
+    sh.tri((tip[0] - 6.0 * dx, tip[1] - 6.0 * dy), 6.0, "RMR-A-ARROW", TERRA)
+    return total
+
+
+def draw_delivery_walls(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h, "PARAMETRIC WALLS  |  RMR-WALL")
+
+    ox, oy = x + 14.0, y + 16.0
+    # sample apartment corner: 200 external, 100 internal partition
+    ext = [(0, 0), (6200, 0), (6200, 4200), (0, 4200), (0, 0)]
+    _wall(sh, ox, oy, ext, 200.0, "RMR-S-SLAB", BLUE)
+    _wall(sh, ox, oy, [(2400, 200), (2400, 4200)], 100.0, "RMR-M-WALL", TERRA)
+    _wall(sh, ox, oy, [(2400, 2400), (6200, 2400)], 100.0, "RMR-M-WALL", TERRA)
+
+    # opening gaps shown as door swings on the internal wall
+    sh.arc(_plan(ox, oy, [(2400, 2600)], WALL_K)[0], 900 * WALL_K, 0.0,
+           math.radians(90.0), "RMR-M-DOOR", GOLD)
+    sh.line(_plan(ox, oy, [(2400, 2600)], WALL_K)[0],
+            _plan(ox, oy, [(2400, 3500)], WALL_K)[0], "RMR-M-DOOR", GOLD)
+    sh.arc(_plan(ox, oy, [(3400, 2400)], WALL_K)[0], 800 * WALL_K,
+           math.radians(90.0), math.radians(180.0), "RMR-M-DOOR", GOLD)
+    sh.line(_plan(ox, oy, [(3400, 2400)], WALL_K)[0],
+            _plan(ox, oy, [(4200, 2400)], WALL_K)[0], "RMR-M-DOOR", GOLD)
+
+    sh.text((ox + 8.0, oy - 5.0), "Sample drawn from a picked path - corners are mitred",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((ox + 8.0, oy - 8.4), "so both faces stay exactly on thickness.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # wall type legend from the LISP table
+    lx = x + 168.0
+    ly = ty - 4.0
+    sh.text((lx, ly), "WALL TYPES  |  *RMR-WALL-SPECS*", 2.3, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 5.0
+    sh.text((lx, ly), "TYPE", 1.9, "RMR-MARK", "RMR-A-TEXT", SLATE)
+    sh.text((lx + 18.0, ly), "THICK", 1.9, "RMR-MARK", "RMR-A-TEXT", SLATE)
+    sh.text((lx + 42.0, ly), "TARGET LAYER", 1.9, "RMR-MARK", "RMR-A-TEXT", SLATE)
+    ly -= 4.2
+    for key, thickness, layer, desc in DATA["walls"]:
+        sh.text((lx, ly), key, 2.0, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+        sh.text((lx + 18.0, ly), "%dmm" % int(thickness), 2.0, "RMR-BODY", "RMR-A-TEXT", INK)
+        sh.text((lx + 42.0, ly), layer, 2.0, "RMR-BODY", "RMR-A-TEXT", SLATE)
+        ly -= 4.2
+    sh.text((lx, y + 4.0), "Add a row to the table to add a wall type.", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_delivery_stair(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h, "PARAMETRIC STAIR  |  RMR-STAIR")
+
+    ox, oy = x + 16.0, y + 14.0
+    total = _stair(sh, ox, oy, 1100.0, 280.0, 16, 90.0, "RMR-M-WALL", TERRA)
+    sh.text((ox + 4.0, oy - 5.0), "UP  16R @ 280 = %.2fm GOING" % (total / 1000.0),
+            2.2, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+
+    lx = x + 96.0
+    ly = ty - 4.0
+    sh.text((lx, ly), "PROMPTS", 2.3, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 5.0
+    for prompt, value in (("Bottom-left corner", "picked"), ("Width", "1100 mm"),
+                          ("Risers", "16"), ("Going", "280 mm"),
+                          ("Direction of travel", "90 deg")):
+        sh.text((lx, ly), prompt, 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        sh.text((lx + 62.0, ly), value, 2.0, "RMR-BODY", "RMR-A-TEXT", INK)
+        ly -= 4.2
+    ly -= 2.0
+    sh.text((lx, ly), "DRAWN GEOMETRY", 2.3, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ly -= 5.0
+    for line in ("Outline with closed tread lines", "Walking line with direction arrow",
+                 "UP label with risers, going and total", "Everything on RMR-M-WALL"):
+        sh.text((lx, ly), "- " + line, 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 4.2
+
+
+def draw_delivery_quantity(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h, "QUANTIFICATION  |  RMR-LENGTH / RMR-BOM")
+
+    # linear takeoff readout
+    sh.text((x + 6.0, ty - 4.0), "RMR-LENGTH  linear takeoff", 2.3, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    sh.rect((x + 6.0, ty - 24.0), 100.0, 16.0, "RMR-A-FRAME", INK)
+    sh.text((x + 9.0, ty - 12.0), "TOTAL LENGTH", 2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 9.0, ty - 17.6), "24.60 m", 3.4, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+    sh.text((x + 6.0, ty - 25.0), "Measures LINE, LWPOLYLINE, ARC, CIRCLE,",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 6.0, ty - 28.0), "ELLIPSE and SPLINE, then labels or exports CSV.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # bill of materials sample
+    by = ty - 38.0
+    sh.text((x + 6.0, by), "RMR-BOM  bill of materials", 2.3, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    colw = [14.0, 58.0, 52.0, 18.0]
+    width = sum(colw)
+    rowh = 7.6
+    cy = by - 5.0
+    sh.solid((x + 6.0, cy - rowh), width, rowh, "RMR-PRES-TITLE", SAND)
+    cx = x + 6.0
+    for i, label in enumerate(("NO.", "BLOCK", "LAYER", "QTY")):
+        sh.text((cx + 1.6, cy - 5.4), label, 2.1, "RMR-HEAD", "RMR-A-TEXT", INK)
+        if i < len(colw) - 1:
+            cx += colw[i]
+            sh.line((cx, cy - rowh), (cx, cy), "RMR-A-FRAME", INK)
+    cy -= rowh
+    for i, (blk, layer, qty) in enumerate((("RMR-SYM-DOOR-09", "RMR-M-DOOR", 6),
+                                           ("RMR-SYM-WINDOW", "RMR-M-WINDOW", 4),
+                                           ("RMR-SYM-BED-D", "RMR-F-FURN", 2),
+                                           ("RMR-SYM-WC", "RMR-F-FIXTURE", 2),
+                                           ("RMR-SYM-SOFA", "RMR-F-FURN", 1))):
+        sh.rect((x + 6.0, cy - rowh), width, rowh, "RMR-A-FRAME", SLATE)
+        cx = x + 6.0
+        for j in range(len(colw) - 1):
+            cx += colw[j]
+            sh.line((cx, cy - rowh), (cx, cy), "RMR-A-FRAME", SLATE)
+        sh.text((x + 7.6, cy - 5.4), str(i + 1), 2.1, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+        sh.text((x + 6.0 + colw[0] + 1.6, cy - 5.4), blk, 2.1, "RMR-LABEL",
+                "RMR-A-TEXT", INK)
+        sh.text((x + 6.0 + colw[0] + colw[1] + 1.6, cy - 5.4), layer, 2.1,
+                "RMR-BODY", "RMR-A-TEXT", INK)
+        sh.text((x + 6.0 + colw[0] + colw[1] + colw[2] + 1.6, cy - 5.4), str(qty),
+                2.1, "RMR-NUMBER", "RMR-A-TEXT", SLATE)
+        cy -= rowh
+    sh.text((x + 6.0, y + 4.0), "Counted per block name and layer, then sorted by quantity.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def _table(sh, x, y, headers, colw, rows, text=2.1):
+    width = sum(colw)
+    rowh = 7.6
+    sh.solid((x, y - rowh), width, rowh, "RMR-PRES-TITLE", SAND)
+    cx = x
+    for i, label in enumerate(headers):
+        sh.text((cx + 1.6, y - 5.4), label, text, "RMR-HEAD", "RMR-A-TEXT", INK)
+        if i < len(colw) - 1:
+            cx += colw[i]
+            sh.line((cx, y - rowh), (cx, y), "RMR-A-FRAME", INK)
+    cy = y - rowh
+    for row in rows:
+        sh.rect((x, cy - rowh), width, rowh, "RMR-A-FRAME", SLATE)
+        cx = x
+        for j in range(len(colw) - 1):
+            cx += colw[j]
+            sh.line((cx, cy - rowh), (cx, cy), "RMR-A-FRAME", SLATE)
+        cx = x
+        for j, value in enumerate(row):
+            sh.text((cx + 1.6, cy - 5.4), value, text,
+                    "RMR-LABEL" if j == 0 else "RMR-BODY", "RMR-A-TEXT",
+                    TERRA if j == 0 else INK)
+            cx += colw[j]
+        cy -= rowh
+    return cy
+
+
+def draw_delivery_finishes(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "ROOM FINISHES  |  RMR-FINISHES")
+    sh.text((x + 6.0, ty - 4.0), "Rows come from *RMR-FINISH-SPECS*", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    rows = [list(r) for r in DATA["finishes"]]
+    # trim notes so the columns stay inside the panel
+    rows = [r[:5] + [r[5][:26]] for r in rows]
+    _table(sh, x + 6.0, ty - 9.0, ("ROOM", "FLOOR", "SKIRT", "WALL", "CEILING", "NOTES"),
+           [40.0, 46.0, 26.0, 42.0, 32.0, 44.0], rows, text=1.9)
+
+
+def draw_delivery_register(sh):
+    x, y, w, h = 280.0, 242.0, 244.0, 144.0
+    ty = _panel(sh, x, y, w, h, "DRAWING REGISTER  |  RMR-SHEETREG")
+    sh.text((x + 6.0, ty - 4.0), "Rows come from *RMR-SHEET-LIST*", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    _table(sh, x + 6.0, ty - 9.0, ("SHEET", "TITLE", "SCALE", "REV", "STATUS"),
+           [24.0, 92.0, 22.0, 16.0, 52.0],
+           [list(r) for r in DATA["sheets"]], text=1.9)
+
+
+def draw_delivery_transmittal(sh):
+    x, y, w, h = 534.0, 242.0, 282.0, 144.0
+    ty = _panel(sh, x, y, w, h, "ISSUE RECORD  |  RMR-TRANSMITTAL")
+    sh.text((x + 6.0, ty - 4.0),
+            "Issued by %s  |  Checked by %s  |  %s"
+            % (project("DRAWN"), project("CHECKED"), project("STAGE")),
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    rows = [(r[0], r[1][:34], r[3], project("DATE"), "") for r in DATA["sheets"]]
+    _table(sh, x + 6.0, ty - 9.0, ("SHEET", "TITLE", "REV", "ISSUE DATE", "RECEIVED BY"),
+           [24.0, 90.0, 16.0, 46.0, 56.0], rows, text=1.9)
+
+
+def draw_delivery_housekeeping(sh):
+    x, y, w, h = 20.0, 74.0, 380.0, 158.0
+    ty = _panel(sh, x, y, w, h, "HOUSEKEEPING  |  LAYER STATES, BYLAYER, CLEAN, PROPERTIES")
+
+    lx = x + 6.0
+    ly = ty - 4.0
+    entries = [
+        ("RMR-LAYERSTATE", "save / restore / list / delete layer states as .rms files"),
+        ("RMR-STANDARDIZE", "force colour, linetype and lineweight to BYLAYER"),
+        ("RMR-CLEAN", "three purge passes plus an audit, then optional standardise"),
+        ("RMR-DWGPROPS", "title, subject, author, category and keywords from the project"),
+    ]
+    for name, desc in entries:
+        sh.text((lx, ly), name, 2.2, "RMR-MARK", "RMR-A-TEXT", TEAL)
+        sh.text((lx + 44.0, ly), desc, 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 4.4
+
+    ly -= 4.0
+    sh.text((lx, ly), "LAYER STATE FILE FORMAT  |  one line per layer", 2.2, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    ly -= 4.6
+    sh.text((lx, ly), "Name;Colour;Linetype;Lineweight;Frozen;Off;Locked", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", INK)
+    ly -= 4.2
+    for sample in ("RMR-M-WALL;7;Continuous;35;0;0;0",
+                   "RMR-A-DIMS;-7;Continuous;18;0;1;0",
+                   "RMR-S-GRID;7;CENTER;9;1;0;0"):
+        sh.text((lx + 4.0, ly), sample, 1.9, "RMR-BODY", "RMR-A-TEXT", SLATE)
+        ly -= 4.0
+    sh.text((lx, ly - 1.0),
+            "Restore keeps xref-dependent bits, skips missing layers and reports the count.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    # wall specs table on the right half of the panel
+    rx = x + 208.0
+    ry = ty - 4.0
+    sh.text((rx, ry), "*RMR-WALL-SPECS* (editable)", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ry -= 5.0
+    for key, thickness, layer, desc in DATA["walls"]:
+        sh.text((rx, ry), key, 2.0, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+        sh.text((rx + 18.0, ry), "%dmm" % int(thickness), 2.0, "RMR-BODY", "RMR-A-TEXT", INK)
+        sh.text((rx + 42.0, ry), desc, 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ry -= 4.4
+    ry -= 3.0
+    sh.text((rx, ry), "*RMR-FINISH-SPECS*", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    ry -= 4.6
+    for room, floor, skirt, wall, ceil, _notes in DATA["finishes"]:
+        sh.text((rx, ry), room[:26], 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((rx + 58.0, ry), floor[:24], 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ry -= 4.0
+
+
+def draw_delivery_xref_commands(sh):
+    x, y, w, h = 410.0, 74.0, 406.0, 158.0
+    ty = _panel(sh, x, y, w, h, "XREF REGISTER AND DELIVERY COMMANDS")
+
+    lx = x + 6.0
+    ly = ty - 4.0
+    sh.text((lx, ly), "RMR-XREFLIST  external references with resolved paths", 2.2,
+            "RMR-MARK", "RMR-A-TEXT", TEAL)
+    ly -= 5.0
+    _table(sh, lx, ly, ("XREF NAME", "SOURCE PATH"),
+           [70.0, 130.0],
+           [("A-101-PLAN", "C:\\Projects\\2401\\A-101-PLAN.dwg"),
+            ("S-201-FRAMING", "C:\\Projects\\2401\\S-201-FRAMING.dwg"),
+            ("M-301-SERVICES", "C:\\Projects\\2401\\M-301-SERVICES.dwg")], text=1.9)
+
+    cx = x + 216.0
+    cy = ty - 4.0
+    sh.text((cx, cy), "NEW IN 5.0 DELIVERY SUITE", 2.2, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    cy -= 5.0
+    commands = [
+        ("RMR-WALL", "mitred parametric walls"),
+        ("RMR-STAIR", "straight stair plans"),
+        ("RMR-LENGTH", "linear takeoff"),
+        ("RMR-BOM", "bill of materials"),
+        ("RMR-FINISHES", "room finish schedule"),
+        ("RMR-SHEETREG", "drawing register"),
+        ("RMR-XREFLIST", "xref register"),
+        ("RMR-TRANSMITTAL", "issue record"),
+        ("RMR-LAYERSTATE", "layer state files"),
+        ("RMR-STANDARDIZE", "everything BYLAYER"),
+        ("RMR-CLEAN", "purge and audit"),
+        ("RMR-DWGPROPS", "drawing properties"),
+    ]
+    half = (len(commands) + 1) // 2
+    for col, group in enumerate((commands[:half], commands[half:])):
+        gx = cx + col * 96.0
+        gy = cy
+        for name, desc in group:
+            sh.text((gx, gy), name, 2.0, "RMR-MARK", "RMR-A-TEXT", TEAL)
+            sh.text((gx + 40.0, gy), desc, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+            gy -= 4.0
+    sh.text((lx, y + 4.0),
+            "Wall, finish and sheet data live in editable tables near the top of the LISP.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def build_delivery():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "DELIVERY SUITE PREVIEW SHEET"
+    SHEET_SUBTITLE = "PARAMETRIC GEOMETRY, QUANTIFICATION, REGISTERS AND HOUSEKEEPING"
+    SHEET_NOTE = ("The 5.0 delivery suite: everything needed to take a coordinated "
+                  "drawing set to issue.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_delivery_walls(sh)
+    draw_delivery_stair(sh)
+    draw_delivery_quantity(sh)
+    draw_delivery_finishes(sh)
+    draw_delivery_register(sh)
+    draw_delivery_transmittal(sh)
+    draw_delivery_housekeeping(sh)
+    draw_delivery_xref_commands(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -1534,6 +1928,17 @@ def main():
              len(DATA["hatches"]), len(DATA["notes"]), VERSION))
     print("project tags: %d | symbols: %d | doors: %d | cloud arc: %s"
           % (len(DATA["project"]), len(SYMBOLS), len(DOOR_ROWS), DATA["cloud_arc"]))
+    dlv = build_delivery()
+    dlv_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Delivery_Suite.dxf")
+    dlv.saveas(dlv_path)
+    print("DXF  :", dlv_path, os.path.getsize(dlv_path), "bytes")
+    try:
+        print("PNG  :", render_png(dlv, os.path.join(OUT_DIR, "RooMNRooF_PRO_Delivery_Suite.png"),
+                                   dpi=150))
+    except Exception as exc:
+        print("Delivery PNG render skipped:", exc)
+    print("walls: %d | finishes: %d | sheets: %d"
+          % (len(DATA["walls"]), len(DATA["finishes"]), len(DATA["sheets"])))
     return 0
 
 

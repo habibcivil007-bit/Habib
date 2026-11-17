@@ -1,6 +1,6 @@
 ;;; -----------------------------------------------------------------------------
 ;;; RooMNRooF Master 2D CAD Standard
-;;; Version 4.0 STUDIO SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
+;;; Version 5.0 DELIVERY SUITE | Metric | AutoCAD / AutoCAD LT with AutoLISP
 ;;;
 ;;; Purpose
 ;;;   Builds a complete, colour-led 2D consultant standard in the active drawing.
@@ -14,6 +14,10 @@
 ;;;   elevation, match, break and revision-cloud markers, a dimension launcher,
 ;;;   a parametric RMR-SYM-* symbol library, door schedules, text find/replace,
 ;;;   live fields, project data files and timestamped drawing backups.
+;;;   Version 5.0 adds the delivery suite: parametric walls and stairs, linear
+;;;   takeoff, bill of materials, room finishes and drawing registers, an xref
+;;;   register, transmittal records, layer states, ByLayer standardisation,
+;;;   drawing clean-up and drawing properties driven by the project data.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -66,6 +70,20 @@
 ;;;   RMR-FIELDS       Insert live fields (date, drawing name, layout...)
 ;;;   RMR-PROJECT      Show / set / save / load project data (*RMR-PROJECT*)
 ;;;   RMR-BACKUP       Timestamped backup copy of the drawing
+;;;
+;;; Delivery suite commands
+;;;   RMR-WALL         Parametric double-line wall from a picked path
+;;;   RMR-STAIR        Parametric straight stair plan with walking line
+;;;   RMR-LENGTH       Linear takeoff: total length with label and CSV
+;;;   RMR-BOM          Bill of materials table and CSV from block inserts
+;;;   RMR-FINISHES     Room finishes schedule from *RMR-FINISH-SPECS*
+;;;   RMR-SHEETREG     Drawing register from *RMR-SHEET-LIST*
+;;;   RMR-XREFLIST     Xref register table with resolved paths
+;;;   RMR-TRANSMITTAL  Issue / transmittal record for the drawing set
+;;;   RMR-LAYERSTATE   Save / restore / list / delete layer states (.rms)
+;;;   RMR-STANDARDIZE  Force colour, linetype and lineweight to BYLAYER
+;;;   RMR-CLEAN        Repeated purge plus audit, then optional standardise
+;;;   RMR-DWGPROPS     Write drawing properties from *RMR-PROJECT*
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
@@ -214,7 +232,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "4.0 STUDIO SUITE")
+(setq *RMR-VERSION* "5.0 DELIVERY SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1428,6 +1446,8 @@
   (princ "\nSheets:   RMR-LAYOUTS, RMR-VPORT, RMR-PAGESETUP, RMR-PUBLISH")
   (princ "\nManage:   RMR-LAYGROUP, RMR-CHECK, RMR-COUNT, RMR-SYMBOLS, RMR-DOORSCHED, RMR-FINDTEXT, RMR-FIELDS, RMR-PROJECT, RMR-BACKUP")
   (princ "\nPalette:  RMR-EXPORT-PALETTE, RMR-IMPORT-PALETTE, RMR-SAVE-TEMPLATE")
+  (princ "\nDeliver:  RMR-WALL, RMR-STAIR, RMR-LENGTH, RMR-BOM, RMR-FINISHES, RMR-SHEETREG, RMR-XREFLIST, RMR-TRANSMITTAL")
+  (princ "\nHousekeeping: RMR-LAYERSTATE, RMR-STANDARDIZE, RMR-CLEAN, RMR-DWGPROPS")
   (princ)
 )
 
@@ -2880,6 +2900,20 @@
   (princ "\n  RMR-PROJECT        Show / set / save / load project data")
   (princ "\n  RMR-BACKUP         Timestamped backup copy of the drawing")
   (princ "\n")
+  (princ "\n Delivery suite")
+  (princ "\n  RMR-WALL           Parametric wall: type, thickness, mitred path")
+  (princ "\n  RMR-STAIR          Straight stair: width, risers, going, direction")
+  (princ "\n  RMR-LENGTH         Linear takeoff with label and CSV export")
+  (princ "\n  RMR-BOM            Bill of materials table and CSV")
+  (princ "\n  RMR-FINISHES       Room finishes schedule (*RMR-FINISH-SPECS*)")
+  (princ "\n  RMR-SHEETREG       Drawing register (*RMR-SHEET-LIST*)")
+  (princ "\n  RMR-XREFLIST       Xref register with resolved paths")
+  (princ "\n  RMR-TRANSMITTAL    Issue / transmittal record for the set")
+  (princ "\n  RMR-LAYERSTATE     Save / restore / list / delete layer states")
+  (princ "\n  RMR-STANDARDIZE    Force colour, linetype and lineweight to BYLAYER")
+  (princ "\n  RMR-CLEAN          Repeated purge + audit, then optional standardise")
+  (princ "\n  RMR-DWGPROPS       Drawing properties from *RMR-PROJECT*")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -2892,6 +2926,9 @@
   (princ "\n  *RMR-PLOT-DEVICE*    plotter, plot style and paper defaults")
   (princ "\n  *RMR-PROJECT*        client, job, sheet and issue data")
   (princ "\n  *RMR-CLOUD-ARC*      revision cloud bulge factor")
+  (princ "\n  *RMR-WALL-SPECS*     wall types, thickness and target layer")
+  (princ "\n  *RMR-FINISH-SPECS*   room finish schedule rows")
+  (princ "\n  *RMR-SHEET-LIST*     drawing register and transmittal rows")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -3978,6 +4015,827 @@
       (if (findfile dst)
         (princ (strcat "\nBackup saved to " dst " - returning you to the backup drawing."))
         (princ "\nBackup not written - check the folder permissions.")
+      )
+    )
+  )
+  (princ)
+)
+
+;;; =====================================================================
+;;; PRO 5.0 DELIVERY SUITE
+;;; Parametric geometry (walls, stairs), quantification (lengths, bill of
+;;; materials), delivery documents (finishes, sheet register, xref
+;;; register, transmittal) and drawing housekeeping (layer states,
+;;; ByLayer standardisation, clean-up, drawing properties).
+;;; =====================================================================
+
+;;; Wall types: (Key Thickness Layer Description)
+(setq *RMR-WALL-SPECS*
+ '(
+    ("W100" 100 "RMR-M-WALL" "100mm internal partition")
+    ("W150" 150 "RMR-M-WALL" "150mm internal partition")
+    ("W200" 200 "RMR-S-SLAB" "200mm blockwork wall")
+    ("W250" 250 "RMR-S-SLAB" "250mm party / core wall")
+    ("W300" 300 "RMR-S-FOUND" "300mm retaining or foundation wall")
+  )
+)
+
+;;; Room finishes: (Room Floor Skirting Wall Ceiling Notes)
+(setq *RMR-FINISH-SPECS*
+ '(
+    ("LIVING / DINING" "Porcelain tile 600x600" "Tile 100mm" "Matte emulsion" "Gypsum board" "Feature wall to TV")
+    ("MASTER BEDROOM" "Engineered oak" "Timber 100mm" "Matte emulsion" "Gypsum board" "Wardrobe to bed wall")
+    ("BEDROOM 02" "Engineered oak" "Timber 100mm" "Matte emulsion" "Gypsum board" "Built-in wardrobe")
+    ("KITCHEN" "Porcelain tile 600x600" "Tile 100mm" "Ceramic tile to 1500" "Moisture board" "Splashback to hob")
+    ("BATHROOM" "Non-slip tile 300x300" "Waterproof 100mm" "Ceramic tile full height" "Moisture board" "Tanked to wet areas")
+    ("BALCONY" "External tile 300x300" "None" "External paint" "Soffit lining" "Fall 1:80 to drain")
+  )
+)
+
+;;; Drawing register: (SheetNumber Title Scale Revision Status)
+(setq *RMR-SHEET-LIST*
+ '(
+    ("A-000" "COVER SHEET AND DRAWING REGISTER" "NTS" "01" "ISSUED FOR REVIEW")
+    ("A-101" "GENERAL ARRANGEMENT PLAN" "1:50" "01" "ISSUED FOR REVIEW")
+    ("A-102" "ENLARGED PLANS AND SECTIONS" "1:50" "01" "ISSUED FOR REVIEW")
+    ("A-201" "ELEVATIONS" "1:100" "01" "ISSUED FOR REVIEW")
+    ("A-301" "DOOR AND WINDOW SCHEDULES" "NTS" "01" "ISSUED FOR REVIEW")
+    ("A-401" "FINISHES AND ROOM DATA" "NTS" "01" "ISSUED FOR REVIEW")
+  )
+)
+
+;;; --- geometry helpers --------------------------------------------------
+(defun RMR:UnitNormal (p1 p2 / dx dy len)
+  ;; Left-hand unit normal of the segment p1 -> p2.
+  (setq dx (- (car p2) (car p1)))
+  (setq dy (- (cadr p2) (cadr p1)))
+  (setq len (distance p1 p2))
+  (if (< len 0.000001)
+    '(0.0 0.0)
+    (list (/ (- dy) len) (/ dx len))
+  )
+)
+
+(defun RMR:OffsetPath (pts d / out n i cur prev next n1 n2 mx my len scale)
+  ;; Mitred offset of a polyline path. Positive d offsets to the left.
+  (setq out '())
+  (setq n (length pts))
+  (setq i 0)
+  (while (< i n)
+    (setq cur (nth i pts))
+    (cond
+      ((= i 0)
+        (setq next (nth (1+ i) pts))
+        (setq n1 (RMR:UnitNormal cur next))
+        (setq out (cons (list (+ (car cur) (* (car n1) d))
+                              (+ (cadr cur) (* (cadr n1) d))) out))
+      )
+      ((= i (1- n))
+        (setq prev (nth (1- i) pts))
+        (setq n1 (RMR:UnitNormal prev cur))
+        (setq out (cons (list (+ (car cur) (* (car n1) d))
+                              (+ (cadr cur) (* (cadr n1) d))) out))
+      )
+      (T
+        (setq prev (nth (1- i) pts))
+        (setq next (nth (1+ i) pts))
+        (setq n1 (RMR:UnitNormal prev cur))
+        (setq n2 (RMR:UnitNormal cur next))
+        (setq mx (+ (car n1) (car n2)))
+        (setq my (+ (cadr n1) (cadr n2)))
+        (setq len (sqrt (+ (* mx mx) (* my my))))
+        (if (< len 0.000001)
+          (progn (setq mx (car n1)) (setq my (cadr n1)) (setq len 1.0))
+        )
+        (setq scale (/ d (/ (+ (* mx (car n1)) (* my (cadr n1))) len)))
+        ;; guard against extreme mitres on shallow corners
+        (if (> (abs scale) (* 4.0 (abs d))) (setq scale (* 4.0 (abs d))))
+        (if (< (abs scale) (abs d)) (setq scale d))
+        (setq out (cons (list (+ (car cur) (* (/ mx len) scale))
+                              (+ (cadr cur) (* (/ my len) scale))) out))
+      )
+    )
+    (setq i (1+ i))
+  )
+  (reverse out)
+)
+
+;;; --- parametric wall ---------------------------------------------------
+(defun C:RMR-WALL (/ keyword spec thickness layer pts p next left right s mid index)
+  (RMR:EnsureReady)
+  (setq keyword (RMR:PromptKeyword
+                  "Wall type"
+                  (RMR:KeywordBar (RMR:KeywordList *RMR-WALL-SPECS*)) "W100"))
+  (if keyword
+    (progn
+      (setq spec (RMR:TableSpec keyword *RMR-WALL-SPECS*))
+      (setq thickness (nth 1 spec))
+      (setq layer (nth 2 spec))
+      (setq pts '())
+      (setq p (getpoint "\nWall start point: "))
+      (while p
+        (setq pts (append pts (list (list (car p) (cadr p)))))
+        (setq p (getpoint (last pts) "\nNext wall point <enter to finish>: "))
+      )
+      (if (< (length pts) 2)
+        (princ "\nA wall needs at least two points.")
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq left (RMR:OffsetPath pts (/ (float thickness) 2.0)))
+          (setq right (RMR:OffsetPath pts (- (/ (float thickness) 2.0))))
+          (RMR:PolyLine left nil nil layer *RMR-BRAND-TERRA*)
+          (RMR:PolyLine right nil nil layer *RMR-BRAND-TERRA*)
+          (RMR:Line (nth 0 left) (nth 0 right) layer *RMR-BRAND-TERRA*)
+          (RMR:Line (last left) (last right) layer *RMR-BRAND-TERRA*)
+          (setq index (1- (length pts)))
+          (setq mid (nth (/ index 2) pts))
+          (RMR:Text (list (+ (car mid) (* 2.0 s)) (+ (cadr mid) (* 2.0 s)))
+                    (strcat keyword " / " (itoa thickness) "mm")
+                    (* 2.2 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+          (princ (strcat "\n" keyword " wall drawn: " (itoa thickness) "mm thick on " layer "."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- parametric straight stair ------------------------------------------
+(defun RMR:StairPlan (base width going risers angle layer / s total dirx diry nx ny
+                      i y p1 p2 p3 p4 midx midy-base start tip)
+  (setq s (RMR:Scaled 1.0))
+  (setq total (* (float risers) (float going)))
+  (setq dirx (cos angle))
+  (setq diry (sin angle))
+  (setq nx (- diry))
+  (setq ny dirx)
+  ;; outline: base is the bottom-left corner, stair runs along the direction
+  (setq p1 base)
+  (setq p2 (list (+ (car base) (* nx (float width)))
+                 (+ (cadr base) (* ny (float width)))))
+  (setq p3 (list (+ (car p2) (* dirx total)) (+ (cadr p2) (* diry total))))
+  (setq p4 (list (+ (car base) (* dirx total)) (+ (cadr base) (* diry total))))
+  (RMR:PolyLine (list p1 p4 p3 p2) nil T layer *RMR-BRAND-TERRA*)
+  ;; treads
+  (setq i 1)
+  (while (< i risers)
+    (setq y (* (float i) (float going)))
+    (RMR:Line (list (+ (car base) (* dirx y)) (+ (cadr base) (* diry y)))
+              (list (+ (car p2) (* dirx y)) (+ (cadr p2) (* diry y)))
+              layer *RMR-BRAND-TERRA*)
+    (setq i (1+ i))
+  )
+  ;; walking line with direction arrow
+  (setq midx (+ (car base) (* nx (/ (float width) 2.0))))
+  (setq midy-base (+ (cadr base) (* ny (/ (float width) 2.0))))
+  (setq start (list midx midy-base))
+  (setq tip (list (+ midx (* dirx total)) (+ midy-base (* diry total))))
+  (RMR:Line start tip "RMR-A-ARROW" *RMR-BRAND-TERRA*)
+  (RMR:SolidTri tip (- dirx) (- diry) (* 4.0 s) "RMR-A-ARROW" *RMR-BRAND-TERRA*)
+  (RMR:RotText (list (+ midx (* dirx (* total 0.25)))
+                     (+ midy-base (* diry (* total 0.25)) (* 2.5 s)))
+               (strcat "UP  " (itoa risers) "R @ " (itoa going) " = "
+                       (RMR:Num (RMR:LinearToMetres total) 2) "m GOING")
+               (* 2.4 s) "RMR-LABEL" "RMR-A-ARROW" *RMR-BRAND-TERRA* angle)
+  T
+)
+
+(defun C:RMR-STAIR (/ base width going risers angle)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nBottom-left corner of the stair: "))
+  (if base
+    (progn
+      (setq width (RMR:PromptReal "Stair width in mm" 1100.0))
+      (setq risers (RMR:PromptInt "Number of risers" 16))
+      (setq going (RMR:PromptReal "Going (tread) in mm" 280.0))
+      (setq angle (RMR:PromptAngle "Direction of travel" 90.0))
+      (if (< risers 1) (setq risers 1))
+      (RMR:StairPlan (list (car base) (cadr base)) width going risers
+                     (* angle (/ pi 180.0)) "RMR-M-WALL")
+      (princ (strcat "\nStair drawn: " (itoa risers) " risers, " (itoa (fix going))
+                     "mm going, " (itoa (fix width)) "mm wide on RMR-M-WALL."))
+    )
+  )
+  (princ)
+)
+
+;;; --- linear takeoff ------------------------------------------------------
+(defun RMR:EntityLength (ename / obj result data)
+  (setq obj (vl-catch-all-apply 'vlax-ename->vla-object (list ename)))
+  (if (vl-catch-all-error-p obj)
+    nil
+    (progn
+      (setq result (vl-catch-all-apply 'vlax-get-property (list obj 'Length)))
+      (if (vl-catch-all-error-p result)
+        (progn
+          (setq data (entget ename))
+          (if (= (cdr (assoc 0 data)) "LINE")
+            (distance (cdr (assoc 10 data)) (cdr (assoc 11 data)))
+            nil
+          )
+        )
+        result
+      )
+    )
+  )
+)
+
+(defun C:RMR-LENGTH (/ ss i ent len total s point csv)
+  (RMR:EnsureReady)
+  (setq ss (ssget '((0 . "LINE,LWPOLYLINE,POLYLINE,ARC,CIRCLE,ELLIPSE,SPLINE"))))
+  (if ss
+    (progn
+      (setq total 0.0)
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq len (RMR:EntityLength (ssname ss i)))
+        (if len (setq total (+ total len)))
+        (setq i (1+ i))
+      )
+      (setq s (RMR:Scaled 1.0))
+      (princ (strcat "\nObjects measured: " (itoa (sslength ss))
+                     " | total length " (RMR:Num total 1) " mm = "
+                     (RMR:Num (RMR:LinearToMetres total) 2) " m"))
+      (setq point (getpoint "\nPlace the total label <enter to skip>: "))
+      (if point
+        (RMR:Text point (strcat "TOTAL LENGTH " (RMR:Num (RMR:LinearToMetres total) 2) " m")
+                  (* 2.5 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-INK*)
+      )
+      (if (RMR:YesP (RMR:PromptYesNo "Write the total to a CSV file" "No"))
+        (progn
+          (setq csv (getfiled "Save the takeoff" "RooMNRooF_Takeoff.csv" "csv" 1))
+          (if csv
+            (if (RMR:WriteLines csv
+                  (list "RooMNRooF linear takeoff"
+                        (strcat "Drawing;" (getvar "DWGNAME"))
+                        (strcat "Objects;" (itoa (sslength ss)))
+                        (strcat "Total mm;" (RMR:Num total 1))
+                        (strcat "Total m;" (RMR:Num (RMR:LinearToMetres total) 2))))
+              (princ (strcat "\nTakeoff written to " csv))
+              (princ "\nThe takeoff file could not be written.")
+            )
+          )
+        )
+      )
+    )
+    (princ "\nNo linear objects selected.")
+  )
+  (princ)
+)
+
+;;; --- bill of materials ---------------------------------------------------
+(defun RMR:DrawBomTable (base rows / s text colw rowh width y i row parts)
+  (setq s (RMR:Scaled 1.0))
+  (setq text (* 2.5 s))
+  (setq colw (list (* 14.0 s) (* 62.0 s) (* 56.0 s) (* 20.0 s)))
+  (setq width (+ (nth 0 colw) (nth 1 colw) (nth 2 colw) (nth 3 colw)))
+  (setq rowh (* 8.0 s))
+  (setq y (cadr base))
+  (RMR:Text base "BILL OF MATERIALS  |  RMR-BOM" (* 4.5 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (RMR:Text (RMR:PT+ base 0.0 (- (* 5.5 s)))
+            (strcat "PROJECT " (RMR:ProjectValue "PROJECT" "") "   |   BLOCK TAKEOFF")
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq y (- y (* 13.0 s)))
+  (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+  (RMR:Text (RMR:PT+ (list (car base) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "NO." text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "BLOCK" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "LAYER" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw) (nth 2 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s)) "QTY" text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+  (setq y (- y rowh))
+  (setq i 0)
+  (foreach row rows
+    (setq parts (RMR:SplitString (car row) "|"))
+    (RMR:Rect (list (car base) (- y rowh) 0.0) width rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:Text (RMR:PT+ (list (car base) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (itoa (1+ i)) text "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+    (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (nth 0 parts) text "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (nth 1 parts) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (RMR:Text (RMR:PT+ (list (+ (car base) (nth 0 colw) (nth 1 colw) (nth 2 colw)) (- y rowh) 0.0) (* 2.0 s) (* 2.2 s))
+              (itoa (cdr row)) text "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+    (setq i (1+ i))
+    (setq y (- y rowh))
+  )
+  T
+)
+
+(defun C:RMR-BOM (/ ss i data name layer key counts rows point csv action parts)
+  (RMR:EnsureReady)
+  (princ "\nSelect the blocks to count <enter for the whole drawing>: ")
+  (setq ss (ssget '((0 . "INSERT"))))
+  (if (not ss) (setq ss (ssget "_X" '((0 . "INSERT")))))
+  (if ss
+    (progn
+      (setq counts nil)
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq data (entget (ssname ss i)))
+        (setq name (cdr (assoc 2 data)))
+        (setq layer (cdr (assoc 8 data)))
+        (if (not layer) (setq layer "0"))
+        (setq key (strcat name "|" layer))
+        (setq counts (RMR:AssocCountInc key counts))
+        (setq i (1+ i))
+      )
+      (setq rows (RMR:SortPairsDesc counts))
+      (princ (strcat "\nDistinct block / layer combinations: " (itoa (length rows))
+                     " | total inserts: " (itoa (sslength ss))))
+      (setq action (RMR:PromptKeyword "Output" (RMR:KeywordBar "TABLE CSV BOTH") "TABLE"))
+      (if (or (= action "TABLE") (= action "BOTH"))
+        (progn
+          (setq point (getpoint "\nTop-left of the bill of materials: "))
+          (if point (RMR:DrawBomTable point rows))
+        )
+      )
+      (if (or (= action "CSV") (= action "BOTH"))
+        (progn
+          (setq csv (getfiled "Save the bill of materials" "RooMNRooF_BOM.csv" "csv" 1))
+          (if csv
+            (if (RMR:WriteLines csv
+                  (append (list "RooMNRooF bill of materials"
+                                "Block;Layer;Quantity")
+                          (RMR:CsvLines rows)))
+              (princ (strcat "\nBill of materials written to " csv))
+              (princ "\nThe file could not be written.")
+            )
+          )
+        )
+      )
+    )
+    (princ "\nNo block references found.")
+  )
+  (princ)
+)
+
+;;; --- room finishes schedule ----------------------------------------------
+(defun RMR:DrawFinishTable (base rows / s text colw rowh width y row cx i label-index value)
+  (setq s (RMR:Scaled 1.0))
+  (setq text (* 2.2 s))
+  (setq colw (list (* 34.0 s) (* 44.0 s) (* 26.0 s) (* 44.0 s) (* 32.0 s) (* 40.0 s)))
+  (setq width (+ (nth 0 colw) (nth 1 colw) (nth 2 colw) (nth 3 colw) (nth 4 colw) (nth 5 colw)))
+  (setq rowh (* 8.0 s))
+  (setq y (cadr base))
+  (RMR:Text base "ROOM FINISHES SCHEDULE  |  RMR-FINISHES" (* 4.5 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (RMR:Text (RMR:PT+ base 0.0 (- (* 5.5 s)))
+            (strcat "PROJECT " (RMR:ProjectValue "PROJECT" "") "   |   EDIT *RMR-FINISH-SPECS*")
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq y (- y (* 13.0 s)))
+  (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+  (foreach label-index '(0 1 2 3 4 5)
+    (setq cx (car base))
+    (setq i 0)
+    (while (< i label-index)
+      (setq cx (+ cx (nth i colw)))
+      (setq i (1+ i))
+    )
+    (RMR:Text (RMR:PT+ (list cx (- y rowh) 0.0) (* 1.6 s) (* 2.2 s))
+              (nth label-index '("ROOM" "FLOOR" "SKIRTING" "WALL" "CEILING" "NOTES"))
+              text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  )
+  (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+  (setq y (- y rowh))
+  (foreach row rows
+    (RMR:Rect (list (car base) (- y rowh) 0.0) width rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (setq cx (car base))
+    (setq i 0)
+    (foreach value row
+      (RMR:Text (RMR:PT+ (list cx (- y rowh) 0.0) (* 1.6 s) (* 2.2 s)) value
+                text (if (= i 0) "RMR-LABEL" "RMR-BODY") "RMR-A-TEXT"
+                (if (= i 0) *RMR-BRAND-INK* *RMR-BRAND-SLATE*))
+      (setq cx (+ cx (nth i colw)))
+      (setq i (1+ i))
+    )
+    (setq y (- y rowh))
+  )
+  T
+)
+
+(defun C:RMR-FINISHES (/ point)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the finishes schedule: "))
+  (if point
+    (progn
+      (RMR:DrawFinishTable point *RMR-FINISH-SPECS*)
+      (princ (strcat "\nFinishes schedule placed with " (itoa (length *RMR-FINISH-SPECS*))
+                     " rooms from *RMR-FINISH-SPECS*."))
+    )
+  )
+  (princ)
+)
+
+;;; --- drawing register ------------------------------------------------------
+(defun RMR:DrawRegisterTable (base rows / s text colw rowh width y row cx i label-index value)
+  (setq s (RMR:Scaled 1.0))
+  (setq text (* 2.3 s))
+  (setq colw (list (* 24.0 s) (* 96.0 s) (* 22.0 s) (* 18.0 s) (* 54.0 s)))
+  (setq width (+ (nth 0 colw) (nth 1 colw) (nth 2 colw) (nth 3 colw) (nth 4 colw)))
+  (setq rowh (* 8.0 s))
+  (setq y (cadr base))
+  (RMR:Text base "DRAWING REGISTER  |  RMR-SHEETREG" (* 4.5 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (RMR:Text (RMR:PT+ base 0.0 (- (* 5.5 s)))
+            (strcat "JOB " (RMR:ProjectValue "JOB" "") "   |   "
+                    (RMR:ProjectValue "PROJECT" ""))
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq y (- y (* 13.0 s)))
+  (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+  (foreach label-index '(0 1 2 3 4)
+    (setq cx (car base))
+    (setq i 0)
+    (while (< i label-index)
+      (setq cx (+ cx (nth i colw)))
+      (setq i (1+ i))
+    )
+    (RMR:Text (RMR:PT+ (list cx (- y rowh) 0.0) (* 1.6 s) (* 2.2 s))
+              (nth label-index '("SHEET" "TITLE" "SCALE" "REV" "STATUS"))
+              text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  )
+  (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+  (setq y (- y rowh))
+  (foreach row rows
+    (RMR:Rect (list (car base) (- y rowh) 0.0) width rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:TableDividers (car base) (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (setq cx (car base))
+    (setq i 0)
+    (foreach value row
+      (RMR:Text (RMR:PT+ (list cx (- y rowh) 0.0) (* 1.6 s) (* 2.2 s)) value
+                text (if (< i 2) "RMR-LABEL" "RMR-BODY") "RMR-A-TEXT"
+                (if (= i 0) *RMR-BRAND-TERRA* *RMR-BRAND-INK*))
+      (setq cx (+ cx (nth i colw)))
+      (setq i (1+ i))
+    )
+    (setq y (- y rowh))
+  )
+  T
+)
+
+(defun C:RMR-SHEETREG (/ point)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the drawing register: "))
+  (if point
+    (progn
+      (RMR:DrawRegisterTable point *RMR-SHEET-LIST*)
+      (princ (strcat "\nDrawing register placed with " (itoa (length *RMR-SHEET-LIST*))
+                     " sheets from *RMR-SHEET-LIST*."))
+    )
+  )
+  (princ)
+)
+
+;;; --- xref register ---------------------------------------------------------
+(defun C:RMR-XREFLIST (/ data name flags path rows row point s y x text)
+  (RMR:EnsureReady)
+  (setq rows nil)
+  (setq data (tblnext "BLOCK" T))
+  (while data
+    (setq name (cdr (assoc 2 data)))
+    (setq flags (cdr (assoc 70 data)))
+    (setq path (cdr (assoc 1 data)))
+    (if (and flags (= (logand flags 4) 4))
+      (setq rows (append rows (list (list name (if path path "(unresolved)")))))
+    )
+    (setq data (tblnext "BLOCK"))
+  )
+  (if rows
+    (progn
+      (princ (strcat "\nExternal references in this drawing: " (itoa (length rows))))
+      (foreach row rows
+        (princ (strcat "\n  " (nth 0 row) " <- " (nth 1 row)))
+      )
+      (setq point (getpoint "\nTop-left of the xref register <enter to skip>: "))
+      (if point
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq text (* 2.3 s))
+          (setq x (car point))
+          (setq y (cadr point))
+          (RMR:Text point "XREF REGISTER  |  RMR-XREFLIST" (* 4.5 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (setq y (- y (* 8.0 s)))
+          (foreach row rows
+            (RMR:Rect (list x (- y (* 8.0 s))) (* 200.0 s) (* 8.0 s) "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+            (RMR:Text (list (+ x (* 2.0 s)) (- y (* 6.0 s))) (nth 0 row) text
+                      "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (RMR:Text (list (+ x (* 60.0 s)) (- y (* 6.0 s))) (nth 1 row) text
+                      "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+            (setq y (- y (* 8.0 s)))
+          )
+        )
+      )
+    )
+    (princ "\nThis drawing has no external references attached.")
+  )
+  (princ)
+)
+
+;;; --- transmittal record ------------------------------------------------------
+(defun C:RMR-TRANSMITTAL (/ point s x y row text colw rowh width i cx label-index)
+  (RMR:EnsureReady)
+  (setq point (getpoint "\nTop-left of the transmittal record: "))
+  (if point
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq text (* 2.3 s))
+      (setq colw (list (* 26.0 s) (* 96.0 s) (* 18.0 s) (* 30.0 s) (* 60.0 s)))
+      (setq width (+ (nth 0 colw) (nth 1 colw) (nth 2 colw) (nth 3 colw) (nth 4 colw)))
+      (setq rowh (* 8.0 s))
+      (setq x (car point))
+      (setq y (cadr point))
+      (RMR:Text point "ISSUE / TRANSMITTAL RECORD  |  RMR-TRANSMITTAL" (* 4.5 s)
+                "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 8.0 s)))
+      (RMR:Text (list x y)
+                (strcat "PROJECT " (RMR:ProjectValue "PROJECT" "")
+                        "   |   CLIENT " (RMR:ProjectValue "CLIENT" "")
+                        "   |   JOB " (RMR:ProjectValue "JOB" ""))
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (setq y (- y (* 8.0 s)))
+      (RMR:Solid (list x (- y rowh)) width rowh "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+      (foreach label-index '(0 1 2 3 4)
+        (setq cx x)
+        (setq i 0)
+        (while (< i label-index)
+          (setq cx (+ cx (nth i colw)))
+          (setq i (1+ i))
+        )
+        (RMR:Text (list (+ cx (* 1.6 s)) (- y (* 5.6 s)))
+                  (nth label-index '("SHEET" "TITLE" "REV" "ISSUE DATE" "RECEIVED BY / SIGNATURE"))
+                  text "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+      )
+      (RMR:TableDividers x (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-INK*)
+      (setq y (- y rowh))
+      (foreach row *RMR-SHEET-LIST*
+        (RMR:Rect (list x (- y rowh)) width rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+        (RMR:TableDividers x (- y rowh) colw rowh "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+        (RMR:Text (list (+ x (* 1.6 s)) (- y (* 5.6 s))) (nth 0 row) text
+                  "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ x (nth 0 colw) (* 1.6 s)) (- y (* 5.6 s))) (nth 1 row) text
+                  "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (RMR:Text (list (+ x (nth 0 colw) (nth 1 colw) (* 1.6 s)) (- y (* 5.6 s)))
+                  (nth 3 row) text "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (RMR:Text (list (+ x (nth 0 colw) (nth 1 colw) (nth 2 colw) (* 1.6 s)) (- y (* 5.6 s)))
+                  (RMR:TodayDate) text "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (setq y (- y rowh))
+      )
+      (RMR:Text (list x (- y (* 6.0 s)))
+                (strcat "Issued by " (RMR:ProjectValue "DRAWN" "")
+                        "  |  Checked by " (RMR:ProjectValue "CHECKED" "")
+                        "  |  Stage: " (RMR:ProjectValue "STAGE" ""))
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (princ (strcat "\nTransmittal record placed for " (itoa (length *RMR-SHEET-LIST*))
+                     " sheets."))
+    )
+  )
+  (princ)
+)
+
+;;; --- layer states (own .rms format, no command-line guessing) ---------------
+(defun RMR:LayerSnapshot (/ data out name colour ltype lw flags)
+  (setq out nil)
+  (setq data (tblnext "LAYER" T))
+  (while data
+    (setq name (cdr (assoc 2 data)))
+    (setq colour (cdr (assoc 62 data)))
+    (setq ltype (cdr (assoc 6 data)))
+    (setq lw (cdr (assoc 370 data)))
+    (setq flags (cdr (assoc 70 data)))
+    (setq out
+      (cons
+        (list name
+              (itoa (abs (if colour colour 7)))
+              (if ltype ltype "Continuous")
+              (itoa (if lw lw -3))
+              (if (and flags (= (logand flags 1) 1)) "1" "0")
+              (if (and colour (< colour 0)) "1" "0")
+              (if (and flags (= (logand flags 4) 4)) "1" "0"))
+        out))
+    (setq data (tblnext "LAYER"))
+  )
+  (reverse out)
+)
+
+(defun RMR:StateLine (row)
+  (strcat (nth 0 row) ";" (nth 1 row) ";" (nth 2 row) ";" (nth 3 row) ";"
+          (nth 4 row) ";" (nth 5 row) ";" (nth 6 row))
+)
+
+(defun RMR:ApplyLayerState (row / name colour ltype lw frozen off locked ename data flags result)
+  (setq name (nth 0 row))
+  (setq ename (tblobjname "LAYER" name))
+  (if (not ename)
+    nil
+    (progn
+      (setq data (entget ename))
+      (setq colour (atoi (nth 1 row)))
+      (setq ltype (nth 2 row))
+      (setq lw (atoi (nth 3 row)))
+      (setq frozen (= (nth 4 row) "1"))
+      (setq off (= (nth 5 row) "1"))
+      (setq locked (= (nth 6 row) "1"))
+      (if off (setq colour (- (abs colour))))
+      (setq data (RMR:DXF 62 colour data))
+      (if (tblsearch "LTYPE" ltype)
+        (setq data (RMR:DXF 6 ltype data))
+      )
+      (setq data (RMR:DXF 370 lw data))
+      (setq flags (cdr (assoc 70 data)))
+      (if (not flags) (setq flags 0))
+      (if frozen
+        (setq flags (logior flags 1))
+        (setq flags (logand flags -2))
+      )
+      (if locked
+        (setq flags (logior flags 4))
+        (setq flags (logand flags -5))
+      )
+      (setq data (RMR:DXF 70 flags data))
+      (setq result (vl-catch-all-apply 'entmod (list data)))
+      (not (vl-catch-all-error-p result))
+    )
+  )
+)
+
+(defun C:RMR-LAYERSTATE (/ action name path rows line ok skipped total)
+  (RMR:EnsureReady)
+  (setq action (RMR:PromptKeyword "Layer state"
+                                  (RMR:KeywordBar "SAVE RESTORE LIST DELETE") "SAVE"))
+  (cond
+    ((= action "LIST")
+      (setq path (getfiled "Layer state file" "" "rms" 4))
+      (if path
+        (progn
+          (setq rows (RMR:ReadLines path))
+          (princ (strcat "\nLayer states in " path ": " (itoa (length rows))))
+          (setq total 0)
+          (foreach line rows
+            (if (> (strlen line) 0)
+              (progn
+                (setq total (1+ total))
+                (if (<= total 24)
+                  (princ (strcat "\n  " line))
+                )
+              )
+            )
+          )
+          (if (> total 24) (princ (strcat "\n  ... " (itoa (- total 24)) " more")))
+        )
+      )
+    )
+    ((= action "SAVE")
+      (setq name (RMR:PromptText "Layer state name" (strcat "STATE-" (RMR:TodayDate))))
+      (setq path (getfiled "Save the layer state" (strcat (RMR:StripExtension (getvar "DWGNAME")) ".rms") "rms" 1))
+      (if path
+        (progn
+          (setq rows (RMR:LayerSnapshot))
+          (setq rows (mapcar 'RMR:StateLine rows))
+          (if (RMR:WriteLines path (cons (strcat "# RooMNRooF layer state | name=" name) rows))
+            (princ (strcat "\nLayer state \"" name "\" saved: " (itoa (length rows)) " layers -> " path))
+            (princ "\nThe layer state file could not be written.")
+          )
+        )
+      )
+    )
+    ((= action "RESTORE")
+      (setq path (getfiled "Layer state file" "" "rms" 4))
+      (if path
+        (progn
+          (setq rows (RMR:ReadLines path))
+          (setq ok 0 skipped 0 total 0)
+          (foreach line rows
+            (if (and (> (strlen line) 0) (/= (substr line 1 1) "#"))
+              (progn
+                (setq total (1+ total))
+                (if (RMR:ApplyLayerState (RMR:SplitString line ";"))
+                  (setq ok (1+ ok))
+                  (setq skipped (1+ skipped))
+                )
+              )
+            )
+          )
+          (princ (strcat "\nRestored " (itoa ok) " of " (itoa total)
+                         " layer(s). Skipped (missing or protected): " (itoa skipped)))
+          (if (> skipped 0)
+            (princ "\nXref-dependent, missing and current layers are skipped by AutoCAD.")
+          )
+        )
+      )
+    )
+    ((= action "DELETE")
+      (setq path (getfiled "Layer state file to delete" "" "rms" 4))
+      (if path
+        (if (vl-catch-all-error-p (vl-catch-all-apply 'vl-file-delete (list path)))
+          (princ (strcat "\n" path " could not be deleted."))
+          (princ (strcat "\n" path " deleted."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- force everything to ByLayer -------------------------------------------
+(defun C:RMR-STANDARDIZE (/ ss i count changed ent data result)
+  (RMR:EnsureReady)
+  (princ "\nSelect the objects to standardise <enter for the whole drawing>: ")
+  (setq ss (ssget))
+  (if (not ss) (setq ss (ssget "_X")))
+  (if ss
+    (progn
+      (setq changed 0)
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq ent (ssname ss i))
+        (setq data (entget ent))
+        (if (assoc 62 data) (setq data (RMR:DXF 62 256 data)))
+        (if (assoc 6 data) (setq data (RMR:DXF 6 "BYLAYER" data)))
+        (if (assoc 370 data) (setq data (RMR:DXF 370 -1 data)))
+        (setq result (vl-catch-all-apply 'entmod (list data)))
+        (if (not (vl-catch-all-error-p result)) (setq changed (1+ changed)))
+        (setq i (1+ i))
+      )
+      (princ (strcat "\nStandardised " (itoa changed) " of " (itoa (sslength ss))
+                     " object(s) to BYLAYER colour, linetype and lineweight."))
+      (princ "\nRun RMR-CHECK afterwards to confirm the drawing standard.")
+    )
+    (princ "\nNothing selected.")
+  )
+  (princ)
+)
+
+;;; --- clean-up ---------------------------------------------------------------
+(defun C:RMR-CLEAN (/ oldexpert oldcmdecho pass answer)
+  (RMR:EnsureReady)
+  (setq oldexpert (getvar "EXPERT"))
+  (setq oldcmdecho (getvar "CMDECHO"))
+  (setvar "EXPERT" 3)
+  (setvar "CMDECHO" 0)
+  (setq pass 0)
+  (repeat 3
+    (vl-catch-all-apply 'command (list "_.-purge" "_A" "*" "_N"))
+    (setq pass (1+ pass))
+  )
+  (vl-catch-all-apply 'command (list "_.audit" "_N"))
+  (setvar "EXPERT" oldexpert)
+  (setvar "CMDECHO" oldcmdecho)
+  (princ (strcat "\nClean-up finished: " (itoa pass) " purge passes plus an audit."))
+  (setq answer (RMR:PromptYesNo "Also force every object to BYLAYER (RMR-STANDARDIZE)" "No"))
+  (if (RMR:YesP answer)
+    (C:RMR-STANDARDIZE)
+    (princ "\nRun RMR-STANDARDIZE separately if the drawing mixes overrides.")
+  )
+  (princ)
+)
+
+;;; --- drawing properties from project data -------------------------------------
+(defun C:RMR-DWGPROPS (/ doc si result)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq doc (RMR:DocSafe))
+  (if (not doc)
+    (princ "\nActiveX is not available - set the properties with DWGPROPS.")
+    (progn
+      (setq si (vl-catch-all-apply 'vla-get-SummaryInfo (list doc)))
+      (if (vl-catch-all-error-p si)
+        (princ "\nThe drawing summary could not be opened - use the DWGPROPS command.")
+        (progn
+          (setq result 0)
+          (if (not (vl-catch-all-error-p
+                     (vl-catch-all-apply 'vla-put-Title
+                       (list si (RMR:ProjectValue "TITLE" "")))))
+            (setq result (1+ result))
+          )
+          (if (not (vl-catch-all-error-p
+                     (vl-catch-all-apply 'vla-put-Subject
+                       (list si (RMR:ProjectValue "PROJECT" "")))))
+            (setq result (1+ result))
+          )
+          (if (not (vl-catch-all-error-p
+                     (vl-catch-all-apply 'vla-put-Author
+                       (list si (RMR:ProjectValue "DRAWN" "")))))
+            (setq result (1+ result))
+          )
+          (if (not (vl-catch-all-error-p
+                     (vl-catch-all-apply 'vla-put-Category
+                       (list si (RMR:ProjectValue "STAGE" "")))))
+            (setq result (1+ result))
+          )
+          (if (not (vl-catch-all-error-p
+                     (vl-catch-all-apply 'vla-put-Keywords
+                       (list si (strcat "RooMNRooF;" (RMR:ProjectValue "JOB" "")
+                                        ";" (RMR:ProjectValue "DWGNO" ""))))))
+            (setq result (1+ result))
+          )
+          (if (not (vl-catch-all-error-p
+                     (vl-catch-all-apply 'vla-put-Comments
+                       (list si (strcat "RooMNRooF " *RMR-VERSION* " | "
+                                        (RMR:ProjectValue "PROJECT" ""))))))
+            (setq result (1+ result))
+          )
+          (princ (strcat "\nDrawing properties updated from *RMR-PROJECT*: "
+                         (itoa result) " field(s). Open DWGPROPS to review them."))
+        )
       )
     )
   )

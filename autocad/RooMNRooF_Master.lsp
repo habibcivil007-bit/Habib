@@ -36,6 +36,12 @@
 ;;;   construction build-ups with leaders, a material swatch board, a colour
 ;;;   reference board, an image board, an area distribution chart, a programme
 ;;;   bar chart, the brand masthead and a complete client presentation sheet.
+;;;   Version 10.0 adds the quantity and automation suite: measured survey
+;;;   import, interactive measurement, a rate-driven quantity takeoff, a rate
+;;;   library, an elemental cost plan, a cost per m2 dashboard, a cash flow
+;;;   curve, CSV import, quantity validation and the surveyor report, plus
+;;;   command aliases, a menu / tool palette file, a scripted automation
+;;;   runner and a batch script writer for whole folders of drawings.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -150,6 +156,24 @@
 ;;;   RMR-PROGRAMME   Programme bar chart from *RMR-PROGRAMME-SPECS*
 ;;;   RMR-BRANDING    RooMNRooF brand masthead with project data
 ;;;   RMR-PRESENTSHEET Complete client presentation sheet in one command
+;;;
+;;; Quantity suite commands
+;;;   RMR-SURVEY      Import a measured survey CSV as numbered points
+;;;   RMR-MEASURE     Interactive length and area measurement with totals
+;;;   RMR-QUANTITY    Rate-driven quantity takeoff table
+;;;   RMR-RATES       Rate library table from *RMR-RATE-SPECS*
+;;;   RMR-COSTPLAN    Elemental cost plan bar chart
+;;;   RMR-PERQM       Cost per m2 dashboard against a benchmark
+;;;   RMR-CASHFLOW    Cash flow curve spread over the programme
+;;;   RMR-CSVIMPORT   Bring any CSV into the drawing as a table
+;;;   RMR-VALIDATE    Validate rates and blocks before pricing
+;;;   RMR-QSREPORT    Full quantity surveyor report to a text file
+;;;
+;;; Automation commands
+;;;   RMR-ALIAS       Register short aliases and write RooMNRooF.pgp
+;;;   RMR-TOOLPALETTE Write RooMNRooF.mnu: pull-down menu and toolbar
+;;;   RMR-AUTO        Run the scripted sequence in *RMR-AUTO-SEQUENCE*
+;;;   RMR-BATCH       Write a script that processes a whole folder
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
@@ -298,7 +322,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "9.0 PRESENTATION SUITE")
+(setq *RMR-VERSION* "10.0 QUANTITY AND AUTOMATION SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1524,6 +1548,9 @@
   (princ "\nPresent: RMR-AXO, RMR-ROOMVIEW, RMR-BUILDUP, RMR-SWATCH")
   (princ "\nBoards: RMR-COLOURBOARD, RMR-MOODBOARD, RMR-BRANDING")
   (princ "\nCharts: RMR-AREACHART, RMR-PROGRAMME, RMR-PRESENTSHEET")
+  (princ "\nMeasure: RMR-SURVEY, RMR-MEASURE, RMR-QUANTITY, RMR-RATES")
+  (princ "\nCost:   RMR-COSTPLAN, RMR-PERQM, RMR-CASHFLOW, RMR-QSREPORT")
+  (princ "\nAuto:   RMR-ALIAS, RMR-TOOLPALETTE, RMR-AUTO, RMR-BATCH")
   (princ)
 )
 
@@ -3038,6 +3065,24 @@
   (princ "\n  RMR-BRANDING       RooMNRooF masthead with project data")
   (princ "\n  RMR-PRESENTSHEET   Complete presentation sheet in one go")
   (princ "\n")
+  (princ "\n Quantity suite")
+  (princ "\n  RMR-SURVEY         Import a measured survey CSV")
+  (princ "\n  RMR-MEASURE        Measure lengths and areas with totals")
+  (princ "\n  RMR-QUANTITY       Quantity takeoff against the rate library")
+  (princ "\n  RMR-RATES          Rate library (*RMR-RATE-SPECS*)")
+  (princ "\n  RMR-COSTPLAN       Elemental cost plan (*RMR-ELEMENT-SPECS*)")
+  (princ "\n  RMR-PERQM          Cost per m2 against a benchmark")
+  (princ "\n  RMR-CASHFLOW       Cash flow spread over the programme")
+  (princ "\n  RMR-CSVIMPORT      Bring any CSV in as a table")
+  (princ "\n  RMR-VALIDATE       Validate rates and blocks before pricing")
+  (princ "\n  RMR-QSREPORT       Quantity surveyor report to a text file")
+  (princ "\n")
+  (princ "\n Automation")
+  (princ "\n  RMR-ALIAS          Short aliases for every command + .pgp file")
+  (princ "\n  RMR-TOOLPALETTE    Write RooMNRooF.mnu menu and toolbar")
+  (princ "\n  RMR-AUTO           Run *RMR-AUTO-SEQUENCE* with a log")
+  (princ "\n  RMR-BATCH          Write a .scr for a whole folder of drawings")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -3064,6 +3109,9 @@
   (princ "\n  *RMR-BUILDUP-SPECS*   build-up layers: type, order, name, mm, colour")
   (princ "\n  *RMR-PROGRAMME-SPECS* programme stages: name, start week, weeks, colour")
   (princ "\n  *RMR-MOOD-SPECS*      image board slots: number, caption")
+  (princ "\n  *RMR-RATE-SPECS*      rate library: code, description, unit, rate")
+  (princ "\n  *RMR-ELEMENT-SPECS*   elemental cost plan: element, sum, colour key")
+  (princ "\n  *RMR-AUTO-SEQUENCE*   automation steps: label, action, argument")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -8015,6 +8063,1166 @@
   (princ)
 )
 
+
+;;; =====================================================================
+;;; =====================================================================
+;;; --- rate library ---------------------------------------------------------
+;;; (Code Description Unit Rate)
+(setq *RMR-RATE-SPECS*
+ '(
+    ("M100" "Blockwork partition 100mm"   "M2"   62.50)
+    ("M200" "Blockwork partition 200mm"   "M2"   98.00)
+    ("F100" "Porcelain floor tile 600x600" "M2" 128.00)
+    ("F200" "Engineered oak flooring"     "M2"  186.00)
+    ("C100" "Gypsum ceiling on grid"      "M2"   74.00)
+    ("D100" "Internal doorset, painted"   "NR"  540.00)
+    ("D200" "External entrance doorset"   "NR" 1850.00)
+    ("W100" "Double glazed window"        "NR" 1180.00)
+    ("P100" "Soil and waste pipework"     "M"    84.00)
+    ("P200" "Rainwater downpipe"          "M"    56.00)
+    ("S100" "Skirting, painted timber"    "M"    28.00)
+    ("X100" "Decoration, two coats"       "M2"   22.00)
+  )
+)
+
+;;; Elemental cost plan: (Element Allowance ColourKey)
+(setq *RMR-ELEMENT-SPECS*
+ '(
+    ("SUBSTRUCTURE"   18500.0 "SLATE")
+    ("SUPERSTRUCTURE" 74200.0 "TERRA")
+    ("EXTERNAL WALLS" 46800.0 "GOLD")
+    ("ROOF"           31500.0 "TEAL")
+    ("INTERNAL WALLS" 29400.0 "BLUE")
+    ("FINISHES"       62800.0 "SAND")
+    ("SERVICES"       54600.0 "TEAL")
+    ("EXTERNAL WORKS" 21200.0 "GOLD")
+  )
+)
+
+;;; Automation sequence: (Label Action Argument)
+(setq *RMR-AUTO-SEQUENCE*
+ '(
+    ("BUILD STANDARD" "STANDARD"  "")
+    ("SET SCALE"      "SCALE"     "50")
+    ("FORCE BYLAYER"  "BYLAYER"   "")
+    ("DRAWING PROPS"  "PROPS"     "")
+    ("STRAY LAYERS"   "STRAY"     "")
+    ("WRITE ALIASES"  "ALIAS"     "PGP")
+    ("PURGE AND AUDIT" "PURGE"    "")
+    ("WRITE LOG"      "LOG"       "")
+  )
+)
+
+;;; --- shared quantity and automation helpers --------------------------------
+(defun RMR:ForceByLayer (ss / i count ent data result)
+  ;; Forces colour, linetype and lineweight to BYLAYER on a selection set.
+  (setq count 0)
+  (setq i 0)
+  (repeat (sslength ss)
+    (setq ent (ssname ss i))
+    (setq data (entget ent))
+    (if (assoc 62 data) (setq data (RMR:DXF 62 256 data)))
+    (if (assoc 6 data) (setq data (RMR:DXF 6 "BYLAYER" data)))
+    (if (assoc 370 data) (setq data (RMR:DXF 370 -1 data)))
+    (setq result (vl-catch-all-apply 'entmod (list data)))
+    (if (not (vl-catch-all-error-p result)) (setq count (1+ count)))
+    (setq i (1+ i))
+  )
+  count
+)
+
+(defun RMR:SetNth (lst index value / out i item)
+  ;; Copy of lst with the entry at index replaced by value.
+  (setq out '())
+  (setq i 0)
+  (foreach item lst
+    (if (= i index)
+      (setq out (append out (list value)))
+      (setq out (append out (list item)))
+    )
+    (setq i (1+ i))
+  )
+  out
+)
+
+(defun RMR:UnitLabel (unit code)
+  ;; Keeps the unit column inside a narrow table cell.
+  (cond
+    ((= (strcase unit) "M2") "m2")
+    ((= (strcase unit) "M3") "m3")
+    ((= (strcase unit) "M") "m")
+    (T (strcase unit))
+  )
+)
+
+(defun RMR:ElementTotal (/ total spec)
+  (setq total 0.0)
+  (foreach spec *RMR-ELEMENT-SPECS*
+    (setq total (+ total (float (nth 1 spec))))
+  )
+  total
+)
+
+(defun RMR:CsvCells (line / cells out cell)
+  ;; Splits one CSV row and trims the surrounding spaces.
+  (setq out '())
+  (foreach cell (RMR:SplitString line ",")
+    (setq out (append out (list (RMR:TrimString cell))))
+  )
+  out
+)
+
+;;; --- measured survey import -------------------------------------------------
+(defun C:RMR-SURVEY (/ path lines line cells east north level pts
+                    base k minx maxx miny maxy minz maxz s count first)
+  (RMR:EnsureReady)
+  (setq path (getfiled "Select the survey CSV (number,east,north,level)"
+                       "survey.csv" "csv" 4))
+  (if (and path (setq lines (RMR:ReadLines path)))
+    (progn
+      (setq pts '())
+      (setq count 0)
+      (foreach line lines
+        (setq cells (RMR:CsvCells line))
+        (if (>= (length cells) 4)
+          (progn
+            ;; the first field is the point number, the last three are the coordinates
+            (setq east (atof (nth (- (length cells) 3) cells)))
+            (setq north (atof (nth (- (length cells) 2) cells)))
+            (setq level (atof (nth (- (length cells) 1) cells)))
+            (if (or (/= east 0.0) (/= north 0.0) (/= level 0.0))
+              (progn
+                (setq pts (append pts
+                            (list (list (nth 0 cells) east north level))))
+                (setq count (1+ count))
+              )
+            )
+          )
+        )
+      )
+      (if pts
+        (progn
+          (setq base (getpoint "\nPick the survey origin: "))
+          (if base
+            (progn
+              (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+              (setq minx (nth 1 (nth 0 pts)))
+              (setq maxx minx)
+              (setq miny (nth 2 (nth 0 pts)))
+              (setq maxy miny)
+              (setq minz (nth 3 (nth 0 pts)))
+              (setq maxz minz)
+              (foreach pt pts
+                (if (< (nth 1 pt) minx) (setq minx (nth 1 pt)))
+                (if (> (nth 1 pt) maxx) (setq maxx (nth 1 pt)))
+                (if (< (nth 2 pt) miny) (setq miny (nth 2 pt)))
+                (if (> (nth 2 pt) maxy) (setq maxy (nth 2 pt)))
+                (if (< (nth 3 pt) minz) (setq minz (nth 3 pt)))
+                (if (> (nth 3 pt) maxz) (setq maxz (nth 3 pt)))
+              )
+              (setq s (RMR:Scaled 1.0))
+              (setq first '())
+              (foreach pt pts
+                (setq east (- (nth 1 pt) minx))
+                (setq north (- (nth 2 pt) miny))
+                (setq level (nth 3 pt))
+                (setq first (append first
+                              (list (list (+ (car base) (* east k))
+                                          (+ (cadr base) (* north k))))))
+                (RMR:Circle (list (+ (car base) (* east k))
+                                  (+ (cadr base) (* north k)) 0.0)
+                            (* 1.2 s) "RMR-00-REF" *RMR-BRAND-TERRA*)
+                (RMR:Text (RMR:PT+ (list (+ (car base) (* east k))
+                                         (+ (cadr base) (* north k)) 0.0)
+                                   (* 1.6 s) (* 1.6 s))
+                          (nth 0 pt) (* 2.0 s) "RMR-NUMBER" "RMR-A-TEXT"
+                          *RMR-BRAND-INK*)
+                (RMR:Text (RMR:PT+ (list (+ (car base) (* east k))
+                                         (+ (cadr base) (* north k)) 0.0)
+                                   (* 1.6 s) (- (* 3.4 s)))
+                          (RMR:Num level 2) (* 1.8 s) "RMR-MARK"
+                          "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+              )
+              (if (> (length first) 1)
+                (RMR:PolyLine first nil nil "RMR-00-REF" *RMR-BRAND-TEAL*)
+              )
+              (princ (strcat "\nSurvey imported: " (itoa count) " points."))
+              (princ (strcat "\nExtent " (RMR:Num (- maxx minx) 2) " x "
+                             (RMR:Num (- maxy miny) 2) " m"
+                             "  |  levels " (RMR:Num minz 2) " to "
+                             (RMR:Num maxz 2) " m"))
+            )
+          )
+        )
+        (princ "\nNo coordinate rows found in that file.")
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- interactive measurement -------------------------------------------------
+(defun C:RMR-MEASURE (/ pick ename area length value unit rows runm runm2
+                     base s row rowh y)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq rows '())
+  (setq runm 0.0)
+  (setq runm2 0.0)
+  (princ "\nPick objects to measure. Press Enter when finished.")
+  (setq pick (entsel "\nSelect object <finish>: "))
+  (while pick
+    (setq ename (car pick))
+    (setq area (RMR:EntityArea ename))
+    (setq length (RMR:EntityLength ename))
+    (if (and area (> area 0.0))
+      (progn
+        (setq value (RMR:AreaToSqm area))
+        (setq unit "m2")
+        (setq runm2 (+ runm2 value))
+        (setq rows (append rows
+                     (list (list (itoa (1+ (length rows))) "AREA" unit
+                                 (RMR:Num value 2) (RMR:Num runm2 2)))))
+        (princ (strcat "\n  area " (RMR:Num value 2) " m2  |  running total "
+                       (RMR:Num runm2 2) " m2"))
+      )
+      (if (and length (> length 0.0))
+        (progn
+          (setq value (RMR:LinearToMetres length))
+          (setq unit "m")
+          (setq runm (+ runm value))
+          (setq rows (append rows
+                       (list (list (itoa (1+ (length rows))) "LINEAR" unit
+                                   (RMR:Num value 2) (RMR:Num runm 2)))))
+          (princ (strcat "\n  length " (RMR:Num value 2) " m  |  running total "
+                         (RMR:Num runm 2) " m"))
+        )
+        (princ "\n  no length or area on that object - skipped.")
+      )
+    )
+    (setq pick (entsel "\nSelect next object <finish>: "))
+  )
+  (if rows
+    (progn
+      (setq base (getpoint "\nTop-left of the measurement list <enter to skip>: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq rowh (* 6.0 s))
+          (setq y (cadr base))
+          (RMR:Text base "MEASURED QUANTITIES  |  RMR-MEASURE" (* 4.2 s)
+                    "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (setq y (- y (* 8.0 s)))
+          (foreach row rows
+            (RMR:Text (list (car base) y 0.0)
+                      (strcat (nth 0 row) "  " (nth 1 row) "  "
+                              (nth 3 row) " " (nth 2 row)
+                              "   total " (nth 4 row))
+                      (* 2.2 s) "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (setq y (- y rowh))
+          )
+          (RMR:Text (list (car base) (- y (* 2.0 s)) 0.0)
+                    (strcat "TOTAL AREA " (RMR:Num runm2 2) " m2") (* 2.8 s)
+                    "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (RMR:Text (list (car base) (- y (* 8.0 s)) 0.0)
+                    (strcat "TOTAL LENGTH " (RMR:Num runm 2) " m") (* 2.8 s)
+                    "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        )
+      )
+    )
+    (princ "\nNothing measured.")
+  )
+  (princ)
+)
+
+;;; --- quantity takeoff with rates ----------------------------------------------
+(defun C:RMR-QUANTITY (/ keys rows basis code spec qty rate cost total
+                       unit pick ss base s ename value)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq keys (RMR:KeywordList *RMR-RATE-SPECS*))
+  (setq rows '())
+  (setq total 0.0)
+  (princ "\nQuantity takeoff. Choose a basis, select objects, then a rate code.")
+  (setq basis (RMR:PromptKeyword "Basis" "Length Area Count Finish"
+                                 "Finish"))
+  (while (not (= (strcase basis) "FINISH"))
+    (setq code (RMR:PromptKeyword "Rate code" keys (nth 0 (nth 0 *RMR-RATE-SPECS*))))
+    (setq spec (RMR:TableSpec code *RMR-RATE-SPECS*))
+    (setq qty 0.0)
+    (setq unit (nth 2 spec))
+    (if (= (strcase basis) "COUNT")
+      (progn
+        (princ "\nSelect the blocks to count: ")
+        (setq pick (ssget))
+        (if pick (setq qty (float (sslength pick))))
+      )
+      (progn
+        (princ "\nSelect the objects to measure: ")
+        (setq pick (ssget))
+        (if pick
+          (progn
+            (setq ss 0)
+            (repeat (sslength pick)
+              (setq ename nil)
+              (setq ename (ssname pick ss))
+              (if (= (strcase basis) "LENGTH")
+                (progn
+                  (setq value (RMR:EntityLength ename))
+                  (if value (setq qty (+ qty (RMR:LinearToMetres value))))
+                )
+                (progn
+                  (setq value (RMR:EntityArea ename))
+                  (if value (setq qty (+ qty (RMR:AreaToSqm value))))
+                )
+              )
+              (setq ss (1+ ss))
+            )
+          )
+        )
+      )
+    )
+    (if spec
+      (progn
+        (setq rate (float (nth 3 spec)))
+        (setq cost (* qty rate))
+        (setq total (+ total cost))
+        (setq rows (append rows
+                     (list (list code (nth 1 spec) (RMR:UnitLabel unit code)
+                                 (RMR:Num qty 2) (RMR:Num rate 2)
+                                 (RMR:Num cost 2)))))
+        (princ (strcat "\n  " code "  " (RMR:Num qty 2) " "
+                       (RMR:UnitLabel unit code) " x " (RMR:Num rate 2)
+                       " = " (RMR:Num cost 2)))
+      )
+    )
+    (setq basis (RMR:PromptKeyword "Basis" "Length Area Count Finish"
+                                   "Finish"))
+  )
+  (if rows
+    (progn
+      (setq base (getpoint "\nTop-left of the quantity table: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (RMR:DocTable base "QUANTITY TAKEOFF  |  RMR-QUANTITY"
+                        (strcat (itoa (length rows)) " items  |  total "
+                                (RMR:Num total 2))
+                        '("CODE" "DESCRIPTION" "UNIT" "QTY" "RATE" "COST")
+                        (list (* 18.0 s) (* 62.0 s) (* 14.0 s) (* 18.0 s)
+                              (* 20.0 s) (* 24.0 s))
+                        rows nil s)
+        )
+      )
+      (princ (strcat "\nTakeoff: " (itoa (length rows)) " items, "
+                     (RMR:Num total 2) " total."))
+    )
+    (princ "\nNo quantities taken off.")
+  )
+  (princ)
+)
+
+;;; --- rate library table --------------------------------------------------------
+(defun C:RMR-RATES (/ base s rows spec)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the rate library: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq rows '())
+      (foreach spec *RMR-RATE-SPECS*
+        (setq rows (append rows
+                     (list (list (nth 0 spec) (nth 1 spec)
+                                 (RMR:UnitLabel (nth 2 spec) (nth 0 spec))
+                                 (RMR:Num (float (nth 3 spec)) 2)))))
+      )
+      (RMR:DocTable base "RATE LIBRARY  |  RMR-RATES"
+                    (strcat (itoa (length *RMR-RATE-SPECS*))
+                            " rates from *RMR-RATE-SPECS*")
+                    '("CODE" "DESCRIPTION" "UNIT" "RATE")
+                    (list (* 18.0 s) (* 76.0 s) (* 16.0 s) (* 22.0 s))
+                    rows nil s)
+    )
+  )
+  (princ)
+)
+
+;;; --- elemental cost plan ---------------------------------------------------------
+(defun C:RMR-COSTPLAN (/ base s total spec bar wide rowh y rgb share)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the cost plan: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq total (RMR:ElementTotal))
+      (setq wide (* 150.0 s))
+      (setq rowh (* 9.0 s))
+      (setq y (cadr base))
+      (RMR:Text base "ELEMENTAL COST PLAN  |  RMR-COSTPLAN" (* 4.2 s)
+                "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 5.0 s)))
+      (RMR:Text (list (car base) y 0.0)
+                (strcat (itoa (length *RMR-ELEMENT-SPECS*))
+                        " elements  |  total " (RMR:Num total 2))
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (setq y (- y (* 10.0 s)))
+      (foreach spec *RMR-ELEMENT-SPECS*
+        (setq share (* 100.0 (/ (float (nth 1 spec))
+                                (if (> total 0.0) total 1.0))))
+        (setq bar (* wide (/ (float (nth 1 spec))
+                             (if (> total 0.0) total 1.0))))
+        (setq rgb (RMR:BrandRGB (nth 2 spec)))
+        (RMR:Text (list (car base) y 0.0) (nth 0 spec) (* 2.3 s)
+                  "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (RMR:Solid (list (+ (car base) (* 56.0 s)) (- y (* 1.0 s)) 0.0)
+                   bar (* 5.0 s) "RMR-M-FILL" rgb)
+        (RMR:Rect (list (+ (car base) (* 56.0 s)) (- y (* 1.0 s)) 0.0)
+                  bar (* 5.0 s) "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+        (RMR:Text (list (+ (car base) (* 60.0 s) bar) y 0.0)
+                  (strcat (RMR:Num (float (nth 1 spec)) 2) "   "
+                          (RMR:Num share 1) "%")
+                  (* 2.1 s) "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (setq y (- y rowh))
+      )
+      (RMR:Text (list (car base) (- y (* 2.0 s)) 0.0)
+                (strcat "TOTAL " (RMR:Num total 2)) (* 2.8 s)
+                "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+    )
+  )
+  (princ)
+)
+
+;;; --- cost per square metre --------------------------------------------------------
+(defun C:RMR-PERQM (/ base s cost gifa bench perm diff wide better)
+  (RMR:EnsureReady)
+  (setq cost (RMR:PromptReal "Total construction cost" (RMR:ElementTotal)))
+  (setq gifa (RMR:PromptReal "Gross internal floor area in m2" 124.0))
+  (setq bench (RMR:PromptReal "Benchmark cost per m2" 2200.0))
+  (if (and (> gifa 0.0) (> bench 0.0))
+    (progn
+      (setq perm (/ cost gifa))
+      (setq diff (* 100.0 (/ (- perm bench) bench)))
+      (setq better (< perm bench))
+      (princ (strcat "\nCost per m2: " (RMR:Num perm 2)
+                     "  |  benchmark " (RMR:Num bench 2)
+                     "  |  " (if better "under" "over") " by "
+                     (RMR:Num (abs diff) 1) "%"))
+      (setq base (getpoint "\nTop-left of the cost per m2 panel: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq wide (* 160.0 s))
+          (RMR:Text base "COST PER M2  |  RMR-PERQM" (* 4.2 s) "RMR-HEAD"
+                    "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (RMR:Text (list (car base) (- (cadr base) (* 5.0 s)) 0.0)
+                    (strcat "GIFA " (RMR:Num gifa 2) " m2   |   cost "
+                            (RMR:Num cost 2))
+                    (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+          (RMR:Text (list (car base) (- (cadr base) (* 16.0 s)) 0.0)
+                    (RMR:Num perm 0) (* 14.0 s) "RMR-NUMBER"
+                    "RMR-A-TEXT" (if better *RMR-BRAND-TEAL* *RMR-BRAND-TERRA*))
+          (RMR:Text (list (car base) (- (cadr base) (* 20.0 s)) 0.0)
+                    "PER SQUARE METRE" (* 2.4 s) "RMR-HEAD"
+                    "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+          ;; two comparison bars: this project and the benchmark
+          (RMR:Solid (list (car base) (- (cadr base) (* 28.0 s)) 0.0)
+                     wide (* 6.0 s) "RMR-M-FILL"
+                     (if better *RMR-BRAND-TEAL* *RMR-BRAND-TERRA*))
+          (RMR:Rect (list (car base) (- (cadr base) (* 28.0 s)) 0.0)
+                    wide (* 6.0 s) "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+          (RMR:Solid (list (car base) (- (cadr base) (* 37.0 s)) 0.0)
+                     (* wide (/ bench (max bench perm))) (* 6.0 s)
+                     "RMR-M-FILL" *RMR-BRAND-SAND*)
+          (RMR:Rect (list (car base) (- (cadr base) (* 37.0 s)) 0.0)
+                    (* wide (/ bench (max bench perm))) (* 6.0 s)
+                    "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+          (RMR:Text (list (+ (car base) wide (* 4.0 s))
+                          (- (cadr base) (* 26.0 s)) 0.0)
+                    (strcat "THIS PROJECT  " (RMR:Num perm 0)) (* 2.2 s)
+                    "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          (RMR:Text (list (+ (car base) wide (* 4.0 s))
+                          (- (cadr base) (* 35.0 s)) 0.0)
+                    (strcat "BENCHMARK  " (RMR:Num bench 0)) (* 2.2 s)
+                    "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          (RMR:Text (list (car base) (- (cadr base) (* 46.0 s)) 0.0)
+                    (strcat (if better "Under" "Over") " benchmark by "
+                            (RMR:Num (abs diff) 1) "%")
+                    (* 2.6 s) "RMR-HEAD"
+                    "RMR-A-TEXT" (if better *RMR-BRAND-TEAL* *RMR-BRAND-TERRA*))
+        )
+      )
+    )
+    (princ "\nThe floor area and the benchmark must both be greater than zero.")
+  )
+  (princ)
+)
+
+;;; --- cash flow curve ---------------------------------------------------------------
+(defun C:RMR-CASHFLOW (/ base s weeks spec total dur index start weekly
+                       cumulative maxw maxc colw maxh x y prev pts value
+                       stage-total)
+  (RMR:EnsureReady)
+  (setq weeks 0)
+  (setq dur 0)
+  (foreach spec *RMR-PROGRAMME-SPECS*
+    (if (> (+ (nth 1 spec) (nth 2 spec)) weeks)
+      (setq weeks (+ (nth 1 spec) (nth 2 spec)))
+    )
+    (setq dur (+ dur (nth 2 spec)))
+  )
+  (setq total (RMR:ElementTotal))
+  (if (and (> weeks 0) (> dur 0))
+    (progn
+      ;; spend each stage evenly across its own weeks
+      (setq weekly '())
+      (setq index 0)
+      (while (< index weeks)
+        (setq weekly (append weekly (list 0.0)))
+        (setq index (1+ index))
+      )
+      (foreach spec *RMR-PROGRAMME-SPECS*
+        (setq start (nth 1 spec))
+        (setq stage-total (* total (/ (float (nth 2 spec)) (float dur))))
+        (setq index 0)
+        (while (< index (nth 2 spec))
+          (if (< (+ start index) weeks)
+            (setq weekly (RMR:SetNth weekly (+ start index)
+                           (+ (nth (+ start index) weekly)
+                              (/ stage-total (float (nth 2 spec))))))
+          )
+          (setq index (1+ index))
+        )
+      )
+      (setq cumulative '())
+      (setq prev 0.0)
+      (foreach value weekly
+        (setq prev (+ prev value))
+        (setq cumulative (append cumulative (list prev)))
+      )
+      (setq maxw 0.0)
+      (foreach value weekly (if (> value maxw) (setq maxw value)))
+      (setq maxc 0.0)
+      (foreach value cumulative (if (> value maxc) (setq maxc value)))
+      (setq base (getpoint "\nTop-left of the cash flow chart: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq colw (RMR:PromptReal "Width of one week" (* 5.0 s)))
+          (setq maxh (* 90.0 s))
+          (RMR:Text base "CASH FLOW  |  RMR-CASHFLOW" (* 4.2 s) "RMR-HEAD"
+                    "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (RMR:Text (list (car base) (- (cadr base) (* 5.0 s)) 0.0)
+                    (strcat (itoa weeks) " weeks  |  total "
+                            (RMR:Num total 2)
+                            "  |  spread by programme duration")
+                    (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+          (setq y (- (cadr base) (* 12.0 s)))
+          ;; weekly spend bars, hanging down from the axis
+          (setq index 0)
+          (foreach value weekly
+            (setq x (+ (car base) (* index colw)))
+            (RMR:Solid (list x (- y (* maxh 0.35)) 0.0) (* colw 0.7)
+                       (* (/ value (if (> maxw 0.0) maxw 1.0)) (* maxh 0.35))
+                       "RMR-M-FILL" *RMR-BRAND-GOLD*)
+            (setq index (1+ index))
+          )
+          ;; cumulative S curve over the full height
+          (setq pts '())
+          (setq index 0)
+          (foreach value cumulative
+            (setq pts (append pts
+                        (list (list (+ (car base) (* index colw))
+                                    (- y (* maxh (/ value
+                                                    (if (> maxc 0.0) maxc 1.0))))))))
+            (setq index (1+ index))
+          )
+          (RMR:PolyLine pts nil nil "RMR-M-WALL" *RMR-BRAND-TERRA*)
+          (RMR:Line (list (car base) (- y (* maxh 0.35)) 0.0)
+                    (list (+ (car base) (* weeks colw)) (- y (* maxh 0.35)) 0.0)
+                    "RMR-00-REF" *RMR-BRAND-SLATE*)
+          (RMR:Text (list (car base) (- y maxh (* 6.0 s)) 0.0)
+                    (strcat "CUMULATIVE TO " (RMR:Num maxc 2)
+                            "   |   peak week " (RMR:Num maxw 2))
+                    (* 2.4 s) "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (princ (strcat "\nCash flow drawn: " (itoa weeks) " weeks, "
+                         (RMR:Num total 2) " total, peak week "
+                         (RMR:Num maxw 2) "."))
+        )
+      )
+    )
+    (princ "\nThe programme needs at least one stage with a duration.")
+  )
+  (princ)
+)
+
+;;; --- generic CSV import ---------------------------------------------------------
+(defun C:RMR-CSVIMPORT (/ path lines row base s index rowh y colw cx
+                       count width)
+  (RMR:EnsureReady)
+  (setq path (getfiled "Select the CSV to import" "table.csv" "csv" 4))
+  (if (and path (setq lines (RMR:ReadLines path)))
+    (progn
+      (setq base (getpoint "\nTop-left of the imported table: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq count 0)
+          (setq width (* 160.0 s))
+          (setq rowh (* 6.4 s))
+          (setq y (cadr base))
+          (setq index 0)
+          (foreach line lines
+            (if (< index 41)
+              (progn
+                (setq row (RMR:CsvCells line))
+                (setq colw (/ width (float (max 1 (length row)))))
+                (if (= index 0)
+                  (RMR:Solid (list (car base) (- y rowh) 0.0) width rowh
+                             "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+                  (RMR:Rect (list (car base) (- y rowh) 0.0) width rowh
+                            "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+                )
+                (setq cx (car base))
+                (foreach cell row
+                  (RMR:Text (list (+ cx (* 1.4 s)) (+ (- y rowh) (* 1.8 s)) 0.0)
+                            (RMR:Shorten cell 22) (* 2.0 s)
+                            (if (= index 0) "RMR-HEAD" "RMR-BODY")
+                            "RMR-A-TEXT" *RMR-BRAND-INK*)
+                  (setq cx (+ cx colw))
+                )
+                (setq y (- y rowh))
+                (setq count (1+ count))
+              )
+            )
+            (setq index (1+ index))
+          )
+          (princ (strcat "\nImported " (itoa count) " rows from "
+                         (RMR:FileTitle path) "."))
+          (if (> (length lines) 41)
+            (princ "\nOnly the first 41 rows are drawn - split large files.")
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- quantity validation ------------------------------------------------------------
+(defun C:RMR-VALIDATE (/ spec unit rate problems data name flags blocks
+                      answer path lines verdict)
+  (RMR:EnsureReady)
+  (setq problems '())
+  (foreach spec *RMR-RATE-SPECS*
+    (setq unit (strcase (nth 2 spec)))
+    (setq rate (float (nth 3 spec)))
+    (if (not (RMR:InList unit '("M" "M2" "M3" "NR" "ITEM")))
+      (setq problems (append problems
+                       (list (strcat (nth 0 spec)
+                                     " has an unknown unit " (nth 2 spec)))))
+    )
+    (if (<= rate 0.0)
+      (setq problems (append problems
+                       (list (strcat (nth 0 spec) " has no rate"))))
+    )
+  )
+  (setq blocks '())
+  (setq data (tblnext "BLOCK" T))
+  (while data
+    (setq name (cdr (assoc 2 data)))
+    (setq flags (cdr (assoc 70 data)))
+    (if (and name (/= (substr name 1 1) "*")
+             (= (logand (if flags flags 0) 4) 0))
+      (if (and (not (RMR:StartsWith name "RMR-SYM-"))
+               (not (RMR:StartsWith name "RMR-")))
+        (setq blocks (append blocks (list name)))
+      )
+    )
+    (setq data (tblnext "BLOCK"))
+  )
+  (princ (strcat "\nRooMNRooF quantity validation"))
+  (princ (strcat "\n  " (itoa (length *RMR-RATE-SPECS*)) " rates checked"))
+  (princ (strcat "\n  " (itoa (length blocks)) " unrated blocks in the drawing"))
+  (foreach name blocks
+    (princ (strcat "\n    " name))
+  )
+  (setq verdict (if problems "REVIEW" "PASS"))
+  (princ (strcat "\n  Verdict: " verdict))
+  (foreach item problems
+    (princ (strcat "\n    " item))
+  )
+  (setq answer (RMR:PromptYesNo "Write a validation report" "No"))
+  (if (RMR:YesP answer)
+    (progn
+      (setq path (getfiled "Save the validation report"
+                           "RooMNRooF_Validation.txt" "txt" 1))
+      (if path
+        (progn
+          (setq lines
+            (list
+              "RooMNRooF QUANTITY VALIDATION"
+              (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+              (strcat "Job: " (RMR:ProjectValue "JOB" ""))
+              (strcat "Date: " (RMR:TodayDate))
+              (strcat "Verdict: " verdict)
+              ""
+              (strcat "Rates checked: " (itoa (length *RMR-RATE-SPECS*)))
+              (strcat "Unrated blocks: " (itoa (length blocks)))))
+          (foreach name blocks
+            (setq lines (append lines (list (strcat "  " name))))
+          )
+          (setq lines (append lines (list "" "Problems:")))
+          (if problems
+            (foreach item problems (setq lines (append lines (list (strcat "  " item)))))
+            (setq lines (append lines (list "  none")))
+          )
+          (if (RMR:WriteLines path lines)
+            (princ (strcat "\nWritten: " path))
+            (princ "\nCould not write the report.")
+          )
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- quantity surveyor report ---------------------------------------------------------
+(defun C:RMR-QSREPORT (/ path lines spec total gifa perm start
+                       stage-total dur weeks)
+  (RMR:EnsureReady)
+  (setq gifa (RMR:PromptReal "Gross internal floor area in m2" 124.0))
+  (setq total (RMR:ElementTotal))
+  (setq perm (if (> gifa 0.0) (/ total gifa) 0.0))
+  (setq path (getfiled "Save the quantity surveyor report"
+                       "RooMNRooF_QS_Report.txt" "txt" 1))
+  (if path
+    (progn
+      (setq lines
+        (list
+          "================================================================"
+          " RooMNRooF QUANTITY SURVEYOR REPORT"
+          "================================================================"
+          (strcat " Project  : " (RMR:ProjectValue "PROJECT" ""))
+          (strcat " Client   : " (RMR:ProjectValue "CLIENT" ""))
+          (strcat " Job      : " (RMR:ProjectValue "JOB" ""))
+          (strcat " Stage    : " (RMR:ProjectValue "STAGE" ""))
+          (strcat " Date     : " (RMR:TodayDate))
+          ""
+          " RATE LIBRARY"
+          " --------------------------------------------------------------"))
+      (foreach spec *RMR-RATE-SPECS*
+        (setq lines (append lines
+                      (list (strcat "  " (nth 0 spec) "  "
+                                    (RMR:Shorten (nth 1 spec) 34)
+                                    "  " (RMR:UnitLabel (nth 2 spec) (nth 0 spec))
+                                    "  " (RMR:Num (float (nth 3 spec)) 2)))))
+      )
+      (setq lines (append lines
+        (list
+          ""
+          " ELEMENTAL COST PLAN"
+          " --------------------------------------------------------------")))
+      (foreach spec *RMR-ELEMENT-SPECS*
+        (setq lines (append lines
+                      (list (strcat "  " (nth 0 spec)
+                                    "  " (RMR:Num (float (nth 1 spec)) 2)
+                                    "  "
+                                    (RMR:Num (* 100.0 (/ (float (nth 1 spec))
+                                                         (if (> total 0.0) total 1.0)))
+                                             1) "%"))))
+      )
+      (setq lines (append lines
+        (list (strcat "  TOTAL  " (RMR:Num total 2))
+              ""
+              " COST PER SQUARE METRE"
+              " --------------------------------------------------------------"
+              (strcat "  GIFA          " (RMR:Num gifa 2) " m2")
+              (strcat "  Cost per m2   " (RMR:Num perm 2))
+              ""
+              " PROGRAMME CASH FLOW"
+              " --------------------------------------------------------------")))
+      (setq weeks 0)
+      (setq dur 0)
+      (foreach spec *RMR-PROGRAMME-SPECS*
+        (if (> (+ (nth 1 spec) (nth 2 spec)) weeks)
+          (setq weeks (+ (nth 1 spec) (nth 2 spec)))
+        )
+        (setq dur (+ dur (nth 2 spec)))
+      )
+      (if (> dur 0)
+        (foreach spec *RMR-PROGRAMME-SPECS*
+          (setq start (nth 1 spec))
+          (setq stage-total (* total (/ (float (nth 2 spec)) (float dur))))
+          (setq lines (append lines
+                        (list (strcat "  " (RMR:Shorten (nth 0 spec) 24)
+                                      "  wk " (itoa start) "  "
+                                      (itoa (nth 2 spec)) " wks  "
+                                      (RMR:Num stage-total 2)))))
+        )
+      )
+      (setq lines (append lines
+        (list ""
+              "================================================================"
+              " Generated by RooMNRooF_Master.lsp | RMR-QSREPORT"
+              "================================================================")))
+      (if (RMR:WriteLines path lines)
+        (progn
+          (princ (strcat "\nWritten: " path))
+          (princ (strcat "\nTotal " (RMR:Num total 2) "  |  "
+                         (RMR:Num perm 2) " per m2 over "
+                         (RMR:Num gifa 2) " m2"))
+        )
+        (princ "\nCould not write the report.")
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- command aliases -------------------------------------------------------------
+(defun RMR:CommandNames (/ out sym)
+  ;; Every C:RMR-* command in this file, discovered from the symbol table so
+  ;; the alias list never falls out of step with the code.
+  (setq out '())
+  (foreach sym (atoms-family 1)
+    (if (and (> (strlen sym) 6) (= (strcase (substr sym 1 6)) "C:RMR-"))
+      (setq out (append out (list (substr sym 3))))
+    )
+  )
+  out
+)
+
+(defun RMR:AliasFor (name / out index ch len)
+  ;; RMR-AXO -> RAXO, RMR-PRO-SETUP -> RPROSETUP
+  (setq out "R")
+  (setq len (strlen name))
+  (setq index 5)
+  (while (<= index len)
+    (setq ch (substr name index 1))
+    (if (/= ch "-") (setq out (strcat out ch)))
+    (setq index (1+ index))
+  )
+  out
+)
+
+(defun RMR:AliasPairs (/ out names name)
+  (setq out '())
+  (foreach name (RMR:CommandNames)
+    (setq out (append out (list (list (RMR:AliasFor name) name))))
+  )
+  out
+)
+
+(defun C:RMR-ALIAS (/ action pairs pair alias name registered skipped path
+                  lines result)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq action (RMR:PromptKeyword "Aliases" "Register Pgp Both" "Both"))
+  (setq pairs (RMR:AliasPairs))
+  (setq action (strcase action))
+  (if (or (= action "REGISTER") (= action "BOTH"))
+    (progn
+      (setq registered 0)
+      (setq skipped 0)
+      (foreach pair pairs
+        (setq alias (nth 0 pair))
+        (setq name (nth 1 pair))
+        (setq result
+          (vl-catch-all-apply
+            'vlax-add-cmd
+            (list alias (read (strcat "C:" name)) alias
+                  (strcat "RooMNRooF " name) 0)))
+        (if (vl-catch-all-error-p result)
+          (setq skipped (1+ skipped))
+          (setq registered (1+ registered))
+        )
+      )
+      (princ (strcat "\nRegistered " (itoa registered) " command aliases"
+                     "  |  " (itoa skipped) " skipped"))
+      (princ "\nType the short alias, for example RAXO for RMR-AXO.")
+    )
+  )
+  (if (or (= action "PGP") (= action "BOTH"))
+    (progn
+      (setq path (strcat (getvar "DWGPREFIX") "RooMNRooF.pgp"))
+      (setq lines (list ";;; RooMNRooF command aliases - generated by RMR-ALIAS"
+                        ";;; Merge these lines into acad.pgp, then run REINIT."
+                        ""))
+      (foreach pair pairs
+        (setq lines (append lines
+                      (list (strcat (nth 0 pair) ", *" (nth 1 pair)))))
+      )
+      (if (RMR:WriteLines path lines)
+        (princ (strcat "\nWritten: " path))
+        (princ "\nCould not write the PGP file.")
+      )
+      (princ (strcat "\n" (itoa (length pairs))
+                     " aliases. Merge them into acad.pgp and run REINIT."))
+    )
+  )
+  (princ)
+)
+
+;;; --- menu / tool palette file ----------------------------------------------------------
+(defun RMR:MenuSections (/ out group names)
+  ;; One menu section per suite, built from the live command list.
+  (setq out '())
+  (foreach group
+    '(("STANDARD" "RMR-MASTER RMR-PRO-SETUP RMR-SETLAYER RMR-LAYGROUP"
+       "RMR-LEGEND RMR-SHEET RMR-SAVE-TEMPLATE RMR-PALETTE")
+      ("ANNOTATE" "RMR-SCALE RMR-NORTH RMR-ROOMTAG RMR-AREA RMR-GRID"
+       "RMR-KEYNOTE RMR-DETAIL RMR-LEVEL RMR-REVISION RMR-MLEADER RMR-DIM")
+      ("MARKERS" "RMR-SECTION RMR-ELEVATION RMR-MATCHLINE RMR-BREAKLINE"
+       "RMR-REVCLOUD")
+      ("PRESENT" "RMR-HATCH RMR-HATCHLIB RMR-STAMP RMR-REVTABLE RMR-NOTES"
+       "RMR-SCALEBAR RMR-KEYPLAN")
+      ("MANAGE" "RMR-CHECK RMR-COUNT RMR-FINDTEXT RMR-EXPORT-PALETTE"
+       "RMR-IMPORT-PALETTE RMR-PAGESETUP RMR-PUBLISH")
+      ("STUDIO" "RMR-LAYOUTS RMR-VPORT RMR-SYMBOLS RMR-DOORSCHED RMR-FIELDS"
+       "RMR-PROJECT RMR-BACKUP")
+      ("DELIVERY" "RMR-WALL RMR-STAIR RMR-LENGTH RMR-BOM RMR-FINISHES"
+       "RMR-SHEETREG RMR-XREFLIST RMR-TRANSMITTAL")
+      ("HOUSEKEEPING" "RMR-LAYERSTATE RMR-STANDARDIZE RMR-CLEAN RMR-DWGPROPS")
+      ("SITE" "RMR-SUNPATH RMR-FALL RMR-DRAIN RMR-PARK RMR-TILE RMR-RCP"
+       "RMR-LEVELSCHED RMR-KEYLIB RMR-REPORT RMR-STRAY")
+      ("COORDINATION" "RMR-CLASH RMR-ROOF RMR-RAIL RMR-WINDOWSCHED RMR-ZONE"
+       "RMR-BLKSWAP RMR-RENUMBER RMR-TEXTALIGN RMR-INFO RMR-ORIENT")
+      ("DOCUMENTATION" "RMR-SPECNOTE RMR-SPECINDEX RMR-ABBREV RMR-REVLIB"
+       "RMR-CHECKLIST RMR-ROOMSCHED RMR-DOCLIST RMR-SHEETINDEX RMR-COVER"
+       "RMR-DOCSHEET")
+      ("PRESENTATION" "RMR-AXO RMR-ROOMVIEW RMR-BUILDUP RMR-SWATCH"
+       "RMR-COLOURBOARD RMR-MOODBOARD RMR-AREACHART RMR-PROGRAMME"
+       "RMR-BRANDING RMR-PRESENTSHEET")
+      ("QUANTITY" "RMR-SURVEY RMR-MEASURE RMR-QUANTITY RMR-RATES RMR-COSTPLAN"
+       "RMR-PERQM RMR-CASHFLOW RMR-CSVIMPORT RMR-VALIDATE RMR-QSREPORT")
+      ("AUTOMATION" "RMR-ALIAS RMR-TOOLPALETTE RMR-AUTO RMR-BATCH"))
+    (setq out (append out (list group)))
+  )
+  out
+)
+
+(defun C:RMR-TOOLPALETTE (/ path lines section title names name count group)
+  (RMR:EnsureReady)
+  (setq path (strcat (getvar "DWGPREFIX") "RooMNRooF.mnu"))
+  (setq lines (list "***MENUGROUP=RooMNRooF"
+                    "***POP1"
+                    "**RMR"
+                    "[&RooMNRooF]"
+                    "[&Aliases...]^C^C_RMR-ALIAS"
+                    "[&Automation...]^C^C_RMR-AUTO"
+                    "[--]"))
+  (setq count 0)
+  (foreach section (RMR:MenuSections)
+    (setq title (nth 0 section))
+    (setq names (append (list (nth 1 section)) (list (nth 2 section))))
+    (setq lines (append lines (list (strcat "->[&" title "]"))))
+    (foreach group names
+      (foreach name (RMR:SplitString group " ")
+        (if (> (strlen name) 0)
+          (progn
+            (setq lines (append lines
+                          (list (strcat "[" name "]^C^C_" name))))
+            (setq count (1+ count))
+          )
+        )
+      )
+    )
+    (setq lines (append lines (list "<-[" title " done]")))
+  )
+  (setq lines (append lines
+    (list ""
+          "***TOOLBARS"
+          "**RMR_STANDARD"
+          "ID_RMR_0 [_Toolbar(\"RooMNRooF\", _Floating, _Show, 100, 100, 1)]"
+          "ID_RMR_1 [_Button(\"Master\", \"RMR-Master.bmp\", \"RMR-Icon.bmp\")]^C^C_RMR-MASTER"
+          "ID_RMR_2 [_Button(\"Scale\", \"RMR-Scale.bmp\", \"RMR-Icon.bmp\")]^C^C_RMR-SCALE"
+          "ID_RMR_3 [_Button(\"Check\", \"RMR-Check.bmp\", \"RMR-Icon.bmp\")]^C^C_RMR-CHECK"
+          "ID_RMR_4 [_Button(\"Aliases\", \"RMR-Alias.bmp\", \"RMR-Icon.bmp\")]^C^C_RMR-ALIAS"
+          "")))
+  (if (RMR:WriteLines path lines)
+    (progn
+      (princ (strcat "\nWritten: " path))
+      (princ (strcat "\n" (itoa count)
+                     " commands across 14 pull-down sections."))
+      (princ "\nLoad it with MENULOAD, or CUILOAD for newer builds.")
+    )
+    (princ "\nCould not write the menu file.")
+  )
+  (princ)
+)
+
+;;; --- automation runner ------------------------------------------------------------
+(defun C:RMR-AUTO (/ log step label action argument result changed ss
+                 answer path index spec ent data i pair lines oldexpert
+                 oldcmdecho)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq log '())
+  (setq answer (RMR:PromptYesNo
+                 (strcat "Run " (itoa (length *RMR-AUTO-SEQUENCE*))
+                         " automation steps from *RMR-AUTO-SEQUENCE*") "Yes"))
+  (if (RMR:YesP answer)
+    (progn
+      (foreach step *RMR-AUTO-SEQUENCE*
+        (setq label (nth 0 step))
+        (setq action (strcase (nth 1 step)))
+        (setq argument (nth 2 step))
+        (setq result "skipped")
+        (cond
+          ((= action "STANDARD")
+           (RMR:EnsureReady)
+           (setq result (strcat (itoa (length *RMR-LAYER-SPECS*)) " layers, "
+                                (itoa (length *RMR-TEXT-STYLES*)) " styles")))
+          ((= action "SCALE")
+           (setq spec (RMR:TableSpec argument *RMR-SCALE-SPECS*))
+           (if spec
+             (progn
+               (setq *RMR-DRAW-SCALE-LABEL* (nth 1 spec))
+               (setq *RMR-ANNO-SPACE* "MODEL")
+               (setq *RMR-ANNO-SCALE* (float (nth 2 spec)))
+               (RMR:SafeSet "DIMSCALE" (float (nth 2 spec)))
+               (RMR:SafeSet "CELTSCALE" 1.0)
+               (RMR:SafeSet "MSLTSCALE" 1)
+               (RMR:SafeSet "PSLTSCALE" 1)
+               (RMR:SafeSet "LTSCALE" 1.0)
+               (setq result (nth 1 spec))
+             )
+             (setq result "unknown scale")
+           ))
+          ((= action "BYLAYER")
+           (setq ss (ssget "_X" (list (cons 410 "Model"))))
+           (if ss
+             (setq result (strcat (itoa (RMR:ForceByLayer ss)) " objects"))
+             (setq result "nothing in model space")
+           ))
+          ((= action "PROPS")
+           (setq result
+             (if (vl-catch-all-error-p
+                   (vl-catch-all-apply 'C:RMR-DWGPROPS nil))
+               "failed"
+               "drawing properties written")))
+          ((= action "STRAY")
+           (setq index 0)
+           (setq ss (ssget "_X"))
+           (if ss
+             (progn
+               (setq changed 0)
+               (setq i 0)
+               (repeat (sslength ss)
+                 (setq ent (ssname ss i))
+                 (setq data (entget ent))
+                 (if (not (RMR:StandardLayerP (cdr (assoc 8 data))))
+                   (setq changed (1+ changed))
+                 )
+                 (setq i (1+ i))
+               )
+               (setq result (strcat (itoa changed) " objects on stray layers"))
+             )
+             (setq result "nothing to check")
+           ))
+          ((= action "ALIAS")
+           (setq path (strcat (getvar "DWGPREFIX") "RooMNRooF.pgp"))
+           (setq lines (list ";;; RooMNRooF command aliases - generated by RMR-AUTO"
+                             ""))
+           (foreach pair (RMR:AliasPairs)
+             (setq lines (append lines
+                           (list (strcat (nth 0 pair) ", *" (nth 1 pair)))))
+           )
+           (if (RMR:WriteLines path lines)
+             (setq result (strcat (itoa (length lines)) " lines to RooMNRooF.pgp"))
+             (setq result "could not write the PGP file")
+           ))
+          ((= action "PURGE")
+           (setq oldexpert (getvar "EXPERTS"))
+           (setq oldcmdecho (getvar "CMDECHO"))
+           (RMR:SafeSet "CMDECHO" 0)
+           (RMR:SafeSet "EXPERTS" 1)
+           (setq index 0)
+           (while (< index 3)
+             (vl-catch-all-apply 'command (list "_.-purge" "_A" "*" "_N"))
+             (setq index (1+ index))
+           )
+           (vl-catch-all-apply 'command (list "_.-purge" "_R" "*" "_N"))
+           (vl-catch-all-apply 'command (list "_.audit" "_Y"))
+           (RMR:SafeSet "EXPERTS" oldexpert)
+           (RMR:SafeSet "CMDECHO" oldcmdecho)
+           (setq result "three purge passes and an audit"))
+          ((= action "LOG")
+           (setq result "log written at the end of the run"))
+          (T (setq result (strcat "unknown action " action)))
+        )
+        (princ (strcat "\n  " label " - " result))
+        (setq log (append log (list (strcat label " | " result))))
+      )
+      (setq path (strcat (getvar "DWGPREFIX") "RooMNRooF_Automation_Log.txt"))
+      (setq lines
+        (append
+          (list "RooMNRooF AUTOMATION LOG"
+                (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+                (strcat "Drawing: " (getvar "DWGNAME"))
+                (strcat "Date: " (RMR:TodayDate))
+                "")
+          log))
+      (if (RMR:WriteLines path lines)
+        (princ (strcat "\nLog written: " path))
+        (princ "\nCould not write the automation log.")
+      )
+    )
+    (princ "\nAutomation cancelled.")
+  )
+  (princ)
+)
+
+;;; --- batch script writer -----------------------------------------------------------
+(defun C:RMR-BATCH (/ folder files name path lines steps step answer here)
+  (RMR:EnsureReady)
+  (setq here (strcat (getvar "DWGPREFIX") (getvar "DWGNAME")))
+  (setq path (getfiled "Pick any drawing in the folder to batch" here "dwg" 4))
+  (if path
+    (progn
+      (setq folder (RMR:FolderOf path))
+      (setq files (vl-directory-files folder "*.dwg" 1))
+      (setq steps (list "(load \"RooMNRooF_Master.lsp\")"
+                        "RMR-STANDARDIZE"
+                        "RMR-DWGPROPS"
+                        "RMR-STRAY"))
+      (setq answer (RMR:PromptText "Commands to run in each drawing"
+                                   "RMR-STANDARDIZE RMR-DWGPROPS RMR-STRAY"))
+      (if (and answer (> (strlen (RMR:TrimString answer)) 0))
+        (setq steps (append (list "(load \"RooMNRooF_Master.lsp\")")
+                            (RMR:SplitString (RMR:TrimString answer) " ")))
+      )
+      (setq lines (list ";; RooMNRooF batch script - generated by RMR-BATCH"
+                        (strcat ";; Folder: " folder)
+                        (strcat ";; Date: " (RMR:TodayDate))
+                        "FILEDIA 0"
+                        "SDI 0"
+                        ""))
+      (foreach name files
+        (setq lines (append lines (list (strcat "_.open \"" folder name "\""))))
+        (foreach step steps
+          (setq lines (append lines (list step)))
+        )
+        (setq lines (append lines (list "_.qsave" "_.close" "")))
+      )
+      (setq lines (append lines (list "FILEDIA 1" "SDI 0" "")))
+      (setq path (strcat folder "RooMNRooF-Batch.scr"))
+      (if (RMR:WriteLines path lines)
+        (progn
+          (princ (strcat "\nWritten: " path))
+          (princ (strcat "\n" (itoa (length files)) " drawings, "
+                         (itoa (length steps)) " steps each."))
+          (princ "\nReview it first, then run it with the SCRIPT command.")
+          (princ "\nCopy RooMNRooF_Master.lsp into a trusted folder and edit")
+          (princ "\nthe load line to the full path if it is not on the search path.")
+        )
+        (princ "\nCould not write the batch script.")
+      )
+    )
+  )
+  (princ)
+)
 
 (princ (strcat "\nRooMNRooF " *RMR-VERSION* " loaded | " (itoa (length *RMR-LAYER-SPECS*)) " layers, "
                (itoa (length *RMR-HATCH-SPECS*)) " materials, " (itoa (length *RMR-NOTES*)) " notes."))

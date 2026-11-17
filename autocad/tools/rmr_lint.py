@@ -22,7 +22,7 @@ from collections import Counter, defaultdict
 OPERATORS = set("""+ - * / = /= < > <= >= 1+ 1- . t nil""".split())
 
 BUILTINS = set("""
-abs acos alert and angle append apply ascii asin assoc atan atof atoi boole
+abs acos alert and angle append apply ascii asin assoc atan atof atoi atoms-family boole
 boundp caddr cadddr cadr
 car cdddr cddr cdr chr close command command-s cond cons cos cosh cvunit defun
 defun-q distof

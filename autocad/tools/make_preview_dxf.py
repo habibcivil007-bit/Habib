@@ -171,6 +171,9 @@ def load_lisp_data():
         "buildups": _extract_form(src, "*RMR-BUILDUP-SPECS*"),
         "programme": _extract_form(src, "*RMR-PROGRAMME-SPECS*"),
         "mood": _extract_form(src, "*RMR-MOOD-SPECS*"),
+        "rates": _extract_form(src, "*RMR-RATE-SPECS*"),
+        "elements": _extract_form(src, "*RMR-ELEMENT-SPECS*"),
+        "auto": _extract_form(src, "*RMR-AUTO-SEQUENCE*"),
     }
 
 
@@ -1688,6 +1691,9 @@ def _table(sh, x, y, headers, colw, rows, text=2.1):
             sh.line((cx, cy - rowh), (cx, cy), "RMR-A-FRAME", SLATE)
         cx = x
         for j, value in enumerate(row):
+            if value == "":
+                cx += colw[j]
+                continue
             sh.text((cx + 1.6, cy - 5.4), value, text,
                     "RMR-LABEL" if j == 0 else "RMR-BODY", "RMR-A-TEXT",
                     TERRA if j == 0 else INK)
@@ -3216,6 +3222,349 @@ def build_presentation():
 
 
 # --------------------------------------------------------------------------- #
+# 10.0 QUANTITY AND AUTOMATION SHEET PANELS
+# --------------------------------------------------------------------------- #
+RATES = DATA["rates"]
+ELEMENTS = DATA["elements"]
+PROGRAMME = DATA["programme"]
+BRAND_RGB = {name: tuple(v) for name, v in DATA["brand"].items()}
+
+# a worked takeoff: (code, quantity) priced against *RMR-RATE-SPECS*
+TAKEOFF = (("M200", 86.40), ("F100", 118.20), ("C100", 118.20), ("X100", 236.40),
+           ("D100", 9.0), ("W100", 11.0), ("S100", 142.60), ("P100", 24.50))
+
+# a small measured survey: (number, easting, northing, level)
+SURVEY_PTS = (
+    ("1", 0.00, 0.00, 12.40), ("2", 8.60, 0.40, 12.38), ("3", 17.20, 0.10, 12.41),
+    ("4", 25.90, 1.20, 12.30), ("5", 25.40, 9.80, 12.22), ("6", 24.80, 18.60, 12.18),
+    ("7", 16.10, 19.10, 12.25), ("8", 7.40, 18.90, 12.31), ("9", 0.30, 18.20, 12.36),
+    ("10", 12.80, 9.40, 12.44), ("11", 21.40, 9.90, 12.29), ("12", 4.20, 9.60, 12.42),
+)
+
+
+def _rate(code):
+    for spec in RATES:
+        if spec[0] == code:
+            return spec
+    return (code, code, "M2", 0.0)
+
+
+def _money(value):
+    return "{:,.2f}".format(value)
+
+
+def draw_qty_rates(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "RATE LIBRARY  |  RMR-RATES  |  *RMR-RATE-SPECS*")
+    rows = []
+    for spec in RATES:
+        unit = {"M2": "m2", "M3": "m3", "M": "m"}.get(str(spec[2]).upper(),
+                                                      str(spec[2]))
+        rows.append([spec[0], spec[1][:26], unit, "%.2f" % float(spec[3])])
+    _table(sh, x + 10.0, ty, ("CODE", "DESCRIPTION", "UNIT", "RATE"),
+           (34.0, 138.0, 28.0, 40.0), rows, text=2.1)
+    return ty
+
+
+def draw_qty_survey(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "MEASURED SURVEY  |  RMR-SURVEY  |  CSV POINT IMPORT")
+
+    # plot box: 26.0 x 19.0 m of site inside 210 x 92
+    px0, py0 = x + 12.0, y + 16.0
+    pw, ph = 200.0, 92.0
+    sh.rect((px0, py0), pw, ph, "RMR-A-FRAME", SLATE)
+    k = min(pw / 26.0, ph / 19.0)
+
+    pts = []
+    for number, east, north, level in SURVEY_PTS:
+        qx = px0 + 6.0 + east * k
+        qy = py0 + 6.0 + north * k
+        pts.append((qx, qy))
+        sh.circle((qx, qy), 1.5, "RMR-00-REF", TERRA)
+        sh.text((qx + 2.6, qy + 1.4), number, 2.0, "RMR-NUMBER",
+                "RMR-A-TEXT", TERRA)
+        sh.text((qx + 2.6, qy - 4.6), "%.2f" % level, 1.7, "RMR-MARK",
+                "RMR-A-TEXT", SLATE)
+    # the traverse string, drawn as the command draws it
+    ring = [pts[0], pts[1], pts[2], pts[3], pts[4], pts[5], pts[6], pts[7],
+            pts[8], pts[0]]
+    sh.poly(ring, [0.0] * len(ring), True, "RMR-00-REF", TEAL)
+    inner = [pts[9], pts[10], pts[11]]
+    sh.poly(inner, [0.0] * len(inner), False, "RMR-00-REF", BLUE)
+
+    sh.text((x + 12.0, ty - 3.0),
+            "12 points  |  extent 25.90 x 19.10 m  |  levels 12.18 to 12.44 m",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", INK)
+    for i, line in enumerate((
+            "RMR-SURVEY reads number,east,north,level from a CSV,",
+            "normalises the coordinates to the first point, drops the",
+            "blank rows, then plots a numbered marker with its level",
+            "and a traverse polyline on RMR-00-REF.")):
+        sh.text((x + 12.0, y + 12.0 - i * 4.2), line, 2.0, "RMR-NOTE",
+                "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_qty_takeoff(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "QUANTITY TAKEOFF  |  RMR-QUANTITY  |  RATE DRIVEN")
+    rows = []
+    total = 0.0
+    for code, qty in TAKEOFF:
+        spec = _rate(code)
+        cost = qty * float(spec[3])
+        total += cost
+        rows.append([code, "%.2f" % qty, "%.2f" % float(spec[3]),
+                     _money(cost)])
+    cy = _table(sh, x + 10.0, ty, ("CODE", "QTY", "RATE", "COST"),
+                (34.0, 42.0, 42.0, 62.0), rows, text=2.0)
+    sh.solid((x + 10.0, cy - 7.6), 180.0, 7.6, "RMR-PRES-TITLE", SAND)
+    sh.text((x + 11.6, cy - 5.4), "TOTAL", 2.2, "RMR-HEAD", "RMR-A-TEXT", INK)
+    sh.text((x + 45.6, cy - 5.4), _money(total), 2.2, "RMR-NUMBER",
+            "RMR-A-TEXT", TERRA)
+    return cy
+
+
+def draw_qty_costplan(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h,
+                "ELEMENTAL COST PLAN  |  RMR-COSTPLAN")
+    total = sum(float(spec[1]) for spec in ELEMENTS)
+    sh.text((x + 10.0, ty - 4.0),
+            "%d elements  |  total %s" % (len(ELEMENTS), _money(total)),
+            2.1, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    rowy = ty - 12.0
+    rowh = 10.0
+    bar_x = x + 74.0
+    bar_w = 96.0
+    for spec in ELEMENTS:
+        name = spec[0]
+        value = float(spec[1])
+        share = value / total if total else 0.0
+        rgb = BRAND_RGB[str(spec[2]).upper()]
+        sh.text((x + 10.0, rowy), name, 2.2, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.solid((bar_x, rowy - 1.0), bar_w * share, 5.0, "RMR-M-FILL", rgb)
+        sh.rect((bar_x, rowy - 1.0), bar_w * share, 5.0, "RMR-A-FRAME", SLATE)
+        sh.text((bar_x + bar_w + 4.0, rowy),
+                "%s  %.1f%%" % (_money(value), 100.0 * share), 2.0,
+                "RMR-BODY", "RMR-A-TEXT", INK)
+        rowy -= rowh
+    sh.text((x + 10.0, rowy - 3.0), "TOTAL %s" % _money(total), 2.8,
+            "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+    sh.text((x + 10.0, rowy - 9.0),
+            "Allowances live in *RMR-ELEMENT-SPECS*: edit the list and",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 10.0, rowy - 13.2),
+            "RMR-COSTPLAN, RMR-PERQM, RMR-CASHFLOW and RMR-QSREPORT",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 10.0, rowy - 17.4), "all read the same numbers.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_qty_perqm(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "COST PER M2  |  RMR-PERQM")
+    total = sum(float(spec[1]) for spec in ELEMENTS)
+    gifa, bench = 124.0, 2200.0
+    perqm = total / gifa
+    diff = 100.0 * (perqm - bench) / bench
+    over = perqm > bench
+    tone = TERRA if over else TEAL
+
+    sh.text((x + 10.0, ty - 4.0),
+            "GIFA %.2f m2   |   cost %s" % (gifa, _money(total)),
+            2.1, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 10.0, ty - 26.0), "%s" % _money(perqm), 15.0, "RMR-NUMBER",
+            "RMR-A-TEXT", tone)
+    sh.text((x + 10.0, ty - 33.0), "PER SQUARE METRE", 2.4, "RMR-HEAD",
+            "RMR-A-TEXT", SLATE)
+
+    wide = 160.0
+    axis_y = ty - 44.0
+    top = max(perqm, bench)
+    sh.solid((x + 10.0, axis_y), wide * (perqm / top), 6.0, "RMR-M-FILL", tone)
+    sh.rect((x + 10.0, axis_y), wide * (perqm / top), 6.0, "RMR-A-FRAME", SLATE)
+    sh.solid((x + 10.0, axis_y - 10.0), wide * (bench / top), 6.0,
+             "RMR-M-FILL", SAND)
+    sh.rect((x + 10.0, axis_y - 10.0), wide * (bench / top), 6.0,
+            "RMR-A-FRAME", SLATE)
+    sh.text((x + 174.0, axis_y + 0.6), "THIS PROJECT", 2.0, "RMR-LABEL",
+            "RMR-A-TEXT", INK)
+    sh.text((x + 174.0, axis_y - 9.4), "BENCHMARK", 2.0, "RMR-LABEL",
+            "RMR-A-TEXT", INK)
+    sh.text((x + 10.0, axis_y - 21.0),
+            "%s benchmark by %.1f%%" % ("Over" if over else "Under", abs(diff)),
+            2.6, "RMR-HEAD", "RMR-A-TEXT", tone)
+    sh.text((x + 10.0, axis_y - 27.0),
+            "RMR-PERQM asks for the cost, the area and a benchmark,",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 10.0, axis_y - 31.2),
+            "then draws this dashboard in the current text height.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_qty_cashflow(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "CASH FLOW  |  RMR-CASHFLOW")
+    total = sum(float(spec[1]) for spec in ELEMENTS)
+    dur = float(sum(int(spec[2]) for spec in PROGRAMME))
+    weeks = max(int(spec[1]) + int(spec[2]) for spec in PROGRAMME)
+    weekly = [0.0] * weeks
+    for spec in PROGRAMME:
+        start, span = int(spec[1]), int(spec[2])
+        stage = total * (span / dur) if dur else 0.0
+        for i in range(span):
+            if start + i < weeks:
+                weekly[start + i] += stage / span
+
+    cumulative, run = [], 0.0
+    for value in weekly:
+        run += value
+        cumulative.append(run)
+    peak = max(weekly) if weekly else 0.0
+    maxc = cumulative[-1] if cumulative else 0.0
+
+    sh.text((x + 10.0, ty - 4.0),
+            "%d weeks  |  total %s  |  peak week %s"
+            % (weeks, _money(total), _money(peak)), 2.1, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+
+    ox, oy = x + 12.0, ty - 22.0
+    colw = 5.6
+    maxh = 62.0
+    sh.line((ox, oy - maxh * 0.35), (ox + weeks * colw, oy - maxh * 0.35),
+            "RMR-00-REF", SLATE)
+    for i, value in enumerate(weekly):
+        bh = maxh * 0.35 * (value / peak if peak else 0.0)
+        sh.solid((ox + i * colw, oy - maxh * 0.35), colw * 0.7, bh,
+                 "RMR-M-FILL", GOLD)
+    pts = [(ox + i * colw, oy - maxh * (value / maxc if maxc else 0.0))
+           for i, value in enumerate(cumulative)]
+    sh.poly(pts, [0.0] * len(pts), False, "RMR-M-WALL", TERRA)
+    sh.text((ox, oy + 4.0), "WEEKLY SPEND", 2.0, "RMR-LABEL", "RMR-A-TEXT", GOLD)
+    sh.text((ox + 96.0, oy + 4.0), "CUMULATIVE S CURVE", 2.0, "RMR-LABEL",
+            "RMR-A-TEXT", TERRA)
+    sh.text((ox, oy - maxh - 6.0),
+            "CUMULATIVE TO %s" % _money(maxc), 2.4, "RMR-NUMBER",
+            "RMR-A-TEXT", TERRA)
+    for i, spec in enumerate(PROGRAMME):
+        sh.text((ox, oy - maxh - 14.0 - i * 4.0),
+                "%-22s wk %2d  %2d wks  %s"
+                % (spec[0][:22], int(spec[1]), int(spec[2]),
+                   _money(total * (int(spec[2]) / dur if dur else 0.0))),
+                1.9, "RMR-BODY", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_qty_csv(sh):
+    x, y, w, h = 20.0, 74.0, 286.0, 158.0
+    ty = _panel(sh, x, y, w, h,
+                "CSV IMPORT  |  RMR-CSVIMPORT  |  ANY TABLE INTO CAD")
+    rows = [["ROOM", "LEVEL", "FLOOR", "WALLS", "CEILING", "AREA"],
+            ["LIVING", "00", "F200", "X100", "C100", "32.40"],
+            ["KITCHEN", "00", "F100", "X100", "C100", "18.60"],
+            ["DINING", "00", "F200", "X100", "C100", "14.20"],
+            ["BED 01", "00", "F200", "X100", "C100", "21.80"],
+            ["BED 02", "00", "F200", "X100", "C100", "16.40"],
+            ["BATH", "00", "F100", "X100", "C100", "8.20"],
+            ["HALL", "00", "F100", "X100", "C100", "12.40"],
+            ["TOTAL", "00", "", "", "", "124.00"]]
+    cy = _table(sh, x + 10.0, ty, rows[0],
+                (52.0, 40.0, 44.0, 44.0, 48.0, 44.0), rows[1:], text=2.1)
+    sh.text((x + 10.0, cy - 6.0),
+            "The first row becomes the header band, the rest become",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 10.0, cy - 10.2),
+            "body rows, 41 rows maximum, columns auto-sized.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return cy
+
+
+def draw_qty_validate(sh):
+    x, y, w, h = 316.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h,
+                "VALIDATION AND QS REPORT  |  RMR-VALIDATE / RMR-QSREPORT")
+    sh.solid((x + 10.0, ty - 10.0), 210.0, 9.0, "RMR-PRES-TITLE", TEAL)
+    sh.text((x + 14.0, ty - 7.4), "VERDICT: PASS", 2.6, "RMR-HEAD",
+            "RMR-A-TEXT", SAND)
+    lines = [
+        "RooMNRooF quantity validation",
+        "  %d rates checked" % len(RATES),
+        "  0 unrated blocks in the drawing",
+        "  Verdict: PASS",
+        "",
+        "Every rate carries a known unit (m, m2, m3, nr, item)",
+        "and a value above zero. Blocks that are not part of",
+        "the standard are listed so they can be priced.",
+        "",
+        "RMR-QSREPORT writes the same numbers to a text file:",
+        "  rate library, elemental cost plan, cost per m2,",
+        "  and the programme cash flow with project details.",
+    ]
+    for i, line in enumerate(lines):
+        if line == "":
+            continue
+        sh.text((x + 10.0, ty - 18.0 - i * 5.0), line, 2.0,
+                "RMR-HEAD" if i == 0 else "RMR-BODY", "RMR-A-TEXT",
+                TERRA if i == 0 else INK)
+    return ty
+
+
+def draw_qty_automation(sh):
+    x, y, w, h = 576.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h,
+                "AUTOMATION  |  RMR-ALIAS / TOOLPALETTE / AUTO / BATCH")
+    steps = [a[0] for a in DATA["auto"]]
+    sh.text((x + 10.0, ty - 4.0), "RMR-AUTO runs *RMR-AUTO-SEQUENCE*:",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    for i, label in enumerate(steps):
+        sh.text((x + 10.0, ty - 12.0 - i * 4.6), "%d  %s" % (i + 1, label),
+                2.0, "RMR-BODY", "RMR-A-TEXT", INK)
+    ay = ty - 12.0 - len(steps) * 4.6 - 4.0
+    sh.text((x + 10.0, ay), "RMR-ALIAS writes RooMNRooF.pgp:", 2.0,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 10.0, ay - 5.0), "RAXO, *RMR-AXO      RQTY, *RMR-QUANTITY",
+            2.0, "RMR-BODY", "RMR-A-TEXT", TEAL)
+    sh.text((x + 10.0, ay - 10.0),
+            "RMR-TOOLPALETTE writes RooMNRooF.mnu: 14 pull-downs.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 10.0, ay - 15.0),
+            "RMR-BATCH writes RooMNRooF-Batch.scr for a whole folder.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def build_quantity():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "QUANTITY AND AUTOMATION SHEET"
+    SHEET_SUBTITLE = ("SURVEY, TAKEOFF, RATE LIBRARY, COST PLAN, COST PER M2, "
+                      "CASH FLOW, CSV AND REPORT")
+    SHEET_NOTE = ("The 10.0 suite: the numbers behind the drawing, plus the "
+                  "aliases, menu and automation that run the standard.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_qty_rates(sh)
+    draw_qty_survey(sh)
+    draw_qty_takeoff(sh)
+    draw_qty_costplan(sh)
+    draw_qty_perqm(sh)
+    draw_qty_cashflow(sh)
+    draw_qty_csv(sh)
+    draw_qty_validate(sh)
+    draw_qty_automation(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -3362,6 +3711,19 @@ def main():
         print("Presentation PNG render skipped:", exc)
     print("buildups: %d | programme: %d | mood slots: %d"
           % (len(DATA["buildups"]), len(DATA["programme"]), len(DATA["mood"])))
+
+    quantity = build_quantity()
+    qty_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Quantity_Suite.dxf")
+    quantity.saveas(qty_path)
+    print("DXF  :", qty_path, os.path.getsize(qty_path), "bytes")
+    try:
+        print("PNG  :", render_png(quantity, os.path.join(
+            OUT_DIR, "RooMNRooF_PRO_Quantity_Suite.png"), dpi=150))
+    except Exception as exc:
+        print("Quantity PNG render skipped:", exc)
+    print("rates: %d | elements: %d | automation steps: %d | takeoff: %d"
+          % (len(DATA["rates"]), len(DATA["elements"]), len(DATA["auto"]),
+             len(TAKEOFF)))
     return 0
 
 

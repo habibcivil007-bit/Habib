@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 9.0 PRESENTATION SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 10.0 QUANTITY AND AUTOMATION SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -27,9 +27,15 @@ sheet) plus the 9.0 presentation suite (axonometric massing extruded from a plan
 outline, one point interior perspectives, layered construction build-ups with
 leaders, a material swatch board, a colour reference board, an image board, an
 area distribution chart, a programme bar chart, the brand masthead and a
-complete client presentation sheet).
+complete client presentation sheet) plus the 10.0 quantity and automation suite
+(measured survey import, interactive measurement, a rate-driven quantity
+takeoff, a rate library, an elemental cost plan, a cost per m² dashboard, a
+cash flow curve, generic CSV import, quantity validation and a full quantity
+surveyor report, then short command aliases, a menu / tool palette file, a
+scripted automation runner and a batch script writer for whole folders of
+drawings).
 
-Version string inside the LISP: `*RMR-VERSION* = "9.0 PRESENTATION SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "10.0 QUANTITY AND AUTOMATION SUITE"`.
 
 ## Package contents
 
@@ -52,6 +58,8 @@ Version string inside the LISP: `*RMR-VERSION* = "9.0 PRESENTATION SUITE"`.
 | `preview/RooMNRooF_PRO_Documentation_Suite.png` | Rendered documentation sheet. |
 | `preview/RooMNRooF_PRO_Presentation_Suite.dxf` | A1 sheet showing the 9.0 presentation suite: axonometric massing with the plan footprint it came from, a one point interior perspective, an external wall build-up with leaders, the material swatch board, the colour reference board, the programme bar chart, the area chart with the brand masthead, the image board and the command list. |
 | `preview/RooMNRooF_PRO_Presentation_Suite.png` | Rendered presentation sheet. |
+| `preview/RooMNRooF_PRO_Quantity_Suite.dxf` | A1 sheet showing the 10.0 quantity and automation suite: the rate library, a measured survey plot, a priced takeoff, the elemental cost plan, the cost per m² dashboard, the cash flow S curve, a CSV import table, the validation verdict and the automation sequence with the alias and menu output. |
+| `preview/RooMNRooF_PRO_Quantity_Suite.png` | Rendered quantity and automation sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 | `tools/check_preview_sheets.py` | Layout audit for the generated sheets: text outside the frame and copy that would overprint other copy. |
@@ -71,7 +79,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (97 commands)
+## Command reference (111 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -199,6 +207,28 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-PRESENTSHEET` | Lays out a complete A1 client presentation sheet in one command: frame, masthead, material swatch board, programme, image board, three captioned view frames, the brand palette strip and the title block. |
 
 
+### Quantity suite (new in 10.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-SURVEY` | Imports a measured survey CSV (`number,east,north,level`). Blank coordinate rows are dropped, the coordinates are normalised to the first point, and every point is plotted as a numbered marker with its level and a traverse polyline on `RMR-00-REF`. Reports the site extent and the level range. |
+| `RMR-MEASURE` | Interactive measurement. Pick objects one after another: closed ones contribute area, open ones length. Running totals are kept **per unit** so square metres are never added to metres, and the list is drawn on the drawing with both totals underneath. |
+| `RMR-QUANTITY` | Rate-driven takeoff. Pick a basis (length, area, count or finish), select the objects, choose a rate code from `*RMR-RATE-SPECS*`, and the command measures, prices and adds a row. Finish and it draws the full table with the total. |
+| `RMR-RATES` | Draws the rate library: every entry in `*RMR-RATE-SPECS*` with its code, description, unit and rate. |
+| `RMR-COSTPLAN` | Elemental cost plan bar chart from `*RMR-ELEMENT-SPECS*`: one colour-coded bar per element with its allowance and its share of the total, and the plan total underneath. |
+| `RMR-PERQM` | Cost per m² dashboard. Asks for the cost, the gross internal floor area and a benchmark, then draws the rate as a large number, two comparison bars (this project and the benchmark) and the over / under percentage. |
+| `RMR-CASHFLOW` | Cash flow curve. Spreads the elemental total across the programme in `*RMR-PROGRAMME-SPECS*`, each stage evenly over its own weeks, then draws the weekly spend bars above the axis and the cumulative S curve over the full height. |
+| `RMR-CSVIMPORT` | Brings any CSV into the drawing as a table: the first row becomes the header band, the rest become body rows, 41 rows maximum and the columns are auto-sized. |
+| `RMR-VALIDATE` | Checks the rate library (known unit, rate above zero) and lists every block in the drawing that is not part of the standard, so nothing goes unpriced. PASS / REVIEW verdict, optional `.txt` report. |
+| `RMR-QSREPORT` | Writes the complete quantity surveyor report to a text file: project details, the rate library, the elemental cost plan with shares, the cost per m² and the programme cash flow by stage. |
+
+### Automation (new in 10.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-ALIAS` | Discovers every `C:RMR-*` command from the symbol table, registers a short alias for each one (`RMR-AXO` → `RAXO`) with `vlax-add-cmd`, and writes ready-to-paste lines to `RooMNRooF.pgp`. Because the list is discovered at run time it can never fall out of step with the code. |
+| `RMR-TOOLPALETTE` | Writes `RooMNRooF.mnu`: a pull-down menu with 14 sections — one per suite, covering all 111 commands — plus a floating toolbar. Load it with `MENULOAD` (or `CUILOAD` on newer builds). |
+| `RMR-AUTO` | Runs the scripted sequence in `*RMR-AUTO-SEQUENCE*` (build the standard, set the scale, force ByLayer, write the drawing properties, audit stray layers, write the aliases, purge and audit) and writes `RooMNRooF_Automation_Log.txt` beside the drawing. |
+| `RMR-BATCH` | Picks any drawing in a folder, asks which commands to run, and writes `RooMNRooF-Batch.scr` that opens every `.dwg` in that folder, runs the steps and saves and closes. Review it first, then run it with `SCRIPT`. |
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -248,6 +278,15 @@ All visual data lives in plain editable tables near the top of the LISP:
   `EXTWALL / INTWALL / FLOOR / ROOF`
 - `*RMR-PROGRAMME-SPECS*` — programme bars: `(Stage StartWeek Weeks ColourKey)`
 - `*RMR-MOOD-SPECS*` — image board slots: `(Slot Caption)`
+- `*RMR-RATE-SPECS*` — rate library: `(Code Description Unit Rate)`, 12 rates
+  across `m`, `m²`, `m³` and `nr`. Units are drawn as `m`, `m2`, `m3`, `nr`
+  so they fit a narrow table cell
+- `*RMR-ELEMENT-SPECS*` — elemental cost plan: `(Element Allowance ColourKey)`,
+  8 elements totalling **339,000.00** with the colour keys
+  `SLATE / TERRA / GOLD / TEAL / BLUE / SAND`. `RMR-COSTPLAN`, `RMR-PERQM`,
+  `RMR-CASHFLOW` and `RMR-QSREPORT` all read the same numbers
+- `*RMR-AUTO-SEQUENCE*` — the automation runner steps:
+  `(Label Action Argument)`, 8 steps from `STANDARD` through to `LOG`
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -304,6 +343,15 @@ RMR-BUILDUP  RMR-SWATCH             ; build-up and material board
 RMR-COLOURBOARD  RMR-MOODBOARD      ; colour and image boards
 RMR-AREACHART  RMR-PROGRAMME        ; area and programme charts
 RMR-BRANDING  RMR-PRESENTSHEET      ; masthead and presentation sheet
+RMR-SURVEY  RMR-MEASURE             ; survey in, quantities out
+RMR-QUANTITY  RMR-RATES             ; priced takeoff
+RMR-COSTPLAN  RMR-PERQM             ; elemental plan and cost per m2
+RMR-CASHFLOW  RMR-CSVIMPORT         ; spend curve and any table
+RMR-VALIDATE  RMR-QSREPORT          ; check, then write the report
+RMR-ALIAS                           ; short aliases + RooMNRooF.pgp
+RMR-TOOLPALETTE                     ; RooMNRooF.mnu menu and toolbar
+RMR-AUTO                            ; run the standard end to end
+RMR-BATCH                           ; script a whole folder of drawings
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -312,7 +360,7 @@ RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds seven A1 sheets: the standard sheet (below) and
+values) and rebuilds eight A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
@@ -336,8 +384,13 @@ thumbnail, and `RooMNRooF_PRO_Presentation_Suite.dxf`, which previews the 9.0
 presentation suite: an axonometric mass beside the plan footprint it came from, a
 one point interior perspective with its floor grid, an external wall build-up with
 leaders, the material swatch board, the colour reference board, the programme bar
-chart, the area chart with the brand masthead and the image board. The standard
-sheet contains: sample 1:50 apartment plan with walls,
+chart, the area chart with the brand masthead and the image board, and
+`RooMNRooF_PRO_Quantity_Suite.dxf`, which previews the 10.0 quantity and
+automation suite: the 12-rate library, a 12-point measured survey with its
+traverse, an 8-line priced takeoff with its total, the elemental cost plan
+bars, the cost per m² dashboard against a benchmark, the weekly spend bars with
+the cumulative S curve, a CSV import table, the validation verdict and the
+eight automation steps with the alias and menu output. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -351,14 +404,14 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 
 `tools/check_preview_sheets.py` reads the generated DXFs back and reports copy that
 runs outside the sheet frame and text boxes that would print on top of each other.
-Current state across the seven sheets: **0 problems** (1,680 text entities and
-3,110 geometry entities checked).
+Current state across the eight sheets: **0 problems** (1,955 text entities and
+1,663 geometry entities checked).
 
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (327,580 bytes / 8,023 lines, 252 defuns,
-97 commands).
+variables). Current state: **PASS**, 0 findings (376,843 bytes / 9,231 lines, 275 defuns,
+111 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -396,6 +449,23 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
   segment after the first, so a shared corner vertex gets one post, not two.
 - `RMR-BLKSWAP` rebuilds inserts with `entmake`; attributed inserts (DXF 66 = 1) are
   skipped and reported, so check the skip count before trusting a furniture swap.
+- `RMR-ALIAS` registers aliases for the current session only. Merge the lines it
+  writes into `acad.pgp` and run `REINIT` to make them permanent, and remember
+  an alias is refused if AutoCAD already uses that name for something else —
+  the command reports how many were skipped.
+- `RMR-AUTO` runs against the current drawing and writes its log to `DWGPREFIX`.
+  It sets `EXPERT` and `CMDECHO` around the purge passes and restores both
+  afterwards, but it cannot undo the standard it builds, so work on a copy the
+  first time.
+- `RMR-BATCH` writes a plain `.scr` and opens each drawing in turn. It sets
+  `FILEDIA 0` while the script runs and back to `1` at the end; check the
+  `(load "RooMNRooF_Master.lsp")` line resolves on the machines that will run it.
+- `RMR-CASHFLOW` spreads each stage evenly across its own weeks, so a stage
+  with no duration contributes nothing and overlapping stages simply add
+  together in the weeks they share.
+- `RMR-SURVEY` expects the last three fields of every row to be the easting,
+  northing and level, so a header row is skipped automatically, and rows where
+  all three are zero are treated as blanks.
 - `RMR-SUNPATH` uses the standard solar position formulae (declination,
   hour angle, altitude and azimuth); noon altitude equals `90 - |latitude -
   declination|`, and southern latitudes put the noon sun in the north.

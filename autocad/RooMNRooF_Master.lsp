@@ -31,6 +31,11 @@
 ;;;   pre-issue checklist, a room data schedule built from picked boundaries,
 ;;;   a folder document list, a sheet index, a project cover sheet and one
 ;;;   command that lays out a complete documentation sheet.
+;;;   Version 9.0 adds the presentation suite: axonometric massing extruded
+;;;   from a plan outline, one point interior perspectives, layered
+;;;   construction build-ups with leaders, a material swatch board, a colour
+;;;   reference board, an image board, an area distribution chart, a programme
+;;;   bar chart, the brand masthead and a complete client presentation sheet.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -133,6 +138,18 @@
 ;;;   RMR-SHEETINDEX  Sheet index grid with the current sheet marked
 ;;;   RMR-COVER       Project cover sheet with the drawing set listing
 ;;;   RMR-DOCSHEET    Complete documentation sheet in one command
+;;;
+;;; Presentation suite commands
+;;;   RMR-AXO         Axonometric massing extruded from a plan outline
+;;;   RMR-ROOMVIEW    One point interior perspective of a room
+;;;   RMR-BUILDUP     Layered construction build-up with leaders
+;;;   RMR-SWATCH      Material swatch board from the hatch library
+;;;   RMR-COLOURBOARD Colour reference board: brand palette and every layer
+;;;   RMR-MOODBOARD   Image / mood board with captioned frames
+;;;   RMR-AREACHART   Area distribution bar chart from room boundaries
+;;;   RMR-PROGRAMME   Programme bar chart from *RMR-PROGRAMME-SPECS*
+;;;   RMR-BRANDING    RooMNRooF brand masthead with project data
+;;;   RMR-PRESENTSHEET Complete client presentation sheet in one command
 ;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
@@ -281,7 +298,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "8.0 DOCUMENTATION SUITE")
+(setq *RMR-VERSION* "9.0 PRESENTATION SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1504,6 +1521,9 @@
   (princ "\nSpec:   RMR-SPECNOTE, RMR-SPECINDEX, RMR-ABBREV, RMR-REVLIB")
   (princ "\nDocs:   RMR-ROOMSCHED, RMR-DOCLIST, RMR-SHEETINDEX, RMR-COVER")
   (princ "\nSet:    RMR-CHECKLIST, RMR-DOCSHEET")
+  (princ "\nPresent: RMR-AXO, RMR-ROOMVIEW, RMR-BUILDUP, RMR-SWATCH")
+  (princ "\nBoards: RMR-COLOURBOARD, RMR-MOODBOARD, RMR-BRANDING")
+  (princ "\nCharts: RMR-AREACHART, RMR-PROGRAMME, RMR-PRESENTSHEET")
   (princ)
 )
 
@@ -3006,6 +3026,18 @@
   (princ "\n  RMR-COVER          Project cover sheet with the drawing set")
   (princ "\n  RMR-DOCSHEET       Complete documentation sheet in one go")
   (princ "\n")
+  (princ "\n Presentation suite")
+  (princ "\n  RMR-AXO            Axonometric massing from a plan outline")
+  (princ "\n  RMR-ROOMVIEW       One point interior perspective of a room")
+  (princ "\n  RMR-BUILDUP        Layered build-up (*RMR-BUILDUP-SPECS*)")
+  (princ "\n  RMR-SWATCH         Material swatch board (*RMR-HATCH-SPECS*)")
+  (princ "\n  RMR-COLOURBOARD    Brand palette and every layer colour")
+  (princ "\n  RMR-MOODBOARD      Image board (*RMR-MOOD-SPECS*)")
+  (princ "\n  RMR-AREACHART      Area distribution bar chart")
+  (princ "\n  RMR-PROGRAMME      Programme bars (*RMR-PROGRAMME-SPECS*)")
+  (princ "\n  RMR-BRANDING       RooMNRooF masthead with project data")
+  (princ "\n  RMR-PRESENTSHEET   Complete presentation sheet in one go")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -3029,6 +3061,9 @@
   (princ "\n  *RMR-ABBREV-SPECS*   abbreviation legend entries")
   (princ "\n  *RMR-REVISIONS*      revision log: revision, date, description, by")
   (princ "\n  *RMR-CHECKLIST-SPECS* pre-issue checklist groups and items")
+  (princ "\n  *RMR-BUILDUP-SPECS*   build-up layers: type, order, name, mm, colour")
+  (princ "\n  *RMR-PROGRAMME-SPECS* programme stages: name, start week, weeks, colour")
+  (princ "\n  *RMR-MOOD-SPECS*      image board slots: number, caption")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -7122,6 +7157,864 @@
   )
   (princ)
 )
+
+;;; =====================================================================
+;;; PRO 9.0 PRESENTATION SUITE
+;;; Axonometric massing, one point interior perspectives, layered
+;;; construction build-ups, material swatch boards, colour reference
+;;; boards, image boards, area distribution charts, programme bar
+;;; charts, the brand masthead and the complete presentation sheet.
+;;; =====================================================================
+
+;;; --- construction build-ups -----------------------------------------------
+;;; (Type Order LayerName Thickness_mm (R G B) Pattern Note)
+(setq *RMR-BUILDUP-SPECS*
+ '(
+    ("EXTWALL" 1 "EXTERNAL RENDER"       15 (230 226 216) "AR-SAND"  "Silicone render, matte finish")
+    ("EXTWALL" 2 "BLOCKWORK"            200 (198 186 168) "ANSI31"   "200mm dense concrete blockwork")
+    ("EXTWALL" 3 "CAVITY INSULATION"     60 (168 214 196) "ANSI31"   "60mm rigid insulation board")
+    ("EXTWALL" 4 "PLASTERBOARD"          13 (244 241 234) "SOLID"    "12.5mm plasterboard on dabs")
+    ("EXTWALL" 5 "SKIM AND EMULSION"      3 (214 234 226) "SOLID"    "2mm skim coat and two coats")
+    ("INTWALL" 1 "PLASTERBOARD"          13 (244 241 234) "SOLID"    "12.5mm plasterboard, both faces")
+    ("INTWALL" 2 "STUD PARTITION"       100 (198 186 168) "ANSI31"   "100mm metal stud at 600 centres")
+    ("INTWALL" 3 "PLASTERBOARD"          13 (244 241 234) "SOLID"    "12.5mm plasterboard, both faces")
+    ("FLOOR"   1 "FLOOR FINISH"          20 (214 163  76) "AR-HBONE" "Engineered oak or porcelain tile")
+    ("FLOOR"   2 "CEMENT SCREED"         65 (198 186 168) "AR-SAND"  "65mm cement sand screed")
+    ("FLOOR"   3 "ACOUSTIC LAYER"        50 (168 214 196) "ANSI31"   "50mm acoustic and thermal layer")
+    ("FLOOR"   4 "STRUCTURAL SLAB"      250 (145 155 160) "AR-CONC"  "250mm reinforced concrete slab")
+    ("ROOF"    1 "ROOF COVERING"         30 ( 57 137 130) "ANSI31"   "Standing seam or concrete tile")
+    ("ROOF"    2 "BREATHER MEMBRANE"      2 (214 234 226) "SOLID"    "Vapour permeable underlay")
+    ("ROOF"    3 "STRUCTURAL DECK"       18 (214 163  76) "AR-HBONE" "18mm ply deck on joists")
+    ("ROOF"    4 "JOIST AND INSULATION" 220 (198 186 168) "ANSI31"   "220mm insulated joist zone")
+    ("ROOF"    5 "PLASTERBOARD"          13 (244 241 234) "SOLID"    "12.5mm plasterboard ceiling")
+  )
+)
+
+;;; Programme bars: (Stage StartWeek DurationWeeks ColourKey)
+(setq *RMR-PROGRAMME-SPECS*
+ '(
+    ("CONCEPT DESIGN"      0  4 "TEAL")
+    ("DEVELOPED DESIGN"    4  6 "TERRA")
+    ("TECHNICAL DESIGN"   10  8 "GOLD")
+    ("STATUTORY APPROVAL" 16  6 "BLUE")
+    ("CONSTRUCTION"       22 16 "SLATE")
+    ("HANDOVER"           38  3 "SAND")
+  )
+)
+
+;;; Mood board slots: (Slot Caption)
+(setq *RMR-MOOD-SPECS*
+ '(
+    ("01" "EXTERNAL APPROACH")
+    ("02" "LIVING SPACE")
+    ("03" "KITCHEN AND DINING")
+    ("04" "BEDROOM")
+    ("05" "BATHROOM")
+    ("06" "MATERIAL DETAIL")
+  )
+)
+
+;;; --- presentation helpers --------------------------------------------------
+(defun RMR:BrandRGB (key / value)
+  ;; Brand colour by keyword, so programme and chart rows stay on palette.
+  (cond
+    ((= (strcase key) "INK")   (setq value *RMR-BRAND-INK*))
+    ((= (strcase key) "TERRA") (setq value *RMR-BRAND-TERRA*))
+    ((= (strcase key) "TEAL")  (setq value *RMR-BRAND-TEAL*))
+    ((= (strcase key) "GOLD")  (setq value *RMR-BRAND-GOLD*))
+    ((= (strcase key) "SAND")  (setq value *RMR-BRAND-SAND*))
+    ((= (strcase key) "BLUE")  (setq value *RMR-BRAND-BLUE*))
+    ((= (strcase key) "SLATE") (setq value *RMR-BRAND-SLATE*))
+    (T (setq value *RMR-BRAND-TERRA*))
+  )
+  value
+)
+
+(defun RMR:ThemeName (group)
+  ;; RMR:GroupKeywords returns short group words; only MAIN is a "THEME" group.
+  (if (= (strcase group) "MAIN")
+    "MAIN THEME"
+    (strcase group)
+  )
+)
+
+(defun RMR:Quad (q1 q2 q3 q4 layer rgb)
+  ;; Filled quadrilateral. The corners are given in order round the quad; a DXF
+  ;; SOLID draws 10-11-13-12, so groups 12 and 13 are swapped on the way in.
+  (entmake
+    (list
+      '(0 . "SOLID")
+      (cons 8 layer)
+      (cons 10 (RMR:3D q1))
+      (cons 11 (RMR:3D q2))
+      (cons 12 (RMR:3D q4))
+      (cons 13 (RMR:3D q3))
+      '(62 . 7)
+      (cons 420 (RMR:RGB->420 rgb))
+    )
+  )
+)
+
+(defun RMR:ClosedPoly (pts layer rgb / data)
+  ;; Closed LWPOLYLINE boundary, returned as an ename so it can be hatched.
+  (setq data (RMR:PolyLine pts nil T layer rgb))
+  (if data (cdr (assoc -1 data)) nil)
+)
+
+(defun RMR:FillLayer (ename pattern scale angle rgb layer / obj result data args)
+  ;; Hatch one closed entity through the HATCH command path and then move the
+  ;; result onto the requested layer and true colour.
+  (vl-load-com)
+  (setq obj (vl-catch-all-apply 'vlax-ename->vla-object (list ename)))
+  (if (vl-catch-all-error-p obj)
+    nil
+    (progn
+      (setq args (list "_.-hatch" "_P" pattern))
+      ;; SOLID has no scale or angle prompt, so those arguments must be omitted.
+      (if (/= (strcase pattern) "SOLID")
+        (setq args (append args (list (RMR:Num scale 3) (RMR:Num angle 1))))
+      )
+      (setq args (append args (list "_S" (vlax-vla-object->ename obj) "" "")))
+      (setq result (vl-catch-all-apply 'command args))
+      (if (vl-catch-all-error-p result)
+        nil
+        (progn
+          (setq result (entlast))
+          (if result
+            (progn
+              (setq data (entget result))
+              (setq data (RMR:DXF 8 layer data))
+              (setq data (RMR:DXF 420 (RMR:RGB->420 rgb) data))
+              (vl-catch-all-apply 'entmod (list data))
+            )
+          )
+          T
+        )
+      )
+    )
+  )
+)
+
+(defun RMR:ReverseList (lst / out item)
+  (setq out '())
+  (foreach item lst (setq out (cons item out)))
+  out
+)
+
+(defun RMR:PolySignedArea (pts / total n i p q)
+  ;; Shoelace area: positive means the vertices run counter-clockwise.
+  (setq total 0.0)
+  (setq n (length pts))
+  (setq i 0)
+  (while (< i n)
+    (setq p (nth i pts))
+    (setq q (nth (rem (1+ i) n) pts))
+    (setq total (+ total (- (* (car p) (cadr q)) (* (car q) (cadr p)))))
+    (setq i (1+ i))
+  )
+  (/ total 2.0)
+)
+
+(defun RMR:AxoPoint (p height)
+  ;; 30 degree axonometric projection of a plan point at a given height.
+  ;; Both plan axes rise at 30 degrees, so the plan origin sits at the bottom.
+  (list
+    (* (- (car p) (cadr p)) 0.8660254)
+    (+ (* (+ (car p) (cadr p)) 0.5) height)
+  )
+)
+
+(defun RMR:PolyVertices (data / out item)
+  ;; Plan vertices from an LWPOLYLINE entity list.
+  (setq out '())
+  (foreach item data
+    (if (= (car item) 10) (setq out (append out (list (cdr item)))))
+  )
+  out
+)
+
+;;; --- axonometric massing ---------------------------------------------------
+(defun C:RMR-AXO (/ ename data pts area height base low high i n
+                  a b dx dy toppt botpt fill shade s label)
+  (RMR:EnsureReady)
+  (setq ename (car (entsel "\nSelect a closed plan outline: ")))
+  (if (and ename (setq data (entget ename))
+           (= (cdr (assoc 0 data)) "LWPOLYLINE"))
+    (progn
+      (setq pts (RMR:PolyVertices data))
+      (if (< (length pts) 3)
+        (princ "\nThat outline has fewer than three vertices.")
+        (progn
+          (setq height (RMR:PromptReal "Extrusion height in mm" 3300.0))
+          (setq base (getpoint "\nPick the axonometric origin: "))
+          (if base
+            (progn
+              (setq s (RMR:Scaled 1.0))
+              ;; counter-clockwise so the outward normal test below is valid
+              (setq area (RMR:PolySignedArea pts))
+              (if (< area 0.0)
+                (setq pts (RMR:ReverseList pts))
+              )
+              (setq n (length pts))
+              ;; projected rings
+              (setq low '())
+              (setq high '())
+              (foreach p pts
+                (setq botpt (RMR:AxoPoint p 0.0))
+                (setq toppt (RMR:AxoPoint p height))
+                (setq low (append low
+                            (list (list (+ (car base) (car botpt))
+                                        (+ (cadr base) (cadr botpt))))))
+                (setq high (append high
+                             (list (list (+ (car base) (car toppt))
+                                         (+ (cadr base) (cadr toppt))))))
+              )
+              ;; top face first so the side faces sit under its edge
+              (setq fill (RMR:ClosedPoly high "RMR-M-FILL" *RMR-BRAND-SAND*))
+              (if fill (RMR:FillLayer fill "SOLID" 1.0 0.0
+                                      (list 244 238 226) "RMR-M-FILL"))
+              ;; only the faces whose outward normal points at the viewer
+              (setq i 0)
+              (while (< i n)
+                (setq a (nth i pts))
+                (setq b (nth (rem (1+ i) n) pts))
+                (setq dx (- (car b) (car a)))
+                (setq dy (- (cadr b) (cadr a)))
+                (if (< dy dx)
+                  (progn
+                    (if (> (abs dy) (abs dx))
+                      (setq shade (list 214 196 178))
+                      (setq shade (list 232 214 194))
+                    )
+                    (RMR:Quad (nth i low) (nth (rem (1+ i) n) low)
+                              (nth (rem (1+ i) n) high) (nth i high)
+                              "RMR-M-FILL" shade)
+                  )
+                )
+                (setq i (1+ i))
+              )
+              ;; vertical edges, then the two outlines
+              (setq i 0)
+              (while (< i n)
+                (RMR:Line (nth i low) (nth i high) "RMR-M-WALL" *RMR-BRAND-TERRA*)
+                (setq i (1+ i))
+              )
+              (RMR:PolyLine low nil T "RMR-00-REF" *RMR-BRAND-SLATE*)
+              (RMR:PolyLine high nil T "RMR-M-WALL" *RMR-BRAND-TERRA*)
+              ;; height note
+              (setq toppt (nth 0 high))
+              (setq botpt (nth 0 low))
+              (RMR:Line (RMR:PT+ toppt (* 6.0 s) 0.0) (RMR:PT+ toppt (* 14.0 s) 0.0)
+                        "RMR-A-LEADER" *RMR-BRAND-GOLD*)
+              (setq label (strcat "AXONOMETRIC  |  HEIGHT "
+                                  (RMR:Num height 0) " mm  |  30 DEGREES"))
+              (RMR:Text (RMR:PT+ toppt (* 16.0 s) (- (* 1.2 s))) label (* 2.6 s)
+                        "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+              (princ (strcat "\nAxonometric drawn from " (itoa n)
+                             " vertices at " (RMR:Num height 0) " mm."))
+            )
+          )
+        )
+      )
+    )
+    (princ "\nPick a closed lightweight polyline for the footprint.")
+  )
+  (princ)
+)
+
+;;; --- one point interior perspective ---------------------------------------
+(defun C:RMR-ROOMVIEW (/ base w d h eye frame hp vpx vpy tdepth
+                       fl fr tl tr bfl bfr btl btr i gx gy)
+  (RMR:EnsureReady)
+  (setq w (RMR:PromptReal "Room width in mm" 4200.0))
+  (setq d (RMR:PromptReal "Room depth in mm" 5400.0))
+  (setq h (RMR:PromptReal "Room height in mm" 2700.0))
+  (setq eye (RMR:PromptReal "Eye height in mm" 1500.0))
+  (setq frame (RMR:PromptReal "Drawn width of the opening" 200.0))
+  (setq tdepth (getreal "\nDepth of the back wall as a fraction <0.62>: "))
+  (if (or (not tdepth) (<= tdepth 0.0) (>= tdepth 1.0)) (setq tdepth 0.62))
+  (setq base (getpoint "\nPick the lower-left of the opening: "))
+  (if base
+    (progn
+      (setq hp (* frame (/ h w)))
+      ;; front opening corners, relative to the base point
+      (setq fl (list (car base) (cadr base)))
+      (setq fr (list (+ (car base) frame) (cadr base)))
+      (setq tl (list (car base) (+ (cadr base) hp)))
+      (setq tr (list (+ (car base) frame) (+ (cadr base) hp)))
+      ;; one vanishing point on the eye level, centred on the opening
+      (setq vpx (+ (car base) (/ frame 2.0)))
+      (setq vpy (+ (cadr base) (* hp (/ eye h))))
+      ;; back wall corners are the front corners pulled towards the vanishing point
+      (setq bfl (list (+ (car fl) (* tdepth (- vpx (car fl))))
+                      (+ (cadr fl) (* tdepth (- vpy (cadr fl))))))
+      (setq bfr (list (+ (car fr) (* tdepth (- vpx (car fr))))
+                      (+ (cadr fr) (* tdepth (- vpy (cadr fr))))))
+      (setq btl (list (+ (car tl) (* tdepth (- vpx (car tl))))
+                      (+ (cadr tl) (* tdepth (- vpy (cadr tl))))))
+      (setq btr (list (+ (car tr) (* tdepth (- vpx (car tr))))
+                      (+ (cadr tr) (* tdepth (- vpy (cadr tr))))))
+      ;; surfaces, drawn far to near
+      (RMR:Quad bfl bfr btr btl "RMR-M-FILL" (list 226 232 228))
+      (RMR:Quad fl tl btl bfl "RMR-M-FILL" (list 238 231 216))
+      (RMR:Quad fr tr btr bfr "RMR-M-FILL" (list 246 240 226))
+      (RMR:Quad tl tr btr btl "RMR-M-FILL" (list 250 248 242))
+      (RMR:Quad fl fr bfr bfl "RMR-M-FILL" *RMR-BRAND-SAND*)
+      ;; floor grid: nine divisions converging on the vanishing point
+      (setq i 1)
+      (while (< i 9)
+        (setq gx (+ (car fl) (* frame (/ (float i) 9.0))))
+        (RMR:Line (list gx (cadr fl)) (list (+ gx (* tdepth (- vpx gx)))
+                                            (+ (cadr fl) (* tdepth (- vpy (cadr fl)))))
+                  "RMR-00-REF" *RMR-BRAND-SLATE*)
+        (setq i (1+ i))
+      )
+      (setq i 1)
+      (while (< i 4)
+        (setq gy (/ (float i) 4.0))
+        (RMR:Line (list (+ (car fl) (* gy (- (car bfl) (car fl))))
+                        (+ (cadr fl) (* gy (- (cadr bfl) (cadr fl)))))
+                  (list (+ (car fr) (* gy (- (car bfr) (car fr))))
+                        (+ (cadr fr) (* gy (- (cadr bfr) (cadr fr)))))
+                  "RMR-00-REF" *RMR-BRAND-SLATE*)
+        (setq i (1+ i))
+      )
+      ;; outlines: back wall, then the front opening on top
+      (RMR:Line bfl bfr "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Line bfr btr "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Line btr btl "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Line btl bfl "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Rect fl frame hp "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Line fl bfl "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Line fr bfr "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Line tl btl "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Line tr btr "RMR-M-WALL" *RMR-BRAND-TERRA*)
+      (RMR:Text (RMR:PT+ fl 0.0 (- (* 6.0 (RMR:Scaled 1.0))))
+                (strcat (RMR:Num w 0) " x " (RMR:Num d 0) " x " (RMR:Num h 0)
+                        " mm   |   eye " (RMR:Num eye 0) " mm")
+                (* 2.6 (RMR:Scaled 1.0)) "RMR-HEAD" "RMR-A-TEXT"
+                *RMR-BRAND-TERRA*)
+      (princ (strcat "\nOne point interior perspective drawn: "
+                     (RMR:Num w 0) " x " (RMR:Num d 0) " x " (RMR:Num h 0) " mm."))
+    )
+  )
+  (princ)
+)
+
+;;; --- layered construction build-up ----------------------------------------
+(defun RMR:BuildupTypes (/ out spec name)
+  ;; Distinct build-up type keywords, in the order they first appear.
+  (setq out '())
+  (foreach spec *RMR-BUILDUP-SPECS*
+    (setq name (nth 0 spec))
+    (if (not (member name out)) (setq out (append out (list name))))
+  )
+  out
+)
+
+(defun RMR:BuildupRows (wanted / out spec)
+  (setq out '())
+  (foreach spec *RMR-BUILDUP-SPECS*
+    (if (= (strcase (nth 0 spec)) (strcase wanted))
+      (setq out (append out (list spec)))
+    )
+  )
+  out
+)
+
+(defun C:RMR-BUILDUP (/ keys keyword rows drawn wide base x y k total
+                      spec name thk rgb pattern note band label-y s ename)
+  (RMR:EnsureReady)
+  (setq keys "")
+  (foreach keyword (RMR:BuildupTypes)
+    (setq keys (strcat keys (if (= keys "") "" " ") keyword))
+  )
+  (setq keyword (RMR:PromptKeyword "Build-up type" keys (nth 0 (RMR:BuildupTypes))))
+  (if keyword
+    (progn
+      (setq rows (RMR:BuildupRows keyword))
+      (setq total 0.0)
+      (foreach spec rows (setq total (+ total (float (nth 2 spec)))))
+      (setq base (getpoint "\nPick the lower-left of the build-up: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq wide (RMR:PromptReal "Drawn width" (* 120.0 s)))
+          (setq drawn (RMR:PromptReal "Drawn height of the whole build-up"
+                                      (* 80.0 s)))
+          (setq k (/ drawn total))
+          (setq x (car base))
+          (setq y (cadr base))
+          (setq label-y (+ y drawn (* 4.0 s)))
+          (foreach spec rows
+            (setq name (nth 1 spec))
+            (setq thk (float (nth 2 spec)))
+            (setq rgb (nth 3 spec))
+            (setq pattern (nth 4 spec))
+            (setq note (nth 5 spec))
+            (setq band (* thk k))
+            (setq ename (RMR:ClosedPoly
+                          (list (list x y) (list (+ x wide) y)
+                                (list (+ x wide) (+ y band)) (list x (+ y band)))
+                          "RMR-M-HATCH" rgb))
+            (if ename
+              (RMR:FillLayer ename pattern (* 2.0 s) 0.0 rgb "RMR-M-HATCH")
+            )
+            (RMR:Rect (list x y 0.0) wide band "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+            ;; leader out to a label line that never crowds the thin layers
+            (RMR:Line (list (+ x wide) (+ y (/ band 2.0)) 0.0)
+                      (list (+ x wide (* 12.0 s)) label-y 0.0)
+                      "RMR-A-LEADER" *RMR-BRAND-GOLD*)
+            (RMR:Line (list (+ x wide (* 12.0 s)) label-y 0.0)
+                      (list (+ x wide (* 16.0 s)) label-y 0.0)
+                      "RMR-A-LEADER" *RMR-BRAND-GOLD*)
+            (RMR:Text (list (+ x wide (* 18.0 s)) (- label-y (* 1.0 s)) 0.0)
+                      (strcat name "   " (RMR:Num thk 0) " mm") (* 2.3 s)
+                      "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (RMR:Text (list (+ x wide (* 18.0 s)) (- label-y (* 4.4 s)) 0.0)
+                      note (* 1.9 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+            (setq y (+ y band))
+            (setq label-y (- label-y (* 8.0 s)))
+          )
+          (RMR:Text (list x (- (cadr base) (* 6.0 s)) 0.0)
+                    (strcat keyword " BUILD-UP   |   TOTAL " (RMR:Num total 0) " mm")
+                    (* 3.2 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (princ (strcat "\n" keyword " build-up drawn: " (itoa (length rows))
+                         " layers, " (RMR:Num total 0) " mm total."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- material swatch board -------------------------------------------------
+(defun RMR:DrawSwatchBoard (base scale cols / s cell gap spec index col row
+                            ox oy ename)
+  (setq s scale)
+  (setq cell (* 42.0 s))
+  (setq gap (* 14.0 s))
+  (RMR:Text base "MATERIAL SWATCH BOARD  |  RMR-SWATCH" (* 4.2 s) "RMR-HEAD"
+            "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (RMR:Text (list (car base) (- (cadr base) (* 5.0 s)) 0.0)
+            (strcat (itoa (length *RMR-HATCH-SPECS*))
+                    " materials from *RMR-HATCH-SPECS*")
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq index 0)
+  (foreach spec *RMR-HATCH-SPECS*
+    (setq col (rem index cols))
+    (setq row (/ index cols))
+    (setq ox (+ (car base) (* col (+ cell gap))))
+    (setq oy (- (cadr base) (* 14.0 s) (* row (+ cell (* 20.0 s)))))
+    ;; the cell hangs below its row baseline, so rows can never ride over
+    ;; the heading and each other
+    (setq ename (RMR:ClosedPoly
+                  (list (list ox oy) (list (+ ox cell) oy)
+                        (list (+ ox cell) (- oy cell)) (list ox (- oy cell)))
+                  "RMR-M-HATCH" (nth 6 spec)))
+    (if ename
+      (RMR:FillLayer ename (nth 2 spec) (* (float (nth 3 spec)) 0.35 s)
+                     (float (nth 4 spec)) (nth 6 spec) "RMR-M-HATCH")
+    )
+    (RMR:Rect (list ox (- oy cell) 0.0) cell cell "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+    (RMR:Text (list ox (- oy cell (* 5.0 s)) 0.0) (nth 0 spec) (* 2.6 s)
+              "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+    (RMR:Text (list ox (- oy cell (* 9.0 s)) 0.0) (RMR:Shorten (nth 1 spec) 22)
+              (* 2.0 s) "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (RMR:Text (list ox (- oy cell (* 12.4 s)) 0.0) (nth 2 spec) (* 1.8 s)
+              "RMR-MARK" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+    (setq index (1+ index))
+  )
+  (- (cadr base) (* 12.0 s)
+     (* (/ (+ (length *RMR-HATCH-SPECS*) (1- cols)) cols) (+ cell (* 20.0 s))))
+)
+
+(defun C:RMR-SWATCH (/ base s cols)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the swatch board: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq cols (RMR:PromptInt "Columns" 6))
+      (RMR:DrawSwatchBoard base s cols)
+      (princ (strcat "\nSwatch board drawn: " (itoa (length *RMR-HATCH-SPECS*))
+                     " materials in " (itoa cols) " columns."))
+    )
+  )
+  (princ)
+)
+
+;;; --- colour reference board -------------------------------------------------
+(defun RMR:DrawBrandRow (base scale / s keys key rgb x)
+  (setq s scale)
+  (setq keys '("INK" "TERRA" "TEAL" "GOLD" "SAND" "BLUE" "SLATE"))
+  (setq x (car base))
+  (foreach key keys
+    (setq rgb (RMR:BrandRGB key))
+    (RMR:Solid (list x (cadr base) 0.0) (* 20.0 s) (* 8.0 s) "RMR-M-FILL" rgb)
+    (RMR:Rect (list x (cadr base) 0.0) (* 20.0 s) (* 8.0 s) "RMR-A-FRAME"
+              *RMR-BRAND-SLATE*)
+    (RMR:Text (list x (- (cadr base) (* 4.0 s)) 0.0) key (* 2.0 s) "RMR-LABEL"
+              "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (RMR:Text (list x (- (cadr base) (* 7.4 s)) 0.0)
+              (strcat (itoa (fix (nth 0 rgb))) " "
+                      (itoa (fix (nth 1 rgb))) " "
+                      (itoa (fix (nth 2 rgb))))
+              (* 1.8 s) "RMR-MARK" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+    (setq x (+ x (* 24.0 s)))
+  )
+  (- (cadr base) (* 12.0 s))
+)
+
+(defun C:RMR-COLOURBOARD (/ base s y groups group spec rgb)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the colour board: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq y (cadr base))
+      (RMR:Text base "COLOUR REFERENCE BOARD  |  RMR-COLOURBOARD"
+                (* 4.2 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 6.0 s)))
+      (RMR:Text (list (car base) y 0.0) "BRAND PALETTE" (* 2.4 s) "RMR-HEAD"
+                "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+      (setq y (- y (* 6.0 s)))
+      (RMR:DrawBrandRow (list (car base) y 0.0) s)
+      (setq y (- y (* 16.0 s)))
+      (setq groups (RMR:SplitString (RMR:GroupKeywords) " "))
+      (setq y (- y (* 4.0 s)))
+      (foreach group groups
+        (RMR:Solid (list (car base) (- y (* 6.0 s)) 0.0) (* 200.0 s) (* 6.0 s)
+                   "RMR-PRES-TITLE" *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ (car base) (* 2.0 s)) (- y (* 4.2 s)) 0.0)
+                  (RMR:ThemeName group) (* 2.2 s) "RMR-HEAD"
+                  "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+        (setq y (- y (* 10.0 s)))
+        (foreach spec *RMR-LAYER-SPECS*
+          (if (= (strcase (nth 1 spec)) (RMR:ThemeName group))
+            (progn
+              (setq rgb (nth 2 spec))
+              (RMR:Solid (list (car base) y 0.0) (* 12.0 s) (* 4.0 s)
+                         "RMR-M-FILL" rgb)
+              (RMR:Rect (list (car base) y 0.0) (* 12.0 s) (* 4.0 s)
+                        "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+              (RMR:Text (list (+ (car base) (* 15.0 s)) y 0.0) (nth 0 spec)
+                        (* 2.1 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+              (RMR:Text (list (+ (car base) (* 96.0 s)) y 0.0)
+                        (strcat (itoa (fix (nth 0 rgb))) " "
+                                (itoa (fix (nth 1 rgb))) " "
+                                (itoa (fix (nth 2 rgb))))
+                        (* 1.9 s) "RMR-MARK" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+              (setq y (- y (* 5.4 s)))
+            )
+          )
+        )
+        (setq y (- y (* 4.0 s)))
+      )
+      (princ (strcat "\nColour board drawn: 7 brand colours and "
+                     (itoa (length *RMR-LAYER-SPECS*))
+                     " layers across " (itoa (length groups)) " groups."))
+    )
+  )
+  (princ)
+)
+
+;;; --- mood board -------------------------------------------------------------
+(defun RMR:DrawMoodBoard (base scale cols / s fw fh gap slot caption index
+                          col row ox oy)
+  (setq s scale)
+  (setq fw (* 104.0 s))
+  (setq fh (* 74.0 s))
+  (setq gap (* 12.0 s))
+  (RMR:Text base "IMAGE / MOOD BOARD  |  RMR-MOODBOARD" (* 4.2 s) "RMR-HEAD"
+            "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (RMR:Text (list (car base) (- (cadr base) (* 5.0 s)) 0.0)
+            "Use IMAGEATTACH to drop a picture into each frame" (* 2.2 s)
+            "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (setq index 0)
+  (foreach slot *RMR-MOOD-SPECS*
+    (setq col (rem index cols))
+    (setq row (/ index cols))
+    (setq ox (+ (car base) (* col (+ fw gap))))
+    (setq oy (- (cadr base) (* 12.0 s) (* row (+ fh (* 18.0 s)))))
+    ;; the frame hangs below its row baseline, the tab sits inside the
+    ;; top-left corner and the caption goes under the frame
+    (RMR:Rect (list ox (- oy fh) 0.0) fw fh "RMR-PRES-VPORT" *RMR-BRAND-TEAL*)
+    (RMR:Line (list ox (- oy fh) 0.0) (list (+ ox fw) oy 0.0) "RMR-00-REF"
+              *RMR-BRAND-SLATE*)
+    (RMR:Line (list ox oy 0.0) (list (+ ox fw) (- oy fh) 0.0) "RMR-00-REF"
+              *RMR-BRAND-SLATE*)
+    (RMR:Solid (list ox (- oy (* 6.0 s)) 0.0) (* 16.0 s) (* 6.0 s)
+               "RMR-PRES-TITLE" *RMR-BRAND-TERRA*)
+    (RMR:Text (list (+ ox (* 2.0 s)) (- oy (* 4.4 s)) 0.0) (nth 0 slot)
+              (* 2.4 s) "RMR-NUMBER" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+    (RMR:Text (list ox (- oy fh (* 5.0 s)) 0.0) (nth 1 slot) (* 2.2 s)
+              "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (setq index (1+ index))
+  )
+  (- (cadr base) (* 12.0 s)
+     (* (/ (+ (length *RMR-MOOD-SPECS*) (1- cols)) cols) (+ fh (* 18.0 s))))
+)
+
+(defun C:RMR-MOODBOARD (/ base s cols)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the mood board: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq cols (RMR:PromptInt "Columns" 3))
+      (RMR:DrawMoodBoard base s cols)
+      (princ (strcat "\nMood board drawn: " (itoa (length *RMR-MOOD-SPECS*))
+                     " framed slots in " (itoa cols) " columns."))
+    )
+  )
+  (princ)
+)
+
+;;; --- area distribution chart -------------------------------------------------
+(defun C:RMR-AREACHART (/ pick ename area sqm name rows number total base
+                        barw rowh widest s i row bar pct shade)
+  (RMR:EnsureReady)
+  (vl-load-com)
+  (setq rows '())
+  (setq number 1)
+  (setq total 0.0)
+  (princ "\nSelect the closed boundary of each room. Press Enter when finished.")
+  (setq pick (entsel "\nSelect room boundary <finish>: "))
+  (while pick
+    (setq ename (car pick))
+    (setq area (RMR:EntityArea ename))
+    (if (and area (> area 0.0))
+      (progn
+        (setq sqm (RMR:AreaToSqm area))
+        (setq name (RMR:PromptText (strcat "Room " (itoa number) " name")
+                                   (strcat "ROOM " (RMR:NumPad2 number))))
+        (setq rows (append rows (list (list name sqm))))
+        (setq total (+ total sqm))
+        (setq number (1+ number))
+      )
+      (princ "\nThat object has no measurable area - skipped.")
+    )
+    (setq pick (entsel "\nSelect next room boundary <finish>: "))
+  )
+  (if rows
+    (progn
+      (setq base (getpoint "\nTop-left of the area chart: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq barw (RMR:PromptReal "Width of the longest bar" (* 150.0 s)))
+          (setq rowh (* 9.0 s))
+          (setq widest 0.0)
+          (foreach row rows
+            (if (> (nth 1 row) widest) (setq widest (nth 1 row)))
+          )
+          (RMR:Text base "AREA DISTRIBUTION  |  RMR-AREACHART" (* 4.2 s)
+                    "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (RMR:Text (list (car base) (- (cadr base) (* 5.0 s)) 0.0)
+                    (strcat (itoa (length rows)) " rooms  |  total "
+                            (RMR:Num total 2) " m2  |  "
+                            (RMR:Num (* total *RMR-SQFT-PER-SQM*) 1) " sq ft")
+                    (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+          (setq i 0)
+          (foreach row rows
+            (setq bar (* barw (/ (nth 1 row) (if (> widest 0.0) widest 1.0))))
+            (setq pct (* 100.0 (/ (nth 1 row) (if (> total 0.0) total 1.0))))
+            (setq shade (nth (rem i 6)
+                             (list *RMR-BRAND-TERRA* *RMR-BRAND-GOLD*
+                                   *RMR-BRAND-TEAL* *RMR-BRAND-BLUE*
+                                   *RMR-BRAND-SLATE* *RMR-BRAND-SAND*)))
+            (RMR:Text (list (car base)
+                            (- (cadr base) (* 12.0 s) (* i rowh)) 0.0)
+                      (nth 0 row) (* 2.3 s) "RMR-LABEL" "RMR-A-TEXT"
+                      *RMR-BRAND-INK*)
+            (RMR:Solid (list (+ (car base) (* 56.0 s))
+                             (- (cadr base) (* 12.0 s) (* i rowh) (* 1.0 s)) 0.0)
+                       bar (* 5.0 s) "RMR-M-FILL" shade)
+            (RMR:Rect (list (+ (car base) (* 56.0 s))
+                            (- (cadr base) (* 12.0 s) (* i rowh) (* 1.0 s)) 0.0)
+                      bar (* 5.0 s) "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+            (RMR:Text (list (+ (car base) (* 60.0 s) bar)
+                            (- (cadr base) (* 12.0 s) (* i rowh)) 0.0)
+                      (strcat (RMR:Num (nth 1 row) 2) " m2   "
+                              (RMR:Num pct 1) "%")
+                      (* 2.1 s) "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (setq i (1+ i))
+          )
+          (princ (strcat "\nArea chart drawn: " (itoa (length rows))
+                         " rooms, " (RMR:Num total 2) " m2."))
+        )
+      )
+    )
+    (princ "\nNo rooms selected - nothing drawn.")
+  )
+  (princ)
+)
+
+;;; --- programme bar chart ------------------------------------------------------
+(defun RMR:DrawProgramme (base scale colw / s rowh weeks spec index bar start
+                          finish rgb x y)
+  (setq s scale)
+  (setq rowh (* 9.0 s))
+  (setq weeks 0)
+  (foreach spec *RMR-PROGRAMME-SPECS*
+    (setq finish (+ (nth 1 spec) (nth 2 spec)))
+    (if (> finish weeks) (setq weeks finish))
+  )
+  (RMR:Text base "PROGRAMME  |  RMR-PROGRAMME" (* 4.2 s) "RMR-HEAD"
+            "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+  (RMR:Text (list (car base) (- (cadr base) (* 5.0 s)) 0.0)
+            (strcat (itoa weeks) " weeks  |  *RMR-PROGRAMME-SPECS*")
+            (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  ;; week grid, with a tick and a number every four weeks
+  (setq index 0)
+  (while (<= index weeks)
+    (setq x (+ (car base) (* 56.0 s) (* index colw)))
+    (if (= (rem index 4) 0)
+      (progn
+        (RMR:Line (list x (- (cadr base) (* 8.0 s)) 0.0)
+                  (list x (- (cadr base) (* 8.0 s)
+                             (* rowh (length *RMR-PROGRAMME-SPECS*))) 0.0)
+                  "RMR-00-REF" *RMR-BRAND-SLATE*)
+        (RMR:Text (list x (- (cadr base) (* 12.0 s)) 0.0) (itoa index)
+                  (* 1.9 s) "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      )
+    )
+    (setq index (1+ index))
+  )
+  (setq index 0)
+  (foreach spec *RMR-PROGRAMME-SPECS*
+    (setq start (nth 1 spec))
+    (setq finish (nth 2 spec))
+    (setq rgb (RMR:BrandRGB (nth 3 spec)))
+    (setq y (- (cadr base) (* 16.0 s) (* index rowh)))
+    (RMR:Text (list (car base) y 0.0) (nth 0 spec) (* 2.3 s) "RMR-LABEL"
+              "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (setq x (+ (car base) (* 56.0 s) (* start colw)))
+    (setq bar (* finish colw))
+    (RMR:Solid (list x (- y (* 1.0 s)) 0.0) bar (* 5.0 s) "RMR-M-FILL" rgb)
+    (RMR:Rect (list x (- y (* 1.0 s)) 0.0) bar (* 5.0 s) "RMR-A-FRAME"
+              *RMR-BRAND-SLATE*)
+    (RMR:Text (list (+ x bar (* 3.0 s)) y 0.0)
+              (strcat (itoa finish) " wks") (* 2.0 s) "RMR-BODY"
+              "RMR-A-TEXT" *RMR-BRAND-INK*)
+    (setq index (1+ index))
+  )
+  (- (cadr base) (* 16.0 s) (* rowh (length *RMR-PROGRAMME-SPECS*)))
+)
+
+(defun C:RMR-PROGRAMME (/ base s colw)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the programme: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq colw (RMR:PromptReal "Width of one week" (* 5.0 s)))
+      (RMR:DrawProgramme base s colw)
+      (princ (strcat "\nProgramme drawn: " (itoa (length *RMR-PROGRAMME-SPECS*))
+                     " stages."))
+    )
+  )
+  (princ)
+)
+
+;;; --- brand masthead -----------------------------------------------------------
+(defun RMR:DrawBranding (base scale / s y)
+  (setq s scale)
+  (setq y (cadr base))
+  (RMR:Text (list (car base) y 0.0) "RooMNRooF" (* 20.0 s) "RMR-TITLE"
+            "RMR-PRES-TITLE" *RMR-BRAND-TERRA*)
+  (setq y (- y (* 6.0 s)))
+  (RMR:Line (list (car base) y 0.0) (list (+ (car base) (* 210.0 s)) y 0.0)
+            "RMR-PRES-TITLE" *RMR-BRAND-GOLD*)
+  (setq y (- y (* 6.0 s)))
+  (RMR:Text (list (car base) y 0.0) "CONSULTANT   |   2D CAD STANDARD"
+            (* 3.4 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (setq y (- y (* 6.0 s)))
+  (RMR:Text (list (car base) y 0.0) "ROOF THE ROOM" (* 2.6 s) "RMR-MARK"
+            "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+  (setq y (- y (* 10.0 s)))
+  (RMR:Text (list (car base) y 0.0) (strcase (RMR:ProjectValue "PROJECT" ""))
+            (* 5.0 s) "RMR-TITLE" "RMR-A-TEXT" *RMR-BRAND-INK*)
+  (setq y (- y (* 6.0 s)))
+  (RMR:Text (list (car base) y 0.0)
+            (strcat (strcase (RMR:ProjectValue "CLIENT" ""))
+                    "   |   JOB " (RMR:ProjectValue "JOB" "")
+                    "   |   " (RMR:ProjectValue "STAGE" "")
+                    "   |   " (RMR:TodayDate))
+            (* 2.6 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+  (- y (* 6.0 s))
+)
+
+(defun C:RMR-BRANDING (/ base scale)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the brand block: "))
+  (if base
+    (progn
+      (setq scale (getreal "\nBlock scale factor <1.0>: "))
+      (if (or (not scale) (<= scale 0.0)) (setq scale 1.0))
+      (RMR:DrawBranding base scale)
+      (princ "\nRooMNRooF brand block placed.")
+    )
+  )
+  (princ)
+)
+
+;;; --- complete presentation sheet -----------------------------------------------
+(defun C:RMR-PRESENTSHEET (/ size dims base outer inset iw ih top p1 p2 p3 p4
+                           frame plans index caption)
+  (RMR:EnsureReady)
+  (initget "A0 A1 A2 A3 A4")
+  (setq size (getkword "\nPresentation sheet size [A0/A1/A2/A3/A4] <A1>: "))
+  (if (not size) (setq size "A1"))
+  (setq dims (RMR:SheetSize size))
+  (setq base (getpoint "\nPick lower-left presentation sheet point: "))
+  (if base
+    (progn
+      (setq outer (list (car base) (cadr base) 0.0))
+      (setq inset 10.0)
+      (setq iw (- (car dims) (* 2.0 inset)))
+      (setq ih (- (cadr dims) (* 2.0 inset)))
+      (RMR:Rect outer (car dims) (cadr dims) "RMR-A-FRAME" *RMR-BRAND-INK*)
+      (RMR:Rect (RMR:PT+ outer inset inset) iw ih "RMR-A-FRAME" *RMR-BRAND-TEAL*)
+      (setq top (+ (cadr outer) (cadr dims) (- inset)))
+      ;; masthead
+      (RMR:DrawBranding (list (+ (car outer) 24.0) (- top 26.0) 0.0) 1.0)
+      ;; left column: materials and programme
+      (setq p1 (list (+ (car outer) 24.0) (- top 120.0) 0.0))
+      (RMR:DrawSwatchBoard p1 1.0 6)
+      (setq p2 (list (+ (car outer) 24.0) (- top 330.0) 0.0))
+      (RMR:DrawProgramme p2 1.0 5.0)
+      ;; right column: mood board and empty view frames
+      (setq p3 (list (+ (car outer) 440.0) (- top 120.0) 0.0))
+      (RMR:DrawMoodBoard p3 1.0 3)
+      (setq p4 (list (+ (car outer) 440.0) (- top 330.0) 0.0))
+      (RMR:Text p4 "VIEWS FOR ISSUE" 4.2 "RMR-HEAD" "RMR-A-TEXT"
+                *RMR-BRAND-TERRA*)
+      (setq plans (list "GENERAL ARRANGEMENT PLAN" "SECTION AA"
+                        "ELEVATION - NORTH"))
+      (setq index 0)
+      (foreach caption plans
+        (setq frame (list (+ (car p4) (* index 116.0)) (- (cadr p4) 12.0) 0.0))
+        (RMR:Rect frame 104.0 74.0 "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+        (RMR:Text (list (car frame) (- (cadr frame) 8.0) 0.0) caption 2.2
+                  "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+        (setq index (1+ index))
+      )
+      ;; brand palette strip and title block
+      (RMR:DrawBrandRow (list (+ (car outer) 24.0) (- top 470.0) 0.0) 1.0)
+      (RMR:DrawTitleBlock (RMR:PT+ outer (- (car dims) 200.0) 10.0)
+                          190.0 50.0 1.0)
+      (princ (strcat "\n" size " presentation sheet created: masthead, "))
+      (princ (strcat (itoa (length *RMR-HATCH-SPECS*)) " material swatches, "))
+      (princ (strcat (itoa (length *RMR-PROGRAMME-SPECS*)) " programme stages, "))
+      (princ (strcat (itoa (length *RMR-MOOD-SPECS*))
+                     " image slots and 3 view frames."))
+    )
+  )
+  (princ)
+)
+
 
 (princ (strcat "\nRooMNRooF " *RMR-VERSION* " loaded | " (itoa (length *RMR-LAYER-SPECS*)) " layers, "
                (itoa (length *RMR-HATCH-SPECS*)) " materials, " (itoa (length *RMR-NOTES*)) " notes."))

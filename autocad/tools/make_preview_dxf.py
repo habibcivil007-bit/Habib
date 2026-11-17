@@ -168,6 +168,9 @@ def load_lisp_data():
         "abbrevs": _extract_form(src, "*RMR-ABBREV-SPECS*"),
         "revisions": _extract_form(src, "*RMR-REVISIONS*"),
         "checklist": _extract_form(src, "*RMR-CHECKLIST-SPECS*"),
+        "buildups": _extract_form(src, "*RMR-BUILDUP-SPECS*"),
+        "programme": _extract_form(src, "*RMR-PROGRAMME-SPECS*"),
+        "mood": _extract_form(src, "*RMR-MOOD-SPECS*"),
     }
 
 
@@ -2849,6 +2852,370 @@ def build_documentation():
 
 
 # --------------------------------------------------------------------------- #
+# 13. presentation sheet (9.0): axonometric massing, one point interior
+#     perspective, construction build-ups, swatch board, colour board,
+#     programme, area chart, brand masthead and image board.
+# --------------------------------------------------------------------------- #
+
+COS30 = 0.8660254
+
+
+def _quad(sh, q1, q2, q3, q4, layer, rgb):
+    """Filled quadrilateral, the same corner order as RMR:Quad."""
+    sh.hatch_pattern([q1, q2, q3, q4], layer, rgb, "SOLID")
+
+
+def _axo(p, height, k):
+    return ((p[0] - p[1]) * COS30 * k, (p[0] + p[1]) * 0.5 * k + height * k)
+
+
+def draw_pres_axo(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h, "AXONOMETRIC MASSING  |  RMR-AXO")
+
+    sh.text((x + 12.0, ty - 4.0),
+            "12000 x 8000 footprint extruded to 3300 mm, 30 degree projection",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    k = 0.007
+    ox, oy = 110.0, 406.0
+    plan = [(0.0, 0.0), (12000.0, 0.0), (12000.0, 8000.0), (0.0, 8000.0)]
+    height = 3300.0
+    base = [(ox + _axo(p, 0.0, k)[0], oy + _axo(p, 0.0, k)[1]) for p in plan]
+    top = [(ox + _axo(p, height, k)[0], oy + _axo(p, height, k)[1]) for p in plan]
+
+    # top face, then only the two vertical faces that point at the viewer
+    _quad(sh, top[0], top[1], top[2], top[3], "RMR-M-FILL", (244, 238, 226))
+    front = []
+    n = len(plan)
+    for i in range(n):
+        px, py = plan[i]
+        qx, qy = plan[(i + 1) % n]
+        if (qy - py) < (qx - px):
+            front.append(i)
+            shade = (214, 196, 178) if abs(qy - py) > abs(qx - px) else (232, 214, 194)
+            j = (i + 1) % n
+            _quad(sh, base[i], base[j], top[j], top[i], "RMR-M-FILL", shade)
+            sh.poly([base[i], base[j], top[j], top[i]], [0.0] * 4, True,
+                    "RMR-00-REF", SLATE)
+    for i in range(n):
+        sh.line(base[i], top[i], "RMR-M-WALL", TERRA)
+    sh.poly(base, [0.0] * n, True, "RMR-00-REF", SLATE)
+    sh.poly(top, [0.0] * n, True, "RMR-M-WALL", TERRA)
+
+    # height note on the near vertical
+    sh.line((top[0][0] + 6.0, top[0][1]), (top[0][0] + 14.0, top[0][1]),
+            "RMR-A-LEADER", GOLD)
+    sh.text((top[0][0] + 16.0, top[0][1] - 1.2),
+            "AXONOMETRIC  |  HEIGHT 3300 mm  |  30 DEGREES", 2.4, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+
+    # the plan footprint it came from
+    ix, iy = 206.0, 412.0
+    sh.rect((ix, iy), 12000.0 * k, 8000.0 * k, "RMR-00-REF", SLATE)
+    sh.text((ix, iy - 5.0), "PLAN FOOTPRINT", 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+    sh.text((x + 12.0, y + 4.0), "Only the two faces pointing at the viewer are "
+            "filled, in two shades.", 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_pres_roomview(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h, "INTERIOR PERSPECTIVE  |  RMR-ROOMVIEW")
+
+    frame = 170.0
+    room_w, room_h, eye = 4200.0, 2700.0, 1500.0
+    t = 0.62
+    hp = frame * room_h / room_w
+    bx, by = x + 26.0, y + 12.0
+    fl = (bx, by)
+    fr = (bx + frame, by)
+    tl = (bx, by + hp)
+    tr = (bx + frame, by + hp)
+    vpx = bx + frame / 2.0
+    vpy = by + hp * eye / room_h
+    lerp = lambda p: (p[0] + t * (vpx - p[0]), p[1] + t * (vpy - p[1]))
+    bfl, bfr, btl, btr = lerp(fl), lerp(fr), lerp(tl), lerp(tr)
+
+    _quad(sh, bfl, bfr, btr, btl, "RMR-M-FILL", (226, 232, 228))
+    _quad(sh, fl, tl, btl, bfl, "RMR-M-FILL", (238, 231, 216))
+    _quad(sh, fr, tr, btr, bfr, "RMR-M-FILL", (246, 240, 226))
+    _quad(sh, tl, tr, btr, btl, "RMR-M-FILL", (250, 248, 242))
+    _quad(sh, fl, fr, bfr, bfl, "RMR-M-FILL", SAND)
+    for i in range(1, 9):
+        gx = fl[0] + frame * i / 9.0
+        end = (gx + t * (vpx - gx), fl[1] + t * (vpy - fl[1]))
+        sh.line((gx, fl[1]), end, "RMR-00-REF", SLATE)
+    for i in range(1, 4):
+        g = i / 4.0
+        sh.line((fl[0] + g * (bfl[0] - fl[0]), fl[1] + g * (bfl[1] - fl[1])),
+                (fr[0] + g * (bfr[0] - fr[0]), fr[1] + g * (bfr[1] - fr[1])),
+                "RMR-00-REF", SLATE)
+    sh.line(bfl, bfr, "RMR-M-WALL", TERRA)
+    sh.line(bfr, btr, "RMR-M-WALL", TERRA)
+    sh.line(btr, btl, "RMR-M-WALL", TERRA)
+    sh.line(btl, bfl, "RMR-M-WALL", TERRA)
+    sh.rect((bx, by), frame, hp, "RMR-M-WALL", TERRA)
+    sh.line(fl, bfl, "RMR-M-WALL", TERRA)
+    sh.line(fr, bfr, "RMR-M-WALL", TERRA)
+    sh.line(tl, btl, "RMR-M-WALL", TERRA)
+    sh.line(tr, btr, "RMR-M-WALL", TERRA)
+
+    sh.text((x + 12.0, ty - 3.0),
+            "One vanishing point on the eye level, back wall at 0.62", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 4.0), "4200 x 5400 x 2700 mm   |   eye 1500 mm", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_pres_buildup(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h, "CONSTRUCTION BUILD-UP  |  RMR-BUILDUP")
+
+    rows = [r for r in DATA["buildups"] if r[0] == "EXTWALL"]
+    total = float(sum(int(r[3]) for r in rows))
+    drawn = 80.0
+    wide = 80.0
+    bx, by = x + 14.0, y + 16.0
+    k = drawn / total
+    cy = by
+    label_y = by + drawn + 4.0
+    for row in rows:
+        name = row[2]
+        thk = float(row[3])
+        rgb = tuple(int(v) for v in row[4])
+        band = thk * k
+        pts = [(bx, cy), (bx + wide, cy), (bx + wide, cy + band), (bx, cy + band)]
+        sh.hatch_pattern(pts, "RMR-M-HATCH", rgb, str(row[5]), scale=2.0)
+        sh.rect((bx, cy), wide, band, "RMR-A-FRAME", SLATE)
+        sh.line((bx + wide, cy + band / 2.0), (bx + wide + 12.0, label_y),
+                "RMR-A-LEADER", GOLD)
+        sh.line((bx + wide + 12.0, label_y), (bx + wide + 16.0, label_y),
+                "RMR-A-LEADER", GOLD)
+        sh.text((bx + wide + 18.0, label_y - 1.0),
+                "%s   %d mm" % (name, int(thk)), 2.2, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((bx + wide + 18.0, label_y - 4.4), str(row[6]), 1.8, "RMR-NOTE",
+                "RMR-A-TEXT", SLATE)
+        cy += band
+        label_y -= 8.0
+    sh.text((x + 12.0, ty - 4.0), "Layers from *RMR-BUILDUP-SPECS*", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((bx, y + 6.0), "EXTWALL BUILD-UP   |   TOTAL %d mm" % int(total), 2.6,
+            "RMR-HEAD", "RMR-A-TEXT", TERRA)
+
+
+def draw_pres_swatch(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "MATERIAL SWATCH BOARD  |  RMR-SWATCH")
+
+    cols = 6
+    cell, gap = 30.0, 5.0
+    bx, by = x + 12.0, ty - 6.0
+    sh.text((bx, by), "MATERIALS", 3.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((bx, by - 5.0), "%d materials from *RMR-HATCH-SPECS*"
+            % len(DATA["hatches"]), 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    for index, spec in enumerate(DATA["hatches"]):
+        col, row = index % cols, index // cols
+        ox = bx + col * (cell + gap)
+        oy = by - 14.0 - row * (cell + 20.0)
+        rgb = tuple(int(v) for v in spec[6])
+        pts = [(ox, oy), (ox + cell, oy), (ox + cell, oy - cell), (ox, oy - cell)]
+        sh.hatch_pattern(pts, "RMR-M-HATCH", rgb, str(spec[2]), scale=float(spec[3]) * 0.35)
+        sh.rect((ox, oy - cell), cell, cell, "RMR-A-FRAME", SLATE)
+        sh.text((ox, oy - cell - 4.0), str(spec[0]), 2.2, "RMR-NUMBER",
+                "RMR-A-TEXT", TERRA)
+        sh.text((ox, oy - cell - 7.4), _shorten(str(spec[1]), 18), 1.7,
+                "RMR-BODY", "RMR-A-TEXT", INK)
+
+
+def draw_pres_colourboard(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "COLOUR REFERENCE BOARD  |  RMR-COLOURBOARD")
+
+    bx = x + 12.0
+    ly = ty - 4.0
+    sh.text((bx, ly), "BRAND PALETTE", 2.4, "RMR-HEAD", "RMR-A-TEXT", GOLD)
+    ly -= 6.0
+    brand = (("INK", INK), ("TERRA", TERRA), ("TEAL", TEAL), ("GOLD", GOLD),
+             ("SAND", SAND), ("BLUE", BLUE), ("SLATE", SLATE))
+    cx = bx
+    for name, rgb in brand:
+        sh.solid((cx, ly), 20.0, 8.0, "RMR-M-FILL", rgb)
+        sh.rect((cx, ly), 20.0, 8.0, "RMR-A-FRAME", SLATE)
+        sh.text((cx, ly - 4.0), name, 1.8, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((cx, ly - 7.0), "%d %d %d" % tuple(int(v) for v in rgb), 1.6,
+                "RMR-MARK", "RMR-A-TEXT", SLATE)
+        cx += 24.0
+
+    ly -= 18.0
+    sh.solid((bx, ly - 6.0), 200.0, 6.0, "RMR-PRES-TITLE", TERRA)
+    sh.text((bx + 2.0, ly - 4.2), "MAIN THEME", 2.2, "RMR-HEAD", "RMR-PRES-TITLE", SAND)
+    ly -= 10.0
+    for name, group, rgb, ltype, lw, desc in DATA["layers"]:
+        if str(group).upper() != "MAIN THEME":
+            continue
+        rgb = tuple(int(v) for v in rgb)
+        sh.solid((bx, ly), 12.0, 4.0, "RMR-M-FILL", rgb)
+        sh.rect((bx, ly), 12.0, 4.0, "RMR-A-FRAME", SLATE)
+        sh.text((bx + 15.0, ly), name, 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((bx + 96.0, ly), "%d %d %d" % tuple(int(v) for v in rgb), 1.8,
+                "RMR-MARK", "RMR-A-TEXT", SLATE)
+        ly -= 5.4
+    sh.text((bx, ly - 4.0), "The board continues with the other six groups.",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_pres_programme(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "PROGRAMME  |  RMR-PROGRAMME")
+
+    colw = 4.5
+    rowh = 9.0
+    bx, by = x + 12.0, ty - 6.0
+    rows = DATA["programme"]
+    weeks = max(int(r[1]) + int(r[2]) for r in rows)
+    sh.text((bx, by), "PROGRAMME", 3.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((bx, by - 5.0), "%d weeks  |  *RMR-PROGRAMME-SPECS*" % weeks, 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    gridx = bx + 56.0
+    bottom = by - 16.0 - rowh * len(rows)
+    for i in range(weeks + 1):
+        if i % 4 == 0:
+            gx = gridx + i * colw
+            sh.line((gx, by - 8.0), (gx, bottom), "RMR-00-REF", SLATE)
+            sh.text((gx, by - 12.0), str(i), 1.8, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+    palette = {"TEAL": TEAL, "TERRA": TERRA, "GOLD": GOLD,
+               "BLUE": BLUE, "SLATE": SLATE, "SAND": SAND}
+    for index, row in enumerate(rows):
+        name, start, dur = str(row[0]), int(row[1]), int(row[2])
+        rgb = palette.get(str(row[3]).upper(), TERRA)
+        ry = by - 16.0 - index * rowh
+        sh.text((bx, ry), name, 2.1, "RMR-LABEL", "RMR-A-TEXT", INK)
+        bx2 = gridx + start * colw
+        sh.solid((bx2, ry - 1.0), dur * colw, 5.0, "RMR-M-FILL", rgb)
+        sh.rect((bx2, ry - 1.0), dur * colw, 5.0, "RMR-A-FRAME", SLATE)
+        sh.text((bx2 + dur * colw + 3.0, ry), "%d wks" % dur, 1.9, "RMR-BODY",
+                "RMR-A-TEXT", INK)
+
+
+AREAS = (("LIVING / DINING", 32.40), ("KITCHEN", 14.85),
+         ("MASTER BEDROOM", 18.60), ("BEDROOM 02", 12.40),
+         ("BATHROOM", 6.20), ("BALCONY", 8.75))
+
+
+def draw_pres_chart(sh):
+    x, y, w, h = 20.0, 74.0, 286.0, 158.0
+    ty = _panel(sh, x, y, w, h, "AREA CHART AND MASTHEAD  |  AREACHART / BRANDING")
+
+    bx, by = x + 12.0, ty - 6.0
+    total = sum(a for _, a in AREAS)
+    widest = max(a for _, a in AREAS)
+    barw = 120.0
+    rowh = 9.0
+    sh.text((bx, by), "AREA DISTRIBUTION  |  RMR-AREACHART", 3.4, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    sh.text((bx, by - 5.0), "%d rooms  |  total %.2f m2  |  %.1f sq ft"
+            % (len(AREAS), total, total * 10.7639), 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    cycle = [TERRA, GOLD, TEAL, BLUE, SLATE]
+    for i, (name, area) in enumerate(AREAS):
+        ry = by - 12.0 - i * rowh
+        bar = area / widest * barw
+        sh.text((bx, ry), name, 2.1, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.solid((bx + 56.0, ry - 1.0), bar, 5.0, "RMR-M-FILL", cycle[i % 5])
+        sh.rect((bx + 56.0, ry - 1.0), bar, 5.0, "RMR-A-FRAME", SLATE)
+        sh.text((bx + 60.0 + bar, ry), "%.2f m2  %.1f%%" % (area, area / total * 100.0),
+                1.9, "RMR-BODY", "RMR-A-TEXT", INK)
+
+    # brand masthead, drawn at 0.6 so it fits under the chart
+    s = 0.6
+    my = 140.0
+    sh.text((bx, my), "RooMNRooF", 20.0 * s, "RMR-TITLE", "RMR-PRES-TITLE", TERRA)
+    sh.line((bx, my - 6.0 * s), (bx + 210.0 * s, my - 6.0 * s), "RMR-PRES-TITLE", GOLD)
+    sh.text((bx, my - 12.0 * s), "CONSULTANT   |   2D CAD STANDARD", 3.4 * s,
+            "RMR-HEAD", "RMR-A-TEXT", INK)
+    sh.text((bx, my - 18.0 * s), "ROOF THE ROOM", 2.6 * s, "RMR-MARK",
+            "RMR-A-TEXT", GOLD)
+    sh.text((bx, my - 28.0 * s), "ROOMNRROOF REFERENCE APARTMENT", 5.0 * s,
+            "RMR-TITLE", "RMR-A-TEXT", INK)
+    sh.text((bx, my - 34.0 * s), "CLIENT   |   JOB 2401   |   ISSUED FOR REVIEW",
+            2.6 * s, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_pres_moodboard(sh):
+    x, y, w, h = 316.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "IMAGE BOARD  |  RMR-MOODBOARD")
+
+    s = 0.62
+    cols = 3
+    fw, fh, gap = 104.0 * s, 74.0 * s, 12.0 * s
+    bx, by = x + 12.0, ty - 6.0
+    sh.text((bx, by), "IMAGE BOARD", 3.4, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((bx, by - 5.0), "Use IMAGEATTACH to drop a picture into each frame",
+            1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    for index, row in enumerate(DATA["mood"]):
+        col, rw = index % cols, index // cols
+        ox = bx + col * (fw + gap)
+        oy = by - 12.0 * s - rw * (fh + 18.0 * s)
+        sh.rect((ox, oy - fh), fw, fh, "RMR-PRES-VPORT", TEAL)
+        sh.line((ox, oy - fh), (ox + fw, oy), "RMR-00-REF", SLATE)
+        sh.line((ox, oy), (ox + fw, oy - fh), "RMR-00-REF", SLATE)
+        sh.solid((ox, oy - 6.0 * s), 16.0 * s, 6.0 * s, "RMR-PRES-TITLE", TERRA)
+        sh.text((ox + 2.0 * s, oy - 4.4 * s), str(row[0]), 2.4 * s, "RMR-NUMBER",
+                "RMR-PRES-TITLE", SAND)
+        sh.text((ox, oy - fh - 5.0), str(row[1]), 2.2 * s, "RMR-LABEL",
+                "RMR-A-TEXT", INK)
+    sh.text((bx, y + 4.0), "Six captioned slots from *RMR-MOOD-SPECS*", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+
+def draw_pres_commands(sh):
+    x, y, w, h = 576.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "PRESENTATION SUITE  |  10 NEW COMMANDS")
+
+    entries = (
+        ("RMR-AXO", "Extrudes a plan outline into a", "30 degree axonometric mass."),
+        ("RMR-ROOMVIEW", "One point interior perspective", "with a floor grid."),
+        ("RMR-BUILDUP", "Layered wall, floor or roof", "build-up with leaders."),
+        ("RMR-SWATCH", "Material swatch board from", "the hatch library."),
+        ("RMR-COLOURBOARD", "Brand palette and every layer", "colour with RGB values."),
+        ("RMR-MOODBOARD", "Captioned image frames for", "client presentations."),
+        ("RMR-AREACHART", "Area distribution bars with", "percentages and a total."),
+        ("RMR-PROGRAMME", "Programme bar chart with a", "week grid and stage names."),
+        ("RMR-BRANDING", "RooMNRooF masthead filled", "from the project data."),
+        ("RMR-PRESENTSHEET", "Complete presentation sheet", "in one command."),
+    )
+    ly = ty - 4.0
+    for name, line1, line2 in entries:
+        sh.text((x + 10.0, ly), name, 2.3, "RMR-MARK", "RMR-A-TEXT", TEAL)
+        sh.text((x + 10.0, ly - 3.4), line1, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        sh.text((x + 10.0, ly - 6.3), line2, 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        ly -= 12.6
+
+
+def build_presentation():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "PRESENTATION SUITE SHEET"
+    SHEET_SUBTITLE = ("MASSING, PERSPECTIVES, BUILD-UPS, BOARDS, CHARTS "
+                      "AND BRANDING")
+    SHEET_NOTE = ("The 9.0 presentation suite: the drawings that sell the design "
+                  "before a single technical sheet is read.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_pres_axo(sh)
+    draw_pres_roomview(sh)
+    draw_pres_buildup(sh)
+    draw_pres_swatch(sh)
+    draw_pres_colourboard(sh)
+    draw_pres_programme(sh)
+    draw_pres_chart(sh)
+    draw_pres_moodboard(sh)
+    draw_pres_commands(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -2984,6 +3351,17 @@ def main():
     print("clauses: %d | abbrevs: %d | revisions: %d | checklist: %d"
           % (len(DATA["specs"]), len(DATA["abbrevs"]),
              len(DATA["revisions"]), len(DATA["checklist"])))
+    presentation = build_presentation()
+    pres_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Presentation_Suite.dxf")
+    presentation.saveas(pres_path)
+    print("DXF  :", pres_path, os.path.getsize(pres_path), "bytes")
+    try:
+        print("PNG  :", render_png(presentation, os.path.join(
+            OUT_DIR, "RooMNRooF_PRO_Presentation_Suite.png"), dpi=150))
+    except Exception as exc:
+        print("Presentation PNG render skipped:", exc)
+    print("buildups: %d | programme: %d | mood slots: %d"
+          % (len(DATA["buildups"]), len(DATA["programme"]), len(DATA["mood"])))
     return 0
 
 

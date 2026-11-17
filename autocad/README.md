@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 8.0 DOCUMENTATION SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 9.0 PRESENTATION SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -23,9 +23,13 @@ documentation suite (a specification clause library and index, an abbreviations
 legend, a data-driven revision history, a pre-issue checklist, a room data
 schedule built from picked boundaries, a folder document list, a sheet index, a
 project cover sheet and one command that lays out a complete documentation
-sheet).
+sheet) plus the 9.0 presentation suite (axonometric massing extruded from a plan
+outline, one point interior perspectives, layered construction build-ups with
+leaders, a material swatch board, a colour reference board, an image board, an
+area distribution chart, a programme bar chart, the brand masthead and a
+complete client presentation sheet).
 
-Version string inside the LISP: `*RMR-VERSION* = "8.0 DOCUMENTATION SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "9.0 PRESENTATION SUITE"`.
 
 ## Package contents
 
@@ -46,6 +50,8 @@ Version string inside the LISP: `*RMR-VERSION* = "8.0 DOCUMENTATION SUITE"`.
 | `preview/RooMNRooF_PRO_Coordination_Suite.png` | Rendered coordination sheet. |
 | `preview/RooMNRooF_PRO_Documentation_Suite.dxf` | A1 sheet showing the 8.0 documentation suite: a specification clause note, the clause index grouped by trade, the abbreviations legend, the revision history with the current revision marked, the room data schedule, the sheet index grid, the pre-issue checklist, a cover-sheet thumbnail and the command list. |
 | `preview/RooMNRooF_PRO_Documentation_Suite.png` | Rendered documentation sheet. |
+| `preview/RooMNRooF_PRO_Presentation_Suite.dxf` | A1 sheet showing the 9.0 presentation suite: axonometric massing with the plan footprint it came from, a one point interior perspective, an external wall build-up with leaders, the material swatch board, the colour reference board, the programme bar chart, the area chart with the brand masthead, the image board and the command list. |
+| `preview/RooMNRooF_PRO_Presentation_Suite.png` | Rendered presentation sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 | `tools/check_preview_sheets.py` | Layout audit for the generated sheets: text outside the frame and copy that would overprint other copy. |
@@ -65,7 +71,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (87 commands)
+## Command reference (97 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -178,6 +184,21 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-DOCSHEET` | Lays out a whole A1 documentation sheet in one command: frame, banner, specification index, abbreviations, revision history, checklist and title block. |
 
 
+### Presentation suite (new in 9.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-AXO` | Extrudes any closed plan outline into a 30° axonometric mass: the top face is filled, only the vertical faces whose outward normal points at the viewer are shaded (in two tones), every corner gets a vertical edge and the height is labelled. |
+| `RMR-ROOMVIEW` | One point interior perspective of a room: width, depth, height and eye level, with the back wall placed as a fraction of the distance to the vanishing point, a converging floor grid, five shaded surfaces and the room size label. |
+| `RMR-BUILDUP` | Layered construction build-up from `*RMR-BUILDUP-SPECS*` (external wall, internal wall, floor and roof). Every layer is drawn to scale, hatched in its own colour and labelled through a leader, with the total thickness underneath. |
+| `RMR-SWATCH` | Material swatch board: every entry in `*RMR-HATCH-SPECS*` drawn as a true-colour hatched square with its key, name and pattern. Columns are prompted, rows follow. |
+| `RMR-COLOURBOARD` | Colour reference board: the seven brand colours with their RGB values, then every layer in the palette grouped by theme with its swatch, name and RGB. |
+| `RMR-MOODBOARD` | Image board from `*RMR-MOOD-SPECS*`: captioned frames with a placeholder cross and a numbered tab, ready for `IMAGEATTACH`. |
+| `RMR-AREACHART` | Area distribution bar chart. Select each room boundary, name it, and the command draws a bar scaled to the largest room with the area in m² and the share of the total as a percentage. |
+| `RMR-PROGRAMME` | Programme bar chart from `*RMR-PROGRAMME-SPECS*`: a week grid with a tick every four weeks and one colour-coded bar per stage, with the duration beside it. |
+| `RMR-BRANDING` | The RooMNRooF masthead — wordmark, rule, straplines, project name and client / job / stage / date — filled from `*RMR-PROJECT*` at any scale. |
+| `RMR-PRESENTSHEET` | Lays out a complete A1 client presentation sheet in one command: frame, masthead, material swatch board, programme, image board, three captioned view frames, the brand palette strip and the title block. |
+
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -222,6 +243,11 @@ All visual data lives in plain editable tables near the top of the LISP:
 - `*RMR-ABBREV-SPECS*` — abbreviation legend: `(Abbreviation Meaning)`
 - `*RMR-REVISIONS*` — revision log: `(Revision Date Description By)`
 - `*RMR-CHECKLIST-SPECS*` — pre-issue checklist: `(Group Item)`
+- `*RMR-BUILDUP-SPECS*` — construction layers:
+  `(Type Order LayerName Thickness_mm (R G B) Pattern Note)`, 17 layers across
+  `EXTWALL / INTWALL / FLOOR / ROOF`
+- `*RMR-PROGRAMME-SPECS*` — programme bars: `(Stage StartWeek Weeks ColourKey)`
+- `*RMR-MOOD-SPECS*` — image board slots: `(Slot Caption)`
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -273,6 +299,11 @@ RMR-ABBREV  RMR-REVLIB              ; legend and revision history
 RMR-ROOMSCHED  RMR-DOCLIST          ; room data and folder contents
 RMR-SHEETINDEX  RMR-COVER           ; index and cover sheet
 RMR-CHECKLIST  RMR-DOCSHEET         ; check, then lay out the doc sheet
+RMR-AXO  RMR-ROOMVIEW               ; massing and interior perspective
+RMR-BUILDUP  RMR-SWATCH             ; build-up and material board
+RMR-COLOURBOARD  RMR-MOODBOARD      ; colour and image boards
+RMR-AREACHART  RMR-PROGRAMME        ; area and programme charts
+RMR-BRANDING  RMR-PRESENTSHEET      ; masthead and presentation sheet
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -281,7 +312,7 @@ RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds six A1 sheets: the standard sheet (below) and
+values) and rebuilds seven A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
@@ -301,7 +332,12 @@ fixes and the object information report with the true-north rotation, and
 suite: a specification clause note, the clause index grouped by trade, the
 abbreviations legend, the revision history with the current revision marked, the
 room data schedule, the sheet index grid, the pre-issue checklist and a cover-sheet
-thumbnail. The standard sheet contains: sample 1:50 apartment plan with walls,
+thumbnail, and `RooMNRooF_PRO_Presentation_Suite.dxf`, which previews the 9.0
+presentation suite: an axonometric mass beside the plan footprint it came from, a
+one point interior perspective with its floor grid, an external wall build-up with
+leaders, the material swatch board, the colour reference board, the programme bar
+chart, the area chart with the brand masthead and the image board. The standard
+sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -315,14 +351,14 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 
 `tools/check_preview_sheets.py` reads the generated DXFs back and reports copy that
 runs outside the sheet frame and text boxes that would print on top of each other.
-Current state across the six sheets: **0 problems** (1,470 text entities and 2,683
-geometry entities checked).
+Current state across the seven sheets: **0 problems** (1,680 text entities and
+3,110 geometry entities checked).
 
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (288,874 bytes / 7,130 lines, 226 defuns,
-87 commands).
+variables). Current state: **PASS**, 0 findings (327,580 bytes / 8,023 lines, 252 defuns,
+97 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -330,6 +366,16 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 
 ## Notes and limitations
 
+- `RMR-AXO` fills only the vertical faces whose outward normal points at the
+  viewer. Footprints are reversed to counter-clockwise first, so the test works
+  whichever way the polyline was drawn; it is exact for convex footprints and a
+  good approximation for concave ones.
+- `RMR-ROOMVIEW` places the back wall as a fraction of the distance from each
+  front corner to the vanishing point, which is a drawing convention rather than
+  a true perspective divide. Depths between about 0.3 and 0.85 read well.
+- `RMR-BUILDUP`, `RMR-SWATCH` and `RMR-ZONE` all hatch through the `-HATCH`
+  command line, so the patterns must exist in the drawing. `SOLID` is handled
+  separately because it has no scale or angle prompt.
 - `RMR-ROOMSCHED` reads the area of whatever object you pick, so any closed
   polyline, circle or hatch works; objects with no `Area` property are skipped
   and the finish columns fall back to `-` when the room name is not in

@@ -186,6 +186,11 @@ def load_lisp_data():
         "materials": _extract_form(src, "*RMR-MATERIAL-R-SPECS*"),
         "fire": _extract_form(src, "*RMR-FIRE-SPECS*"),
         "acoustic": _extract_form(src, "*RMR-ACOUSTIC-SPECS*"),
+        "fac_assets": _extract_form(src, "*RMR-ASSET-TYPES*"),
+        "fac_tasks": _extract_form(src, "*RMR-MAINT-TASKS*"),
+        "fac_grades": _extract_form(src, "*RMR-CONDITION-GRADES*"),
+        "fac_compliance": _extract_form(src, "*RMR-COMPLIANCE-ITEMS*"),
+        "fac_space": _extract_form(src, "*RMR-SPACE-STANDARDS*"),
     }
 
 
@@ -405,13 +410,13 @@ SHEET_NOTE = "Sample apartment plan drawn at 1:50 to demonstrate the RooMNRooF s
 def draw_header(sh):
     y0 = SHEET_H - MARGIN - 38.0
     sh.solid((MARGIN, y0), 46.0, 38.0, "RMR-PRES-TITLE", TERRA)
-    sh.text((MARGIN + 4, y0 + 24), "RooMNRooF", 6.0, "RMR-TITLE", "RMR-PRES-TITLE", SAND)
+    sh.text((MARGIN + 4, y0 + 24.5), "RooMNRooF", 5.0, "RMR-TITLE", "RMR-PRES-TITLE", SAND)
     sh.text((MARGIN + 4, y0 + 16), "CONSULTANT", 2.6, "RMR-HEAD", "RMR-PRES-TITLE", SAND)
     sh.text((MARGIN + 4, y0 + 11), "2D CAD STANDARD", 2.0, "RMR-NOTE", "RMR-PRES-TITLE", SAND)
     sh.line((MARGIN + 4, y0 + 8), (MARGIN + 42, y0 + 8), "RMR-PRES-TITLE", GOLD)
     sh.text((MARGIN + 4, y0 + 3.5), "ROOF THE ROOM", 1.8, "RMR-MARK", "RMR-PRES-TITLE", SAND)
 
-    x = MARGIN + 54
+    x = MARGIN + 60
     sh.text((x, y0 + 24), SHEET_TITLE, 8.0, "RMR-TITLE", "RMR-PRES-TITLE", TERRA)
     sh.text((x, y0 + 15), SHEET_SUBTITLE,
             3.0, "RMR-HEAD", "RMR-A-TEXT", INK)
@@ -4285,10 +4290,9 @@ def draw_det_sheet(sh):
 def build_detailing():
     global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
     SHEET_TITLE = "CONSTRUCTION DETAILING SHEET"
-    SHEET_SUBTITLE = ("DETAIL LIBRARY, PARAMETRIC JUNCTIONS, TAGS, DIMENSION CHAINS, "
-                      "MATERIALS KEY")
-    SHEET_NOTE = ("The 12.0 suite: every junction, tag, key and number a detail sheet "
-                  "needs, drawn from one set of tables.")
+    SHEET_SUBTITLE = ("DETAIL LIBRARY, JUNCTIONS, TAGS, DIMENSION CHAINS, MATERIALS KEY, "
+                      "U VALUES, FIRE AND ACOUSTIC")
+    SHEET_NOTE = ("The 12.0 suite: every junction, tag, key and number a detail sheet needs.")
     doc = build_document()
     sh = Sheet(doc)
     draw_frame(sh)
@@ -4302,6 +4306,366 @@ def build_detailing():
     draw_det_fire(sh)
     draw_det_speclink(sh)
     draw_det_sheet(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
+# 13.0 FACILITY MANAGEMENT SHEET PANELS
+# --------------------------------------------------------------------------- #
+FAC_ASSETS = DATA["fac_assets"]
+FAC_TASKS = DATA["fac_tasks"]
+FAC_GRADES = DATA["fac_grades"]
+FAC_COMPLIANCE = DATA["fac_compliance"]
+FAC_SPACE = DATA["fac_space"]
+
+
+def draw_fac_assets(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "ASSET TAGS AND REGISTER  |  RMR-ASSET / RMR-ASSETREG")
+
+    # the tag as the command draws it: sand square, tick cross, ID below
+    for i, (ax, ay) in enumerate(((x + 42.0, y + 92.0), (x + 116.0, y + 92.0))):
+        spec = FAC_ASSETS[i]
+        sh.solid((ax - 12.0, ay - 12.0), 24.0, 24.0, "RMR-FM-ASSET", SAND)
+        sh.rect((ax - 12.0, ay - 12.0), 24.0, 24.0, "RMR-FM-ASSET", SLATE)
+        sh.line((ax - 12.0, ay), (ax + 12.0, ay), "RMR-FM-ASSET", SLATE)
+        sh.line((ax, ay - 12.0), (ax, ay + 12.0), "RMR-FM-ASSET", SLATE)
+        sh.text((ax - 7.5, ay - 18.5), "A-%03d" % (i + 1), 2.8, "RMR-NUMBER",
+                "RMR-FM-ASSET", INK)
+        sh.text((ax - 13.0, ay + 13.5), spec[1][:13], 2.1, "RMR-NOTE",
+                "RMR-FM-ASSET", TERRA)
+        sh.text((ax - 10.0, ay - 24.0), spec[0][:13], 1.9, "RMR-NOTE",
+                "RMR-FM-ASSET", SLATE)
+
+    rows = [["%03d" % (i + 1), r[0], r[1][:11], "%d yr" % int(r[2]),
+             "{:,}".format(int(r[3]))] for i, r in enumerate(FAC_ASSETS[:7])]
+    _table(sh, x + 166.0, ty - 4.0, ("ID", "TYPE", "CATEGORY", "LIFE", "COST"),
+           (16.0, 30.0, 38.0, 14.0, 22.0), rows, text=1.75)
+    sh.text((x + 166.0, ty - 4.0 - 7.6 * 8 - 4.0), "7 of 12 shown", 1.7,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+
+    sh.text((x + 12.0, y + 36.0),
+            "%d asset types  |  life 15-30 years  |  replacement value %s"
+            % (len(FAC_ASSETS), "{:,}".format(sum(int(r[3]) for r in FAC_ASSETS))),
+            2.2, "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+    sh.text((x + 12.0, y + 29.0),
+            "IDs run A-001 upward and the register reads the session log,",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 24.0),
+            "or the tags already drawn on RMR-FM-ASSET.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 17.0),
+            "CATEGORIES  MECHANICAL  |  ELECTRICAL  |  FIRE  |  FABRIC  |  LIFTS",
+            1.8, "RMR-HEAD", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_fac_ppm(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h, "PPM PLANNER  |  RMR-PPM")
+
+    rows = [t for t in FAC_TASKS if t[2] in ("ALL", "MECHANICAL")][:6]
+    cw, rh = 10.0, 8.4
+    gx = x + 14.0 + 74.0
+    gy = ty - 6.0
+    sh.text((x + 14.0, gy), "TASK", 2.0, "RMR-HEAD", "RMR-A-TEXT", INK)
+    for i, month in enumerate(("J", "F", "M", "A", "M", "J",
+                               "J", "A", "S", "O", "N", "D")):
+        sh.text((gx + i * cw + 3.2, gy), month, 1.9, "RMR-HEAD", "RMR-A-TEXT", INK)
+    gy -= 3.0
+    for task in rows:
+        sh.rect((x + 14.0, gy - rh), 74.0 + 12 * cw, rh, "RMR-FM-MAINT", SLATE)
+        sh.text((x + 15.4, gy - 6.2), task[1][:26], 1.8, "RMR-LABEL",
+                "RMR-A-TEXT", INK)
+        for m in range(1, 13):
+            if m % int(task[3]) == 0:
+                sh.solid((gx + (m - 1) * cw + 0.8, gy - rh + 0.8),
+                         cw - 1.6, rh - 1.6, "RMR-FM-MAINT", TEAL)
+        gy -= rh
+    visits = sum(12 // int(t[3]) for t in rows)
+    sh.text((x + 14.0, gy - 8.0),
+            "%d tasks  |  %d visits a year  |  cells mark the month due"
+            % (len(rows), visits), 2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, gy - 13.0),
+            "Frequency comes from *RMR-MAINT-TASKS*, so changing a task",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, gy - 17.2),
+            "frequency re-plans every asset that uses it.", 1.9, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_fac_compliance(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h, "COMPLIANCE AND INSPECTION  |  RMR-COMPLIANCE")
+
+    status = ["OK", "DUE", "OK", "OVERDUE", "OK", "OK", "DUE", "OK"]
+    rows = [[c[0][:15], "%d mo" % int(c[2]), status[i]]
+            for i, c in enumerate(FAC_COMPLIANCE)]
+    _table(sh, x + 10.0, ty - 4.0, ("ITEM", "INTERVAL", "STATUS"),
+           (76.0, 26.0, 30.0), rows[:6], text=1.8)
+
+    # inspection stamp in the lower half
+    sx, sy = x + 12.0, y + 34.0
+    sh.rect((sx, sy), 96.0, 24.0, "RMR-FM-ASSET", INK)
+    sh.solid((sx, sy + 17.0), 96.0, 7.0, "RMR-FM-ASSET", TEAL)
+    sh.text((sx + 2.5, sy + 19.0), "INSPECTION  PASS", 2.4, "RMR-HEAD",
+            "RMR-FM-ASSET", SAND)
+    sh.text((sx + 2.5, sy + 12.0), "AREA  PLANTROOM 01", 1.8, "RMR-BODY",
+            "RMR-FM-ASSET", INK)
+    sh.text((sx + 2.5, sy + 7.4), "BY    M. HABIB", 1.8, "RMR-BODY",
+            "RMR-FM-ASSET", INK)
+    sh.text((sx + 2.5, sy + 2.8), "NEXT  2026-JUN  |  OK", 1.8, "RMR-NUMBER",
+            "RMR-FM-ASSET", TEAL)
+    sh.text((x + 116.0, y + 44.0), "8 statutory items", 2.0, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    sh.text((x + 116.0, y + 38.0), "Next due dates are", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((x + 116.0, y + 34.0), "month arithmetic on", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.text((x + 116.0, y + 30.0), "the last inspection.", 1.8, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_fac_maint(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h,
+                "MAINTENANCE AND WORK ORDERS  |  RMR-MAINT / RMR-WORKORDER")
+
+    # maintenance card
+    sh.solid((x + 12.0, ty - 9.0), 110.0, 9.0, "RMR-FM-MAINT", GOLD)
+    sh.text((x + 14.0, ty - 6.6), "MAINTENANCE CARD  |  A-001", 2.3, "RMR-HEAD",
+            "RMR-FM-MAINT", INK)
+    yy = ty - 14.0
+    sh.text((x + 14.0, yy), "AHU  |  MECHANICAL  |  LIFE 20 YEARS", 1.9,
+            "RMR-NOTE", "RMR-FM-MAINT", SLATE)
+    yy -= 7.0
+    for i, task in enumerate([t for t in FAC_TASKS if t[2] in ("ALL", "MECHANICAL")][:6]):
+        sh.text((x + 14.0, yy), "%d.  %s" % (i + 1, task[1]), 2.0, "RMR-LABEL",
+                "RMR-FM-MAINT", INK)
+        sh.text((x + 78.0, yy), "every %d mo" % int(task[3]), 1.9, "RMR-NUMBER",
+                "RMR-FM-MAINT", TERRA)
+        yy -= 6.2
+    sh.rect((x + 12.0, yy + 1.0), 110.0, (ty - 9.0) - yy - 1.0, "RMR-FM-MAINT",
+            SLATE)
+
+    # work order card
+    wx, wy = x + 128.0, ty - 9.0
+    sh.solid((wx, wy - 10.0), 110.0, 10.0, "RMR-FM-MAINT", INK)
+    sh.text((wx + 2.0, wy - 7.2), "WORK ORDER  WO-014", 2.5, "RMR-HEAD",
+            "RMR-FM-MAINT", SAND)
+    sh.text((wx + 86.0, wy - 7.4), "P2", 2.8, "RMR-NUMBER", "RMR-FM-MAINT", GOLD)
+    fields = [("ASSET", "A-001 AHU"), ("RAISED", "2026-09-30"),
+              ("RESPOND", "within 24 hours"), ("SCOPE", "Attend and report"),
+              ("TRADE", "M&E CONTRACTOR"), ("ISSUED", "______________"),
+              ("COMPLETED", "___________"), ("SIGNED", "______________")]
+    yy = wy - 16.0
+    for label, value in fields:
+        sh.text((wx + 2.0, yy), "%-10s %s" % (label, value), 1.9, "RMR-BODY",
+                "RMR-FM-MAINT", TERRA if label == "RESPOND" else INK)
+        yy -= 6.4
+    sh.rect((wx, yy + 1.0), 110.0, (wy - 10.0) - yy - 1.0, "RMR-FM-MAINT", SLATE)
+    return ty
+
+
+def draw_fac_condition(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "CONDITION SURVEY  |  RMR-CONDITION")
+
+    for i, grade in enumerate(FAC_GRADES):
+        gy = ty - 8.0 - i * 17.0
+        rgb = tuple(DATA["brand"][grade[3]])
+        sh.solid((x + 14.0, gy - 9.0), 11.0, 11.0, "RMR-FM-ASSET", rgb)
+        sh.rect((x + 14.0, gy - 9.0), 11.0, 11.0, "RMR-FM-ASSET", INK)
+        sh.text((x + 17.0, gy - 5.4), grade[0], 3.4, "RMR-NUMBER", "RMR-FM-ASSET",
+                SAND if grade[3] in ("INK", "TERRA") else INK)
+        sh.text((x + 30.0, gy - 2.0), "GRADE %s  %s" % (grade[0], grade[1]),
+                2.4, "RMR-HEAD", "RMR-A-TEXT", INK)
+        sh.text((x + 30.0, gy - 7.4), grade[2], 1.9, "RMR-NOTE", "RMR-A-TEXT",
+                SLATE)
+    sh.text((x + 14.0, y + 10.0),
+            "Five grades, each with the action it triggers. The marker",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 14.0, y + 5.8),
+            "is a coloured square with the grade and the date.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_fac_lifecycle(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "LIFECYCLE FORECAST  |  RMR-LIFECYCLE")
+
+    base_year = 2008
+    rows = [[r[0], str(base_year), "%d" % int(r[2]),
+             "%d" % (base_year + int(r[2])), "{:,}".format(int(r[3]))]
+            for r in FAC_ASSETS[:4]]
+    bottom = _table(sh, x + 10.0, ty - 4.0,
+                    ("ID", "INSTALL", "LIFE", "REPLACE", "COST"),
+                    (34.0, 26.0, 22.0, 30.0, 28.0), rows, text=1.8)
+
+    # five year budget bars
+    budget = [0] * 5
+    for r in FAC_ASSETS:
+        year = base_year + int(r[2])
+        if 2026 <= year <= 2030:
+            budget[year - 2026] += int(r[3])
+    top = max(budget) or 1
+    bx, by = x + 14.0, bottom - 36.0
+    sh.text((bx, by + 30.0), "FIVE YEAR REPLACEMENT BUDGET", 2.0, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    sh.text((bx, by + 25.0), "installed %d  |  bar height is the cost due"
+            % base_year, 1.7, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    for i, value in enumerate(budget):
+        bh = 20.0 * (value / float(top))
+        sh.solid((bx + i * 26.0, by), 18.0, max(bh, 0.8), "RMR-FM-ASSET",
+                 TEAL if value else SAND)
+        sh.text((bx + i * 26.0, by - 4.6), str(2026 + i), 1.8, "RMR-NUMBER",
+                "RMR-A-TEXT", SLATE)
+        if value:
+            sh.text((bx + i * 26.0 + 1.0, by + bh + 1.2), "%dk" % (value // 1000),
+                    1.7, "RMR-NUMBER", "RMR-A-TEXT", INK)
+    sh.text((bx + 5 * 26.0 + 6.0, by + 8.0), "TOTAL", 1.9, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    sh.text((bx + 5 * 26.0 + 6.0, by + 3.0), "%dk" % (sum(budget) // 1000), 3.0,
+            "RMR-NUMBER", "RMR-A-TEXT", INK)
+    return ty
+
+
+def draw_fac_roomdata(sh):
+    x, y, w, h = 20.0, 74.0, 286.0, 158.0
+    ty = _panel(sh, x, y, w, h, "ROOM DATA AND SPACE STANDARD  |  RMR-ROOMDATA / RMR-SPACESTD")
+
+    sh.solid((x + 12.0, ty - 10.0), 132.0, 10.0, "RMR-FM-ROOM", TEAL)
+    sh.text((x + 14.0, ty - 7.2), "ROOM DATA  |  G.01  OFFICE", 2.7, "RMR-HEAD",
+            "RMR-FM-ROOM", SAND)
+    data = [("AREA", "18.0 sq m"), ("OCCUPANCY", "2 persons"),
+            ("DENSITY", "9.00 sq m per person"), ("FLOOR", "CARPET TILE"),
+            ("WALLS", "PAINT"), ("CEILING", "SUSPENDED TILE"),
+            ("SERVICES", "4 NO. DATA, 6 NO. POWER"),
+            ("COLOUR", "RMR-M-AREA  |  RMR-F-FURN"),
+            ("REVISION", "RMR-REVLIB  |  RMR-ROOMTAG")]
+    yy = ty - 18.0
+    for label, value in data:
+        sh.text((x + 14.0, yy), label, 2.1, "RMR-HEAD", "RMR-FM-ROOM", TERRA)
+        sh.text((x + 52.0, yy), value, 2.1, "RMR-BODY", "RMR-FM-ROOM", INK)
+        yy -= 7.2
+    sh.rect((x + 12.0, yy + 1.5), 132.0, (ty - 10.0) - yy - 1.5, "RMR-FM-ROOM",
+            SLATE)
+
+    # space standard bar for the same room
+    sx = x + 158.0
+    sh.text((sx, ty - 6.0), "SPACE STANDARD", 2.6, "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    sh.text((sx, ty - 12.0), "CELLULAR OFFICE  |  2 persons", 1.9, "RMR-NOTE",
+            "RMR-A-TEXT", SLATE)
+    sh.solid((sx, ty - 34.0), 112.0, 9.0, "RMR-FM-ROOM", SAND)
+    sh.solid((sx, ty - 34.0), 112.0 * (9.0 / 24.0), 9.0, "RMR-FM-ROOM", TEAL)
+    sh.rect((sx, ty - 34.0), 112.0, 9.0, "RMR-FM-ROOM", INK)
+    sh.line((sx + 56.0, ty - 36.0), (sx + 56.0, ty - 29.0), "RMR-FM-ROOM", INK)
+    sh.text((sx, ty - 42.0), "9.00 sq m/person", 2.3, "RMR-NUMBER",
+            "RMR-A-TEXT", INK)
+    sh.text((sx + 78.0, ty - 42.0), "PASS", 2.5, "RMR-HEAD", "RMR-A-TEXT", TEAL)
+    sh.text((sx, ty - 48.0), "target 8.00 minimum  |  upper 12.00", 1.8,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    rows = [[r[1][:16], "%.1f" % r[2], "%.1f" % r[3]] for r in FAC_SPACE]
+    _table(sh, sx, ty - 54.0, ("USE", "MIN", "TARGET"), (54.0, 16.0, 20.0),
+           rows, text=1.65)
+    return ty
+
+
+def draw_fac_occupancy(sh):
+    x, y, w, h = 316.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "OCCUPANCY AND UTILISATION  |  RMR-OCCUPANCY")
+
+    sh.text((x + 12.0, ty - 4.0), "1200 sq m  |  90 occupants", 2.2,
+            "RMR-NUMBER", "RMR-A-TEXT", INK)
+    sh.text((x + 12.0, ty - 10.0), "13.33 sq m per person", 3.0, "RMR-NUMBER",
+            "RMR-A-TEXT", TEAL)
+    bar = 102.0
+    sh.solid((x + 12.0, ty - 26.0), bar, 10.0, "RMR-FM-ROOM", SAND)
+    sh.solid((x + 12.0, ty - 26.0), bar * 0.90, 10.0, "RMR-FM-ROOM", TEAL)
+    sh.rect((x + 12.0, ty - 26.0), bar, 10.0, "RMR-FM-ROOM", INK)
+    sh.line((x + 12.0 + bar * 0.75, ty - 28.0), (x + 12.0 + bar * 0.75, ty - 14.0),
+            "RMR-FM-ROOM", TERRA)
+    sh.text((x + 12.0, ty - 33.0), "utilisation 90.0 per cent  |  benchmark 100",
+            2.0, "RMR-BODY", "RMR-A-TEXT", INK)
+    sh.text((x + 12.0, ty - 39.0), "Within the occupancy benchmark.", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", TEAL)
+
+    # occupancy by use, from the standards table
+    yy = ty - 50.0
+    sh.text((x + 12.0, yy), "SPACE BUDGET AT 90 OCCUPANTS", 2.0, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    yy -= 6.0
+    for r in FAC_SPACE[:5]:
+        area = 90 * float(r[3])
+        sh.text((x + 12.0, yy), r[1][:18], 1.9, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((x + 96.0, yy), "%d sq m" % area, 1.9, "RMR-NUMBER",
+                "RMR-A-TEXT", SLATE)
+        sh.solid((x + 12.0, yy - 2.6), 60.0 * (area / 1260.0), 3.0,
+                 "RMR-FM-ROOM", GOLD)
+        yy -= 7.6
+    rows = [[r[0][:10], "%.1f" % r[2], "%.1f" % r[3], "%d" % (90 * r[3])]
+            for r in FAC_SPACE]
+    _table(sh, x + 132.0, ty - 50.0, ("USE", "MIN", "TGT", "AREA"),
+           (30.0, 16.0, 16.0, 22.0), rows, text=1.6)
+    return ty
+
+
+def draw_fac_labels(sh):
+    x, y, w, h = 576.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "ASSET LABELS AND CSV  |  RMR-ASSETLABEL")
+
+    lw, lh = 74.0, 40.0
+    for i in range(6):
+        col, row = i % 2, i // 2
+        lx = x + 8.0 + col * (lw + 4.0)
+        ly = ty - 6.0 - (row + 1) * lh - row * 4.0
+        spec = FAC_ASSETS[i]
+        sh.solid((lx, ly), lw, 9.0, "RMR-FM-ASSET", TERRA)
+        sh.rect((lx, ly), lw, lh, "RMR-FM-ASSET", SLATE)
+        sh.text((lx + 2.5, ly + 2.6), "A-%03d" % (i + 1), 4.4, "RMR-NUMBER",
+                "RMR-FM-ASSET", SAND)
+        sh.text((lx + 40.0, ly + 3.8), "RooMNRooF", 1.9, "RMR-HEAD",
+                "RMR-FM-ASSET", SAND)
+        sh.text((lx + 2.5, ly + 13.0), spec[0][:16], 2.4, "RMR-LABEL",
+                "RMR-FM-ASSET", INK)
+        sh.text((lx + 2.5, ly + 18.5), spec[1][:20], 1.8, "RMR-NOTE",
+                "RMR-FM-ASSET", TERRA)
+        sh.text((lx + 2.5, ly + 24.0), "LOCATION  PLANTROOM 01", 1.7,
+                "RMR-BODY", "RMR-FM-ASSET", INK)
+        sh.text((lx + 2.5, ly + 29.5), "LIFE %d YRS  |  RECORD ON CAFM"
+                % int(spec[2]), 1.6, "RMR-NOTE", "RMR-FM-ASSET", SLATE)
+    sh.text((x + 8.0, y + 12.0), "Six labels per block, three columns of two",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 8.0, y + 7.8), "at this scale  |  CSV: ID,TYPE,CATEGORY,"
+             "LOCATION,LIFE,COST", 1.8, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def build_facility():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "FACILITY MANAGEMENT SHEET"
+    SHEET_SUBTITLE = ("ASSET TAGS, REGISTER, PPM PLANNER, COMPLIANCE, MAINTENANCE, "
+                      "WORK ORDERS, CONDITION, LIFECYCLE")
+    SHEET_NOTE = ("The 13.0 suite: the operational half of the standard, driven by editable "
+                  "asset, maintenance, condition, compliance and space tables.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_fac_assets(sh)
+    draw_fac_ppm(sh)
+    draw_fac_compliance(sh)
+    draw_fac_maint(sh)
+    draw_fac_condition(sh)
+    draw_fac_lifecycle(sh)
+    draw_fac_roomdata(sh)
+    draw_fac_occupancy(sh)
+    draw_fac_labels(sh)
     draw_title_block(sh)
     return doc
 
@@ -4492,6 +4856,20 @@ def main():
     print("details: %d | junctions: %d | materials: %d | fire: %d | acoustic: %d"
           % (len(DATA["details"]), len(DATA["junctions"]), len(DATA["materials"]),
              len(DATA["fire"]), len(DATA["acoustic"])))
+
+    facility = build_facility()
+    fac_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Facility_Management_Suite.dxf")
+    facility.saveas(fac_path)
+    print("DXF  :", fac_path, os.path.getsize(fac_path), "bytes")
+    try:
+        print("PNG  :", render_png(facility, os.path.join(
+            OUT_DIR, "RooMNRooF_PRO_Facility_Management_Suite.png"), dpi=150))
+    except Exception as exc:
+        print("Facility PNG render skipped:", exc)
+    print("assets: %d | tasks: %d | grades: %d | compliance: %d | standards: %d"
+          % (len(DATA["fac_assets"]), len(DATA["fac_tasks"]),
+             len(DATA["fac_grades"]), len(DATA["fac_compliance"]),
+             len(DATA["fac_space"])))
     return 0
 
 

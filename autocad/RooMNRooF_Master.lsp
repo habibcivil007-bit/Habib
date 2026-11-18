@@ -55,6 +55,12 @@
 ;;;   detail sheet, a specification link block, the detail index, a U value
 ;;;   calculator, fire compartment lines, acoustic ratings and a detail
 ;;;   compliance check, plus RMR-A-FIRE and RMR-A-ACOUSTIC annotation layers.
+;;;   Version 13.0 adds the facility management suite: asset tags and
+;;;   registers, printable asset labels with a CSV export, maintenance cards,
+;;;   a 52 week PPM planner, work orders with priority and SLA, condition
+;;;   grading, lifecycle replacement forecasts, space standard and occupancy
+;;;   checks, room data sheets, a statutory compliance register, inspection
+;;;   stamps and a session report, plus a FACILITY layer group (RMR-FM-).
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -222,6 +228,22 @@
 ;;;   RMR-ACOUSTIC    Acoustic rating markers and table
 ;;;   RMR-CHECKDETAIL Detail compliance check and report
 ;;;
+;;; Facility management commands
+;;;   RMR-ASSET       Asset tag with an automatic number
+;;;   RMR-ASSETREG    Asset register from the session or the drawing
+;;;   RMR-ASSETLABEL  Printable asset label sheet and CSV list
+;;;   RMR-MAINT       Maintenance card for an asset
+;;;   RMR-PPM         52 week planned maintenance planner
+;;;   RMR-WORKORDER   Work order card with priority and response time
+;;;   RMR-CONDITION   Condition grade 1 to 5 marker
+;;;   RMR-LIFECYCLE   Replacement forecast and five year budget
+;;;   RMR-SPACESTD    Space standard check per occupant
+;;;   RMR-ROOMDATA    Room data sheet card
+;;;   RMR-OCCUPANCY   Occupancy and utilisation benchmark
+;;;   RMR-COMPLIANCE  Statutory register with next due dates
+;;;   RMR-INSPECT     Inspection stamp with the next month
+;;;   RMR-FMREPORT    Facility management report for the session
+;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
 ;;;   2. Run RMR-MASTER in a blank drawing before drawing production work.
@@ -324,7 +346,13 @@
    ("RMR-A-FIRE"    "ANNOTATION" (198  93  72) "Continuous" 25 "Fire compartment lines and ratings")
    ("RMR-A-ACOUSTIC" "ANNOTATION" ( 47 116 181) "DASHED"      18 "Acoustic ratings and partitions")
 
-   ;; 7. Presentation / plotting
+   ;; 7. Facility management
+   ("RMR-FM-ASSET"  "FACILITY"   ( 86 104 116) "Continuous" 25 "Asset tags, registers and condition grades")
+   ("RMR-FM-MAINT"  "FACILITY"   (214 163  76) "DASHED"      18 "Maintenance, PPM and work orders")
+   ("RMR-FM-ROOM"   "FACILITY"   ( 57 137 130) "Continuous" 18 "Room data, occupancy and space standards")
+   ("RMR-FM-ROUTE"  "FACILITY"   (150 132 190) "DASHED"      13 "Access routes, wayfinding and egress")
+
+   ;; 8. Presentation / plotting
    ("RMR-PRES-TITLE" "PRESENTATION" (198  93  72) "Continuous" 25 "Title block and brand")
    ("RMR-PRES-KEY"   "PRESENTATION" (214 163  76) "Continuous" 18 "Keynotes and numbered tags")
    ("RMR-PRES-NORTH" "PRESENTATION" ( 57 137 130) "Continuous" 18 "North arrows and orientation")
@@ -382,7 +410,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "12.0 CONSTRUCTION DETAILING SUITE")
+(setq *RMR-VERSION* "13.0 FACILITY MANAGEMENT SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -562,6 +590,7 @@
     ((= (strcase group) "SERVICES") "RMR-E-")
     ((= (strcase group) "ANNOTATION") "RMR-A-")
     ((= (strcase group) "PRESENTATION") "RMR-PRES-")
+    ((= (strcase group) "FACILITY") "RMR-FM-")
     ((= (strcase group) "CONTROL") "RMR-00-")
     (T "RMR-")
   )
@@ -1193,6 +1222,8 @@
     ((= (strcase keyword) "STRUCTURAL") "STRUCTURAL")
     ((= (strcase keyword) "PLUMBING") "PLUMBING")
     ((= (strcase keyword) "MEP") "SERVICES")
+    ((= (strcase keyword) "FACILITY") "FACILITY")
+    ((= (strcase keyword) "FM") "FACILITY")
     ((= (strcase keyword) "ANNOTATION") "ANNOTATION")
     ((= (strcase keyword) "PRESENTATION") "PRESENTATION")
     ((= (strcase keyword) "CONTROL") "CONTROL")
@@ -1201,7 +1232,7 @@
 )
 
 (defun RMR:GroupKeywords ()
-  "Main Furniture Structural Plumbing MEP Annotation Presentation Control"
+  "Main Furniture Structural Plumbing MEP Facility Annotation Presentation Control"
 )
 
 (defun RMR:DocSafe (/ acad doc)
@@ -1619,6 +1650,9 @@
   (princ "\nMEP:    RMR-LIGHTING, RMR-SPRINKLER, RMR-MEPSCHED")
   (princ "\nDetail: RMR-DETAILLIB, RMR-JUNCTION, RMR-DETAILTAG, RMR-MATKEY")
   (princ "\nDetail: RMR-DETSCALE, RMR-DETSHEET, RMR-UVALUE, RMR-CHECKDETAIL")
+  (princ "\nFacility: RMR-ASSET, RMR-MAINT, RMR-PPM, RMR-WORKORDER, RMR-CONDITION")
+  (princ "\nFacility: RMR-LIFECYCLE, RMR-SPACESTD, RMR-ROOMDATA, RMR-OCCUPANCY")
+  (princ "\nFacility: RMR-COMPLIANCE, RMR-INSPECT, RMR-FMREPORT, RMR-ASSETREG")
   (princ)
 )
 
@@ -1640,7 +1674,7 @@
   (if (not (tblsearch "LAYER" "RMR-M-WALL"))
     (C:RMR-MASTER)
   )
-  (initget "Main Furniture Structural Plumbing Annotation Presentation Control")
+  (initget "Main Furniture Structural Plumbing Facility Annotation Presentation Control")
   (setq group (getkword "\nDiscipline [Main/Furniture/Structural/Plumbing/Annotation/Presentation/Control] <Main>: "))
   (if (not group) (setq group "Main"))
   (setq group
@@ -1649,6 +1683,7 @@
       ((= (strcase group) "FURNITURE") "FURNITURE")
       ((= (strcase group) "STRUCTURAL") "STRUCTURAL")
       ((= (strcase group) "PLUMBING") "PLUMBING")
+      ((= (strcase group) "FACILITY") "FACILITY")
       ((= (strcase group) "ANNOTATION") "ANNOTATION")
       ((= (strcase group) "PRESENTATION") "PRESENTATION")
       (T "CONTROL")
@@ -1693,7 +1728,7 @@
       (RMR:Text (RMR:PT+ base 0.0 4.0) "CONSULTANT 2D COLOUR STANDARD" 2.5 "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-INK*)
       (RMR:Line (RMR:PT+ base 0.0 1.5) (RMR:PT+ base 260.0 1.5) "RMR-A-FRAME" *RMR-BRAND-TEAL*)
       (setq y (- y 6.0))
-      (foreach group '("CONTROL" "MAIN THEME" "FURNITURE" "STRUCTURAL" "PLUMBING" "ANNOTATION" "PRESENTATION")
+      (foreach group '("CONTROL" "MAIN THEME" "FURNITURE" "STRUCTURAL" "PLUMBING" "FACILITY" "ANNOTATION" "PRESENTATION")
         (setq first T)
         (foreach spec *RMR-LAYER-SPECS*
           (if (= (strcase (nth 1 spec)) group)
@@ -3185,6 +3220,22 @@
   (princ "\n  RMR-ACOUSTIC       Acoustic rating markers and table")
   (princ "\n  RMR-CHECKDETAIL    Detail compliance check and report")
   (princ "\n")
+  (princ "\n Facility management suite")
+  (princ "\n  RMR-ASSET          Asset tag with an auto number and type")
+  (princ "\n  RMR-ASSETREG       Asset register from the session or the drawing")
+  (princ "\n  RMR-ASSETLABEL     Printable label sheet and CSV asset list")
+  (princ "\n  RMR-MAINT          Maintenance card for an asset type")
+  (princ "\n  RMR-PPM            52 week planned maintenance planner")
+  (princ "\n  RMR-WORKORDER      Work order card with priority and SLA")
+  (princ "\n  RMR-CONDITION      Condition grade 1 to 5 marker")
+  (princ "\n  RMR-LIFECYCLE      Replacement forecast and 5 year budget")
+  (princ "\n  RMR-SPACESTD       Space standard check per occupant")
+  (princ "\n  RMR-ROOMDATA       Room data sheet card")
+  (princ "\n  RMR-OCCUPANCY      Occupancy and utilisation against the benchmark")
+  (princ "\n  RMR-COMPLIANCE     Statutory compliance register with next due dates")
+  (princ "\n  RMR-INSPECT        Inspection stamp with re-inspection month")
+  (princ "\n  RMR-FMREPORT       Facility management report for the session")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -3226,6 +3277,11 @@
   (princ "\n  *RMR-MATERIAL-R-SPECS* thermal: material, lambda, thickness, note")
   (princ "\n  *RMR-FIRE-SPECS*     fire ratings: code, minutes, colour, note")
   (princ "\n  *RMR-ACOUSTIC-SPECS* acoustic ratings: code, Rw dB, application")
+  (princ "\n  *RMR-ASSET-TYPES*    asset type, category, life and cost")
+  (princ "\n  *RMR-MAINT-TASKS*    tasks, category, frequency and priority")
+  (princ "\n  *RMR-CONDITION-GRADES* grades 1 to 5 and their action")
+  (princ "\n  *RMR-COMPLIANCE-ITEMS* statutory items and intervals")
+  (princ "\n  *RMR-SPACE-STANDARDS* space standards per use")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -9118,7 +9174,11 @@
       ("DETAILING" "RMR-DETAILLIB RMR-JUNCTION RMR-DETAILTAG RMR-DETLOC"
        "RMR-DIMCHAIN RMR-MATKEY RMR-DETSCALE")
       ("DETAIL SHEETS" "RMR-DETSHEET RMR-SPECLINK RMR-DETINDEX RMR-UVALUE"
-       "RMR-FIRESTOP RMR-ACOUSTIC RMR-CHECKDETAIL"))
+       "RMR-FIRESTOP RMR-ACOUSTIC RMR-CHECKDETAIL")
+      ("FACILITY" "RMR-ASSET RMR-ASSETREG RMR-ASSETLABEL RMR-MAINT"
+       "RMR-PPM RMR-WORKORDER RMR-CONDITION RMR-LIFECYCLE"
+       "RMR-SPACESTD RMR-ROOMDATA RMR-OCCUPANCY RMR-COMPLIANCE"
+       "RMR-INSPECT RMR-FMREPORT"))
     (setq out (append out (list group)))
   )
   out
@@ -9166,7 +9226,7 @@
     (progn
       (princ (strcat "\nWritten: " path))
       (princ (strcat "\n" (itoa count)
-                     " commands across 18 pull-down sections."))
+                     " commands across 19 pull-down sections."))
       (princ "\nLoad it with MENULOAD, or CUILOAD for newer builds.")
     )
     (princ "\nCould not write the menu file.")
@@ -10483,6 +10543,14 @@
 
 
 ;;; =====================================================================
+;;; PRO 13.0 FACILITY MANAGEMENT SUITE
+;;; Asset tags and registers, printable labels, maintenance cards, a PPM
+;;; planner, work orders with SLA, condition grading, lifecycle forecasts,
+;;; space standards, room data sheets, occupancy checks, a statutory
+;;; register, inspection stamps and a session report.
+;;; =====================================================================
+
+;;; =====================================================================
 ;;; PRO 12.0 CONSTRUCTION DETAILING SUITE
 ;;; A detail library, a parametric junction builder built from the
 ;;; construction build-up tables, detail tags with a running counter,
@@ -11486,6 +11554,929 @@
   (princ)
 )
 
+
+;;; -----------------------------------------------------------------------------
+;;; 13.0 FACILITY MANAGEMENT SUITE - editable tables
+;;; -----------------------------------------------------------------------------
+;;; Asset types: (Code Category LifeYears Cost MaintMonths Note)
+(setq *RMR-ASSET-TYPES*
+ '(
+   ("AHU"      "MECHANICAL"          20  24000  3 "Air handling unit")
+   ("CHILLER"  "MECHANICAL"          20  65000  3 "Chiller and heat rejection")
+   ("BOILER"   "MECHANICAL"          20  32000  6 "Boiler plant")
+   ("PUMP"     "MECHANICAL"          15   6500  6 "Pump set")
+   ("LIFT"     "VERTICAL TRANSPORT"  25 120000  1 "Passenger lift")
+   ("DB"       "ELECTRICAL"          25   9500 12 "Distribution board")
+   ("GEN-SET"  "ELECTRICAL"          20  48000  3 "Standby generator")
+   ("LUMINAIRE" "ELECTRICAL"         15    180 12 "Light fitting")
+   ("ALARM-PANEL" "FIRE"             15  14000  3 "Fire alarm panel")
+   ("SPRINK-VALVE" "FIRE"            20   4200  3 "Sprinkler valve set")
+   ("DOOR"     "FABRIC"              30   2400 12 "Door set and ironmongery")
+   ("ROOF"     "FABRIC"              20  46000 12 "Roof membrane and trims")
+ )
+)
+
+;;; Maintenance tasks: (Code Task Category FreqMonths Priority Note)
+(setq *RMR-MAINT-TASKS*
+ '(
+   ("SERV" "Annual service"            "ALL"               12 "P3" "Manufacturer service schedule")
+   ("INSP" "Visual inspection"          "ALL"                3 "P3" "Condition and housekeeping")
+   ("TEST" "Functional test"            "ALL"                6 "P2" "Prove operation and interlocks")
+   ("CLEAN" "Clean and degrease"        "MECHANICAL"         6 "P4" "Coils, fans and casings")
+   ("FILTER" "Replace filters"          "MECHANICAL"         3 "P2" "Pressure drop check")
+   ("REFRIG" "Refrigerant leak check"   "MECHANICAL"        12 "P1" "F-gas record entry")
+   ("CALIB" "Instrument calibration"    "ELECTRICAL"        12 "P2" "Metering and controls")
+   ("EICR" "Fixed wire inspection"      "ELECTRICAL"        60 "P1" "Periodic EICR")
+   ("LUBE" "Lubricate moving parts"     "VERTICAL TRANSPORT" 3 "P2" "Guides and door gear")
+   ("LOLE" "Thorough examination"       "VERTICAL TRANSPORT" 6 "P1" "LOLER report")
+   ("FLUSH" "Water hygiene flush"       "PLUMBING"           1 "P1" "Sentinel outlet records")
+   ("VALVE" "Valve and head test"       "FIRE"               3 "P1" "Weekly flow switch check")
+ )
+)
+
+;;; Condition grades: (Grade Label Action ColourKey)
+(setq *RMR-CONDITION-GRADES*
+ '(
+   ("1" "AS NEW"     "No action required"        "TEAL")
+   ("2" "GOOD"       "Routine maintenance only"  "BLUE")
+   ("3" "FAIR"       "Plan works within 3 years" "GOLD")
+   ("4" "POOR"       "Repair within 12 months"   "TERRA")
+   ("5" "FAIL"       "Replace or isolate now"    "INK")
+ )
+)
+
+;;; Statutory items: (Item Regulation IntervalMonths Owner)
+(setq *RMR-COMPLIANCE-ITEMS*
+ '(
+   ("FIRE ALARM"      "BS 5839-1"          6  "FIRE ENGINEER")
+   ("EMERGENCY LIGHT" "BS 5266-1"         12  "ELECTRICAL")
+   ("LEGIONELLA"      "L8 ACOP"           12  "M&E CONTRACTOR")
+   ("ASBESTOS"        "CAR 2012 Reg 4"    12  "ASBESTOS SURVEYOR")
+   ("LIFT"            "LOLER 1998"         6  "LIFT ENGINEER")
+   ("ELECTRICAL"      "BS 7671 EICR"      60  "APPROVED CONTRACTOR")
+   ("GAS SAFETY"      "GSR 1998"          12  "GAS SAFE ENGINEER")
+   ("EXTINGUISHERS"   "BS 5306-3"         12  "FIRE ENGINEER")
+ )
+)
+
+;;; Space standards: (Use Min_m2_per_person Target_m2_per_person Note)
+(setq *RMR-SPACE-STANDARDS*
+ '(
+   ("OFFICE"      "CELLULAR OFFICE"     8.0  12.0 "Single occupancy cellular office")
+   ("OPENPLAN"    "OPEN PLAN"          10.0  14.0 "Open plan workstation")
+   ("MEETING"     "MEETING ROOM"        1.5   2.5 "Per seat around the table")
+   ("CLASSROOM"   "TEACHING SPACE"      2.0   3.0 "Per pupil place")
+   ("RETAIL"      "SALES FLOOR"         4.0   6.0 "Sales area per shopper")
+   ("LAB"         "LABORATORY"         10.0  14.0 "Bench based research")
+   ("RESIDENTIAL" "DWELLING"            9.3  12.0 "Habitable room per person")
+ )
+)
+
+;;; Session registers - filled by the commands below and read by RMR-FMREPORT.
+(setq *RMR-ASSET-LOG* nil)
+(setq *RMR-WO-LOG* nil)
+(setq *RMR-CONDITION-LOG* nil)
+(setq *RMR-COMPLIANCE-LOG* nil)
+
+;;; -----------------------------------------------------------------------------
+;;; 13.0 FACILITY MANAGEMENT SUITE - helpers
+;;; -----------------------------------------------------------------------------
+(defun RMR:PadZeros (number width / text)
+  (setq text (itoa number))
+  (while (< (strlen text) width)
+    (setq text (strcat "0" text))
+  )
+  text
+)
+
+(defun RMR:AssetNext (/ count)
+  (setq count (1+ (if *RMR-ASSET-LOG* (length *RMR-ASSET-LOG*) 0)))
+  (strcat "A-" (RMR:PadZeros count 3))
+)
+
+(defun RMR:AssetTag (p id spec / s r)
+  ;; Square asset tag: category band above, ID below, tick cross inside.
+  (setq s (RMR:Scaled 1.0))
+  (setq r (* 4.6 s))
+  (RMR:Solid (RMR:PT+ p (- r) (- r)) (* 2.0 r) (* 2.0 r) "RMR-FM-ASSET"
+             *RMR-BRAND-SAND*)
+  (RMR:Rect (RMR:PT+ p (- r) (- r)) (* 2.0 r) (* 2.0 r) "RMR-FM-ASSET"
+            *RMR-BRAND-SLATE*)
+  (RMR:Line (RMR:PT+ p (- r) 0.0) (RMR:PT+ p r 0.0) "RMR-FM-ASSET"
+            *RMR-BRAND-SLATE*)
+  (RMR:Line (RMR:PT+ p 0.0 (- r)) (RMR:PT+ p 0.0 r) "RMR-FM-ASSET"
+            *RMR-BRAND-SLATE*)
+  (RMR:CenterText (RMR:PT+ p 0.0 (* -7.2 s)) id (* 2.6 s) "RMR-NUMBER"
+                  "RMR-FM-ASSET" *RMR-BRAND-INK*)
+  (RMR:CenterText (RMR:PT+ p 0.0 (* 6.4 s)) (nth 1 spec) (* 2.0 s)
+                  "RMR-NOTE" "RMR-FM-ASSET" *RMR-BRAND-TERRA*)
+  (RMR:CenterText (RMR:PT+ p 0.0 (* -10.0 s)) (nth 0 spec) (* 1.8 s)
+                  "RMR-NOTE" "RMR-FM-ASSET" *RMR-BRAND-SLATE*)
+)
+
+(defun RMR:YearMonth (text / year month)
+  ;; "2025-04" -> (2025 4). Used by the compliance and inspection dates.
+  (if (and (>= (strlen text) 7) (= (substr text 5 1) "-"))
+    (progn
+      (setq year (atoi (substr text 1 4)))
+      (setq month (atoi (substr text 6 2)))
+      (if (and (> year 1900) (>= month 1) (<= month 12))
+        (list year month)
+      )
+    )
+  )
+)
+
+(defun RMR:AddMonths (ym add / total year month)
+  (if ym
+    (progn
+      (setq total (+ (* (car ym) 12) (1- (cadr ym)) add))
+      (setq year (/ total 12))
+      (setq month (1+ (rem total 12)))
+      (list year month)
+    )
+  )
+)
+
+(defun RMR:MonthText (ym / months)
+  (setq months '("JAN" "FEB" "MAR" "APR" "MAY" "JUN"
+                 "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"))
+  (if ym
+    (strcat (itoa (car ym)) "-" (nth (1- (cadr ym)) months))
+    "UNKNOWN"
+  )
+)
+
+(defun RMR:MonthDiff (from to)
+  ;; Whole months from one (year month) pair to another.
+  (if (and from to)
+    (+ (* (- (car to) (car from)) 12) (- (cadr to) (cadr from)))
+    0
+  )
+)
+
+(defun RMR:SlaHours (priority)
+  (cond
+    ((= (strcase priority) "P1") 4)
+    ((= (strcase priority) "P2") 24)
+    ((= (strcase priority) "P3") 120)
+    (T 480)
+  )
+)
+
+(defun RMR:TodayYearMonth ()
+  (RMR:YearMonth (RMR:TodayDate))
+)
+
+(defun RMR:DueStatus (due)
+  ;; OK / DUE / OVERDUE by comparing the due month with this month.
+  (if (not due)
+    "UNKNOWN"
+    (if (< (RMR:MonthDiff due (RMR:TodayYearMonth)) 0)
+      "OVERDUE"
+      (if (<= (RMR:MonthDiff due (RMR:TodayYearMonth)) 1) "DUE" "OK")
+    )
+  )
+)
+
+;;; --- asset tag -----------------------------------------------------------------------------------
+(defun C:RMR-ASSET (/ keys code spec p id location row)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-ASSET-TYPES*))
+  (setq code (RMR:PromptKeyword "Asset type" keys (nth 0 (nth 0 *RMR-ASSET-TYPES*))))
+  (setq spec (RMR:TableSpec code *RMR-ASSET-TYPES*))
+  (if spec
+    (progn
+      (setq p (getpoint "\nInsertion point for the asset tag: "))
+      (if p
+        (progn
+          (setq id (RMR:AssetNext))
+          (setq location (getstring T "\nLocation or room reference <none>: "))
+          (RMR:AssetTag p id spec)
+          (setq row (list id (nth 0 spec) (nth 1 spec) location
+                          (itoa (nth 2 spec)) (itoa (nth 3 spec))))
+          (setq *RMR-ASSET-LOG* (append *RMR-ASSET-LOG* (list row)))
+          (princ (strcat "\n" id " placed  |  " (nth 0 spec) "  |  "
+                         (nth 1 spec) "  |  life " (itoa (nth 2 spec))
+                         " years  |  maintenance every "
+                         (itoa (nth 4 spec)) " months"))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- asset register ------------------------------------------------------------------------------
+(defun C:RMR-ASSETREG (/ base s rows row scan text)
+  (RMR:EnsureReady)
+  (setq rows *RMR-ASSET-LOG*)
+  (if (not rows)
+    (progn
+      ;; No session log: read the tags already in the drawing instead.
+      (setq scan (ssget "_X" '((0 . "TEXT") (8 . "RMR-FM-ASSET"))))
+      (if scan
+        (progn
+          (setq rows '())
+          (setq text 0)
+          (repeat (sslength scan)
+            (setq row (entget (ssname scan text)))
+            (if (RMR:StartsWith (cdr (assoc 1 row)) "A-")
+              (setq rows (append rows (list (list (cdr (assoc 1 row))
+                                                  (cdr (assoc 1 row))
+                                                  "TAGGED" "" "" ""))))
+            )
+            (setq text (1+ text))
+          )
+        )
+      )
+    )
+  )
+  (if rows
+    (progn
+      (setq base (getpoint "\nTop-left of the asset register: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (RMR:DocTable base "ASSET REGISTER  |  RMR-ASSETREG"
+                        (strcat (itoa (length rows)) " assets  |  "
+                                (RMR:TodayDate))
+                        '("ID" "TYPE" "CATEGORY" "LIFE" "COST" "LOCATION")
+                        (list (* 20.0 s) (* 30.0 s) (* 34.0 s) (* 14.0 s)
+                              (* 22.0 s) (* 44.0 s))
+                        rows nil s)
+          (princ (strcat "\nAsset register drawn for " (itoa (length rows))
+                         " assets."))
+        )
+      )
+    )
+    (princ "\nNo asset tags found. Run RMR-ASSET first.")
+  )
+  (princ)
+)
+
+;;; --- asset label sheet ---------------------------------------------------------------------------
+(defun C:RMR-ASSETLABEL (/ rows base s cols gap lw lh index row col x y file lines)
+  (RMR:EnsureReady)
+  (setq rows *RMR-ASSET-LOG*)
+  (if rows
+    (progn
+      (setq base (getpoint "\nBottom-left of the label sheet: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq cols 3)
+          (setq gap (* 4.0 s))
+          (setq lw (* 74.0 s))
+          (setq lh (* 40.0 s))
+          (setq index 0)
+          (foreach row rows
+            (setq col (rem index cols))
+            (setq x (+ (car base) (* col (+ lw gap))))
+            (setq y (- (cadr base) (* (/ index cols) (+ lh gap))))
+            (RMR:Solid (list x y 0.0) lw (* 9.0 s) "RMR-FM-ASSET"
+                       *RMR-BRAND-TERRA*)
+            (RMR:Rect (list x y 0.0) lw lh "RMR-FM-ASSET" *RMR-BRAND-SLATE*)
+            (RMR:Text (list (+ x (* 3.0 s)) (+ y (* 3.0 s))) (nth 0 row)
+                      (* 4.6 s) "RMR-NUMBER" "RMR-FM-ASSET" *RMR-BRAND-SAND*)
+            (RMR:Text (list (+ x (* 42.0 s)) (+ y (* 4.4 s))) "RooMNRooF"
+                      (* 2.2 s) "RMR-HEAD" "RMR-FM-ASSET" *RMR-BRAND-SAND*)
+            (RMR:Text (list (+ x (* 3.0 s)) (+ y (* 13.0 s))) (nth 1 row)
+                      (* 3.0 s) "RMR-LABEL" "RMR-FM-ASSET" *RMR-BRAND-INK*)
+            (RMR:Text (list (+ x (* 3.0 s)) (+ y (* 19.0 s))) (nth 2 row)
+                      (* 2.0 s) "RMR-NOTE" "RMR-FM-ASSET" *RMR-BRAND-TERRA*)
+            (RMR:Text (list (+ x (* 3.0 s)) (+ y (* 25.0 s)))
+                      (strcat "LOCATION  " (if (= (nth 3 row) "") "-" (nth 3 row)))
+                      (* 2.0 s) "RMR-BODY" "RMR-FM-ASSET" *RMR-BRAND-INK*)
+            (RMR:Text (list (+ x (* 3.0 s)) (+ y (* 30.0 s)))
+                      (strcat "LIFE " (nth 4 row) " YRS   |   RECORD ON CAFM")
+                      (* 1.8 s) "RMR-NOTE" "RMR-FM-ASSET" *RMR-BRAND-SLATE*)
+            (setq index (1+ index))
+          )
+          (princ (strcat "\n" (itoa (length rows)) " asset labels drawn."))
+          (if (RMR:YesP (RMR:PromptYesNo "Write a label list as CSV" "No"))
+            (progn
+              (setq file (getfiled "Save the asset label list" "RooMNRooF_Assets.csv" "csv" 1))
+              (if file
+                (progn
+                  (setq lines (list "ID,TYPE,CATEGORY,LOCATION,LIFE_YEARS,COST"))
+                  (foreach row rows
+                    (setq lines (append lines (list (strcat (nth 0 row) ","
+                                                        (nth 1 row) ","
+                                                        (nth 2 row) ","
+                                                        (nth 3 row) ","
+                                                        (nth 4 row) ","
+                                                        (nth 5 row)))))
+                  )
+                  (if (RMR:WriteLines file lines)
+                    (princ (strcat "\nWritten: " file))
+                    (princ "\nCould not write the CSV.")
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+    (princ "\nNo assets in this session. Run RMR-ASSET first.")
+  )
+  (princ)
+)
+
+;;; --- maintenance card ----------------------------------------------------------------------------
+(defun C:RMR-MAINT (/ rows keys id row base s y tasks task index)
+  (RMR:EnsureReady)
+  (setq rows *RMR-ASSET-LOG*)
+  (if rows
+    (progn
+      (setq keys "")
+      (foreach row rows
+        (setq keys (strcat keys (if (= keys "") "" " ") (nth 0 row)))
+      )
+      (setq id (RMR:PromptKeyword "Asset" keys (nth 0 (nth 0 rows))))
+      (setq row (RMR:TableSpec id rows))
+      (if row
+        (progn
+          (setq tasks '())
+          (foreach task *RMR-MAINT-TASKS*
+            (if (or (= (nth 2 task) "ALL")
+                    (= (strcase (nth 2 task)) (strcase (nth 2 row))))
+              (setq tasks (append tasks (list task)))
+            )
+          )
+          (setq base (getpoint "\nTop-left of the maintenance card: "))
+          (if base
+            (progn
+              (setq s (RMR:Scaled 1.0))
+              (setq y (cadr base))
+              (RMR:Solid (list (car base) (- y (* 9.0 s)) 0.0) (* 118.0 s)
+                         (* 9.0 s) "RMR-FM-MAINT" *RMR-BRAND-GOLD*)
+              (RMR:Text (list (+ (car base) (* 2.0 s)) (- y (* 6.4 s)) 0.0)
+                        (strcat "MAINTENANCE CARD  |  " id) (* 3.4 s)
+                        "RMR-HEAD" "RMR-FM-MAINT" *RMR-BRAND-INK*)
+              (setq y (- y (* 12.0 s)))
+              (RMR:Text (list (car base) y 0.0)
+                        (strcat (nth 1 row) "  |  " (nth 2 row) "  |  installed life "
+                                (nth 4 row) " years")
+                        (* 2.2 s) "RMR-NOTE" "RMR-FM-MAINT" *RMR-BRAND-SLATE*)
+              (setq y (- y (* 8.0 s)))
+              (setq index 0)
+              (foreach task tasks
+                (setq index (1+ index))
+                (RMR:Text (list (car base) y 0.0)
+                          (strcat (itoa index) ".  " (nth 1 task)) (* 2.4 s)
+                          "RMR-LABEL" "RMR-FM-MAINT" *RMR-BRAND-INK*)
+                (RMR:Text (list (+ (car base) (* 74.0 s)) y 0.0)
+                          (strcat "every " (itoa (nth 3 task)) " months  "
+                                  (nth 4 task)) (* 2.0 s) "RMR-NUMBER"
+                          "RMR-FM-MAINT" *RMR-BRAND-TERRA*)
+                (setq y (- y (* 6.4 s)))
+              )
+              (RMR:Rect (list (car base) (- y (* 2.0 s)) 0.0) (* 118.0 s)
+                        (- (cadr base) y (* 2.0 s)) "RMR-FM-MAINT"
+                        *RMR-BRAND-SLATE*)
+              (princ (strcat "\nMaintenance card drawn: " (itoa (length tasks))
+                             " tasks for " id "."))
+            )
+          )
+        )
+      )
+    )
+    (princ "\nNo assets in this session. Run RMR-ASSET first.")
+  )
+  (princ)
+)
+
+;;; --- PPM planner ---------------------------------------------------------------------------------
+(defun C:RMR-PPM (/ keys code spec base s tasks task x y cw rh i months
+                  label count)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-ASSET-TYPES*))
+  (setq code (RMR:PromptKeyword "Asset type for the PPM planner" keys
+                                (nth 0 (nth 0 *RMR-ASSET-TYPES*))))
+  (setq spec (RMR:TableSpec code *RMR-ASSET-TYPES*))
+  (if spec
+    (progn
+      (setq tasks '())
+      (foreach task *RMR-MAINT-TASKS*
+        (if (or (= (nth 2 task) "ALL")
+                (= (strcase (nth 2 task)) (strcase (nth 1 spec))))
+          (setq tasks (append tasks (list task)))
+        )
+      )
+      (setq base (getpoint "\nTop-left of the PPM planner: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq cw (* 9.0 s))
+          (setq rh (* 7.0 s))
+          (setq x (+ (car base) (* 46.0 s)))
+          (setq y (cadr base))
+          (RMR:Text (list (car base) (- y (* 1.4 s)) 0.0)
+                    (strcat "PPM PLANNER  |  " (nth 0 spec)) (* 3.4 s)
+                    "RMR-HEAD" "RMR-FM-MAINT" *RMR-BRAND-TERRA*)
+          (setq y (- y (* 6.0 s)))
+          (setq months '("J" "F" "M" "A" "M" "J" "J" "A" "S" "O" "N" "D"))
+          (setq i 0)
+          (foreach label months
+            (RMR:Text (list (+ x (* i cw) (* 2.6 s)) y 0.0) label (* 2.2 s)
+                      "RMR-HEAD" "RMR-FM-MAINT" *RMR-BRAND-INK*)
+            (setq i (1+ i))
+          )
+          (RMR:Text (list (car base) y 0.0) "TASK" (* 2.2 s) "RMR-HEAD"
+                    "RMR-FM-MAINT" *RMR-BRAND-INK*)
+          (setq y (- y (* 2.0 s)))
+          (setq count 0)
+          (foreach task tasks
+            (RMR:Rect (list (car base) (- y rh) 0.0) (* 118.0 s) rh
+                      "RMR-FM-MAINT" *RMR-BRAND-SLATE*)
+            (RMR:Text (list (car base) (- y (* 4.8 s)) 0.0)
+                      (RMR:Shorten (nth 1 task) 30) (* 2.0 s) "RMR-LABEL"
+                      "RMR-FM-MAINT" *RMR-BRAND-INK*)
+            (setq i 1)
+            (while (<= i 12)
+              (if (= (rem i (nth 3 task)) 0)
+                (progn
+                  (RMR:Solid (list (+ x (* (1- i) cw) (* 0.6 s)) (- y rh)
+                                  0.0)
+                             (* cw 0.8) (* rh 0.8) "RMR-FM-MAINT"
+                             *RMR-BRAND-TEAL*)
+                  (setq count (1+ count))
+                )
+              )
+              (setq i (1+ i))
+            )
+            (setq y (- y rh))
+          )
+          (princ (strcat "\nPPM planner drawn: " (itoa count) " visits across "
+                         (itoa (length tasks)) " tasks for " (nth 0 spec) "."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- work order ----------------------------------------------------------------------------------
+(defun C:RMR-WORKORDER (/ rows keys id priority hours base s y number desc sla)
+  (RMR:EnsureReady)
+  (setq rows *RMR-ASSET-LOG*)
+  (if rows
+    (progn
+      (setq keys "")
+      (foreach id rows
+        (setq keys (strcat keys (if (= keys "") "" " ") (nth 0 id)))
+      )
+      (setq id (RMR:PromptKeyword "Asset for the work order" keys
+                                  (nth 0 (nth 0 rows))))
+    )
+    (setq id (RMR:PromptText "Asset or area" "GENERAL"))
+  )
+  (setq priority (RMR:PromptKeyword "Priority" "P1 P2 P3 P4" "P3"))
+  (setq hours (RMR:SlaHours priority))
+  (setq desc (RMR:PromptText "Work order description" "Attend and report"))
+  (setq number (strcat "WO-" (RMR:PadZeros (1+ (if *RMR-WO-LOG* (length *RMR-WO-LOG*) 0)) 3)))
+  (setq *RMR-WO-LOG* (append *RMR-WO-LOG* (list (list number id priority desc))))
+  (setq base (getpoint "\nTop-left of the work order card: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq y (cadr base))
+      (RMR:Solid (list (car base) (- y (* 10.0 s)) 0.0) (* 112.0 s)
+                 (* 10.0 s) "RMR-FM-MAINT" *RMR-BRAND-INK*)
+      (RMR:Text (list (+ (car base) (* 2.0 s)) (- y (* 7.0 s)) 0.0)
+                (strcat "WORK ORDER  " number) (* 4.0 s) "RMR-HEAD"
+                "RMR-FM-MAINT" *RMR-BRAND-SAND*)
+      (RMR:Text (list (+ (car base) (* 80.0 s)) (- y (* 7.0 s)) 0.0)
+                priority (* 4.4 s) "RMR-NUMBER" "RMR-FM-MAINT"
+                *RMR-BRAND-GOLD*)
+      (setq y (- y (* 15.0 s)))
+      (RMR:Text (list (car base) y 0.0) (strcat "ASSET      " id) (* 2.4 s)
+                "RMR-BODY" "RMR-FM-MAINT" *RMR-BRAND-INK*)
+      (setq y (- y (* 6.0 s)))
+      (RMR:Text (list (car base) y 0.0)
+                (strcat "RAISED     " (RMR:TodayDate)) (* 2.4 s) "RMR-BODY"
+                "RMR-FM-MAINT" *RMR-BRAND-INK*)
+      (setq y (- y (* 6.0 s)))
+      (setq sla (strcat "RESPOND    within " (itoa hours) " hours"))
+      (RMR:Text (list (car base) y 0.0) sla (* 2.4 s) "RMR-BODY"
+                "RMR-FM-MAINT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 6.0 s)))
+      (RMR:Text (list (car base) y 0.0)
+                (strcat "SCOPE      " (RMR:Shorten desc 52)) (* 2.2 s)
+                "RMR-BODY" "RMR-FM-MAINT" *RMR-BRAND-INK*)
+      (setq y (- y (* 6.0 s)))
+      (RMR:Text (list (car base) y 0.0) "ISSUED     ____________________"
+                (* 2.2 s) "RMR-NOTE" "RMR-FM-MAINT" *RMR-BRAND-SLATE*)
+      (setq y (- y (* 6.0 s)))
+      (RMR:Text (list (car base) y 0.0) "COMPLETED  ____________________"
+                (* 2.2 s) "RMR-NOTE" "RMR-FM-MAINT" *RMR-BRAND-SLATE*)
+      (RMR:Rect (list (car base) (- y (* 2.0 s)) 0.0) (* 112.0 s)
+                (- (cadr base) y (* 2.0 s)) "RMR-FM-MAINT" *RMR-BRAND-SLATE*)
+      (princ (strcat "\n" number " raised against " id " at priority "
+                     priority "."))
+    )
+  )
+  (princ)
+)
+
+;;; --- condition survey ----------------------------------------------------------------------------
+(defun C:RMR-CONDITION (/ keys grade spec p s rgb size label)
+  (RMR:EnsureReady)
+  (setq keys "1 2 3 4 5")
+  (setq grade (RMR:PromptKeyword "Condition grade" keys "3"))
+  (setq spec (RMR:TableSpec grade *RMR-CONDITION-GRADES*))
+  (if spec
+    (progn
+      (setq p (getpoint "\nPick the element to grade: "))
+      (if p
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq size (* 8.0 s))
+          (setq rgb (RMR:BrandRGB (nth 3 spec)))
+          (RMR:Solid (list (car p) (cadr p) 0.0) size size "RMR-FM-ASSET" rgb)
+          (RMR:Rect (list (car p) (cadr p) 0.0) size size "RMR-FM-ASSET"
+                    *RMR-BRAND-INK*)
+          (RMR:CenterText (list (+ (car p) (/ size 2.0))
+                                (+ (cadr p) (* 2.6 s)) 0.0)
+                          grade (* 3.6 s) "RMR-NUMBER" "RMR-FM-ASSET"
+                          *RMR-BRAND-SAND*)
+          (RMR:Text (list (+ (car p) (* 10.0 s)) (+ (cadr p) (* 5.0 s)) 0.0)
+                    (strcat "GRADE " grade "  " (nth 1 spec)) (* 2.6 s)
+                    "RMR-HEAD" "RMR-FM-ASSET" *RMR-BRAND-INK*)
+          (RMR:Text (list (+ (car p) (* 10.0 s)) (cadr p) 0.0) (nth 2 spec)
+                    (* 2.0 s) "RMR-NOTE" "RMR-FM-ASSET" *RMR-BRAND-SLATE*)
+          (RMR:Text (list (+ (car p) (* 10.0 s)) (- (cadr p) (* 4.0 s)) 0.0)
+                    (strcat "Recorded " (RMR:TodayDate)) (* 1.9 s) "RMR-NOTE"
+                    "RMR-FM-ASSET" *RMR-BRAND-SLATE*)
+          (setq *RMR-CONDITION-LOG*
+            (append *RMR-CONDITION-LOG* (list (list grade (nth 1 spec)))))
+          (princ (strcat "\nCondition grade " grade " (" (nth 1 spec) ") recorded."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- lifecycle forecast --------------------------------------------------------------------------
+(defun C:RMR-LIFECYCLE (/ rows keys year base s table total line budget bottom)
+  (RMR:EnsureReady)
+  (setq rows *RMR-ASSET-LOG*)
+  (if rows
+    (progn
+      (setq year (RMR:PromptInt "Installation year to assume" 2024))
+      (setq table '())
+      (foreach line rows
+        (setq table (append table
+                      (list (list (nth 0 line)
+                                  (nth 1 line)
+                                  (itoa year)
+                                  (nth 4 line)
+                                  (itoa (+ year (atoi (nth 4 line))))
+                                  (nth 5 line)))))
+      )
+      (setq base (getpoint "\nTop-left of the lifecycle forecast: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq bottom
+            (RMR:DocTable base "LIFECYCLE FORECAST  |  RMR-LIFECYCLE"
+                        (strcat (itoa (length table))
+                                " assets  |  install year " (itoa year)
+                                "  |  replacement cost at today's rates")
+                        '("ID" "TYPE" "INSTALL" "LIFE" "REPLACE" "COST")
+                        (list (* 20.0 s) (* 28.0 s) (* 20.0 s) (* 14.0 s)
+                              (* 22.0 s) (* 26.0 s))
+                        table nil s))
+          (setq total 0)
+          (foreach line table
+            (setq total (+ total (atoi (nth 5 line))))
+          )
+          (setq budget 0)
+          (foreach line table
+            (if (<= (- (atoi (nth 4 line)) year) 5)
+              (setq budget (+ budget (atoi (nth 5 line))))
+            )
+          )
+          (RMR:Text (list (car base) (- bottom (* 6.0 s)) 0.0)
+                    (strcat "Replacement value  " (RMR:Num total 0)
+                            "   |   next 5 years  " (RMR:Num budget 0))
+                    (* 2.6 s) "RMR-NUMBER" "RMR-FM-ASSET" *RMR-BRAND-TERRA*)
+          (princ (strcat "\nLifecycle forecast drawn. Replacement value "
+                         (RMR:Num total 0) ", next five years "
+                         (RMR:Num budget 0) "."))
+        )
+      )
+    )
+    (princ "\nNo assets in this session. Run RMR-ASSET first.")
+  )
+  (princ)
+)
+
+;;; --- space standards -----------------------------------------------------------------------------
+(defun C:RMR-SPACESTD (/ keys use spec area people density target p s verdict
+                      rgb w)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-SPACE-STANDARDS*))
+  (setq use (RMR:PromptKeyword "Space use" keys (nth 0 (nth 0 *RMR-SPACE-STANDARDS*))))
+  (setq spec (RMR:TableSpec use *RMR-SPACE-STANDARDS*))
+  (if spec
+    (progn
+      (setq area (RMR:PromptReal "Net internal area in sq m" 120.0))
+      (setq people (RMR:PromptInt "Number of occupants" 10))
+      (setq density (/ area (float people)))
+      (setq target (float (nth 2 spec)))
+      (setq verdict (if (>= density target) "PASS" "REVIEW"))
+      (setq rgb (if (>= density target) *RMR-BRAND-TEAL* *RMR-BRAND-TERRA*))
+      (princ (strcat "\n" (nth 1 spec) ": " (RMR:Num density 2)
+                     " sq m per person  |  minimum " (RMR:Num target 2)
+                     "  |  " verdict))
+      (setq p (getpoint "\nTop-left of the space standard check: "))
+      (if p
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (RMR:Text p (strcat "SPACE STANDARD  |  " (nth 1 spec)) (* 3.6 s)
+                    "RMR-HEAD" "RMR-FM-ROOM" *RMR-BRAND-TERRA*)
+          (RMR:Text (list (car p) (- (cadr p) (* 6.0 s)) 0.0)
+                    (strcat (RMR:Num area 1) " sq m  |  " (itoa people)
+                            " occupants") (* 2.2 s) "RMR-NOTE" "RMR-FM-ROOM"
+                    *RMR-BRAND-SLATE*)
+          ;; a bar to twice the target, with the achieved density marked
+          (setq w (* 90.0 s))
+          (RMR:Solid (list (car p) (- (cadr p) (* 16.0 s)) 0.0) w (* 6.0 s)
+                     "RMR-FM-ROOM" *RMR-BRAND-SAND*)
+          (RMR:Solid (list (car p) (- (cadr p) (* 16.0 s)) 0.0)
+                     (* w (/ (min density (* 2.0 target)) (* 2.0 target)))
+                     (* 6.0 s) "RMR-FM-ROOM" rgb)
+          (RMR:Rect (list (car p) (- (cadr p) (* 16.0 s)) 0.0) w (* 6.0 s)
+                    "RMR-FM-ROOM" *RMR-BRAND-INK*)
+          (RMR:Line (list (+ (car p) (/ w 2.0)) (- (cadr p) (* 18.0 s)) 0.0)
+                    (list (+ (car p) (/ w 2.0)) (- (cadr p) (* 14.0 s)) 0.0)
+                    "RMR-FM-ROOM" *RMR-BRAND-INK*)
+          (RMR:Text (list (car p) (- (cadr p) (* 23.0 s)) 0.0)
+                    (strcat (RMR:Num density 2) " sq m/person  |  target "
+                            (RMR:Num target 2) "  |  ") (* 2.4 s)
+                    "RMR-NUMBER" "RMR-FM-ROOM" *RMR-BRAND-INK*)
+          (RMR:Text (list (+ (car p) (* 78.0 s)) (- (cadr p) (* 23.0 s)) 0.0)
+                    verdict (* 2.8 s) "RMR-HEAD" "RMR-FM-ROOM" rgb)
+          (RMR:Text (list (car p) (- (cadr p) (* 29.0 s)) 0.0)
+                    (strcat "Utilisation " (RMR:Num (/ density target) 2)
+                            " times the standard  |  " (nth 4 spec))
+                    (* 1.9 s) "RMR-NOTE" "RMR-FM-ROOM" *RMR-BRAND-SLATE*)
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- room data sheet -----------------------------------------------------------------------------
+(defun C:RMR-ROOMDATA (/ number name area people floor wall ceiling services
+                      base s y data row)
+  (RMR:EnsureReady)
+  (setq number (RMR:PromptText "Room number" "G.01"))
+  (setq name (RMR:PromptText "Room name" "OFFICE"))
+  (setq area (RMR:PromptReal "Room area in sq m" 18.0))
+  (setq people (RMR:PromptInt "Design occupancy" 2))
+  (setq floor (RMR:PromptText "Floor finish" "CARPET TILE"))
+  (setq wall (RMR:PromptText "Wall finish" "PAINT"))
+  (setq ceiling (RMR:PromptText "Ceiling" "SUSPENDED TILE"))
+  (setq services (RMR:PromptText "Services note" "4 NO. DATA, 6 NO. POWER"))
+  (setq base (getpoint "\nTop-left of the room data sheet: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq y (cadr base))
+      (RMR:Solid (list (car base) (- y (* 10.0 s)) 0.0) (* 104.0 s)
+                 (* 10.0 s) "RMR-FM-ROOM" *RMR-BRAND-TEAL*)
+      (RMR:Text (list (+ (car base) (* 2.0 s)) (- y (* 7.0 s)) 0.0)
+                (strcat "ROOM DATA  |  " number "  " name) (* 3.4 s)
+                "RMR-HEAD" "RMR-FM-ROOM" *RMR-BRAND-SAND*)
+      (setq y (- y (* 14.0 s)))
+      (setq data (list (list "AREA" (strcat (RMR:Num area 1) " sq m"))
+                       (list "OCCUPANCY" (strcat (itoa people) " persons"))
+                       (list "DENSITY" (strcat (RMR:Num (/ area (float people)) 2)
+                                               " sq m per person"))
+                       (list "FLOOR" floor)
+                       (list "WALLS" wall)
+                       (list "CEILING" ceiling)
+                       (list "SERVICES" services)))
+      (foreach row data
+        (RMR:Text (list (car base) y 0.0) (nth 0 row) (* 2.2 s) "RMR-HEAD"
+                  "RMR-FM-ROOM" *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ (car base) (* 26.0 s)) y 0.0)
+                  (RMR:Shorten (nth 1 row) 42) (* 2.2 s) "RMR-BODY"
+                  "RMR-FM-ROOM" *RMR-BRAND-INK*)
+        (setq y (- y (* 6.2 s)))
+      )
+      (RMR:Rect (list (car base) (- y (* 1.0 s)) 0.0) (* 104.0 s)
+                (- (cadr base) y (* 1.0 s)) "RMR-FM-ROOM" *RMR-BRAND-SLATE*)
+      (princ (strcat "\nRoom data sheet drawn for " number " " name "."))
+    )
+  )
+  (princ)
+)
+
+;;; --- occupancy check -----------------------------------------------------------------------------
+(defun C:RMR-OCCUPANCY (/ nia people target density utilisation base s w rgb
+                       index total rows use spec)
+  (RMR:EnsureReady)
+  (setq nia (RMR:PromptReal "Net internal area of the building in sq m" 1200.0))
+  (setq people (RMR:PromptInt "Occupants on a typical day" 90))
+  (setq density (/ nia (float people)))
+  (setq target 12.0)
+  (setq utilisation (/ (* people 100.0) (max (/ nia target) 1.0)))
+  (setq rgb (if (<= utilisation 100.0) *RMR-BRAND-TEAL* *RMR-BRAND-TERRA*))
+  (princ (strcat "\n" (RMR:Num density 2) " sq m per person  |  utilisation "
+                 (RMR:Num utilisation 1) " per cent of the 12 sq m benchmark"))
+  (setq base (getpoint "\nTop-left of the occupancy panel: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (RMR:Text base "OCCUPANCY AND UTILISATION  |  RMR-OCCUPANCY" (* 3.6 s)
+                "RMR-HEAD" "RMR-FM-ROOM" *RMR-BRAND-TERRA*)
+      (setq w (* 100.0 s))
+      (RMR:Solid (list (car base) (- (cadr base) (* 12.0 s)) 0.0) w (* 8.0 s)
+                 "RMR-FM-ROOM" *RMR-BRAND-SAND*)
+      (RMR:Solid (list (car base) (- (cadr base) (* 12.0 s)) 0.0)
+                 (* w (/ (min utilisation 120.0) 120.0)) (* 8.0 s)
+                 "RMR-FM-ROOM" rgb)
+      (RMR:Rect (list (car base) (- (cadr base) (* 12.0 s)) 0.0) w (* 8.0 s)
+                "RMR-FM-ROOM" *RMR-BRAND-INK*)
+      (RMR:Text (list (car base) (- (cadr base) (* 21.0 s)) 0.0)
+                (strcat (RMR:Num nia 0) " sq m  |  " (itoa people)
+                        " occupants  |  " (RMR:Num density 2) " sq m/person")
+                (* 2.4 s) "RMR-NUMBER" "RMR-FM-ROOM" *RMR-BRAND-INK*)
+      (RMR:Text (list (car base) (- (cadr base) (* 28.0 s)) 0.0)
+                (strcat "Utilisation " (RMR:Num utilisation 1)
+                        " per cent  |  benchmark 100 per cent")
+                (* 2.4 s) "RMR-BODY" "RMR-FM-ROOM" rgb)
+      (RMR:Text (list (car base) (- (cadr base) (* 35.0 s)) 0.0)
+                (if (<= utilisation 100.0)
+                  "Within the occupancy benchmark."
+                  "Over the benchmark: review the workstation count."
+                )
+                (* 2.0 s) "RMR-NOTE" "RMR-FM-ROOM" *RMR-BRAND-SLATE*)
+      (princ "\nOccupancy panel drawn.")
+    )
+  )
+  (princ)
+)
+
+;;; --- compliance register -------------------------------------------------------------------------
+(defun C:RMR-COMPLIANCE (/ item last due base s table status count)
+  (RMR:EnsureReady)
+  (setq table '())
+  (setq count 0)
+  (foreach item *RMR-COMPLIANCE-ITEMS*
+    (setq last (RMR:PromptText (strcat (nth 0 item) " last inspected (YYYY-MM)")
+                               (RMR:MonthText (RMR:AddMonths (RMR:TodayYearMonth)
+                                                            (- (nth 2 item))))))
+    (if (not (RMR:YearMonth last))
+      (setq last (RMR:MonthText (RMR:AddMonths (RMR:TodayYearMonth) (- (nth 2 item)))))
+    )
+    (setq due (RMR:AddMonths (RMR:YearMonth last) (nth 2 item)))
+    (setq status (RMR:DueStatus due))
+    (if (/= status "OK") (setq count (1+ count)))
+    (setq table (append table
+                    (list (list (nth 0 item) (nth 1 item)
+                                (strcat (itoa (nth 2 item)) " mo")
+                                (RMR:MonthText (RMR:YearMonth last))
+                                (RMR:MonthText due) status))))
+    (setq *RMR-COMPLIANCE-LOG* (append *RMR-COMPLIANCE-LOG* (list (list (nth 0 item) status))))
+  )
+  (setq base (getpoint "\nTop-left of the compliance register: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (RMR:DocTable base "STATUTORY COMPLIANCE REGISTER  |  RMR-COMPLIANCE"
+                    (strcat (itoa (length table)) " items  |  " (itoa count)
+                            " due or overdue  |  " (RMR:TodayDate))
+                    '("ITEM" "REGULATION" "INTERVAL" "LAST" "NEXT DUE" "STATUS")
+                    (list (* 40.0 s) (* 38.0 s) (* 22.0 s) (* 24.0 s)
+                          (* 26.0 s) (* 24.0 s))
+                    table (if (> count 0) "OVERDUE" nil) s)
+      (princ (strcat "\nCompliance register drawn: " (itoa count)
+                     " item(s) due or overdue."))
+    )
+  )
+  (princ)
+)
+
+;;; --- inspection stamp ----------------------------------------------------------------------------
+(defun C:RMR-INSPECT (/ target inspector interval last result due base s rgb
+                     status)
+  (RMR:EnsureReady)
+  (setq target (RMR:PromptText "Asset or area inspected" "PLANTROOM"))
+  (setq inspector (RMR:PromptText "Inspected by" "M. HABIB"))
+  (setq interval (RMR:PromptInt "Re-inspection interval in months" 12))
+  (setq result (RMR:PromptKeyword "Result" "PASS FAIL NOTE" "PASS"))
+  (setq last (RMR:TodayYearMonth))
+  (setq due (RMR:AddMonths last interval))
+  (setq status (RMR:DueStatus due))
+  (setq rgb (cond ((= result "PASS") *RMR-BRAND-TEAL*)
+                  ((= result "FAIL") *RMR-BRAND-TERRA*)
+                  (T *RMR-BRAND-GOLD*)))
+  (setq base (getpoint "\nTop-left of the inspection stamp: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (RMR:Rect base (* 78.0 s) (* 30.0 s) "RMR-FM-ASSET" *RMR-BRAND-INK*)
+      (RMR:Solid (list (car base) (+ (cadr base) (* 22.0 s)) 0.0) (* 78.0 s)
+                 (* 8.0 s) "RMR-FM-ASSET" rgb)
+      (RMR:Text (list (+ (car base) (* 2.0 s)) (+ (cadr base) (* 24.4 s)) 0.0)
+                (strcat "INSPECTION  " result) (* 3.2 s) "RMR-HEAD"
+                "RMR-FM-ASSET" *RMR-BRAND-SAND*)
+      (RMR:Text (list (+ (car base) (* 2.0 s)) (+ (cadr base) (* 17.0 s)) 0.0)
+                (strcat "AREA  " (RMR:Shorten target 34)) (* 2.2 s)
+                "RMR-BODY" "RMR-FM-ASSET" *RMR-BRAND-INK*)
+      (RMR:Text (list (+ (car base) (* 2.0 s)) (+ (cadr base) (* 11.0 s)) 0.0)
+                (strcat "BY    " (RMR:Shorten inspector 30)) (* 2.2 s)
+                "RMR-BODY" "RMR-FM-ASSET" *RMR-BRAND-INK*)
+      (RMR:Text (list (+ (car base) (* 2.0 s)) (+ (cadr base) (* 5.0 s)) 0.0)
+                (strcat "ON    " (RMR:TodayDate)) (* 2.2 s) "RMR-BODY"
+                "RMR-FM-ASSET" *RMR-BRAND-INK*)
+      (RMR:Text (list (+ (car base) (* 2.0 s)) (+ (cadr base) (* 0.8 s)) 0.0)
+                (strcat "NEXT  " (RMR:MonthText due) "  |  " status)
+                (* 2.2 s) "RMR-NUMBER" "RMR-FM-ASSET" rgb)
+      (princ (strcat "\nInspection stamp drawn: " result ", next due "
+                     (RMR:MonthText due) "."))
+    )
+  )
+  (princ)
+)
+
+;;; --- facility report -----------------------------------------------------------------------------
+(defun C:RMR-FMREPORT (/ path lines row total condition count
+                      grade-label grade-count item)
+  (RMR:EnsureReady)
+  (setq path (getfiled "Save the facility management report"
+                       "RooMNRooF_FM_Report.txt" "txt" 1))
+  (if path
+    (progn
+      (setq lines (list "RooMNRooF FACILITY MANAGEMENT REPORT"
+                        (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+                        (strcat "Date: " (RMR:TodayDate))
+                        ""
+                        "ASSET REGISTER"))
+      (if *RMR-ASSET-LOG*
+        (progn
+          (setq lines (append lines (list "  ID     TYPE             CATEGORY            LOCATION")))
+          (foreach row *RMR-ASSET-LOG*
+            (setq lines (append lines
+                          (list (strcat "  " (nth 0 row) "  " (nth 1 row)
+                                        "  " (nth 2 row) "  " (nth 3 row)))))
+          )
+        )
+        (setq lines (append lines (list "  No assets recorded in this session.")))
+      )
+      (setq lines (append lines (list "" "WORK ORDERS")))
+      (if *RMR-WO-LOG*
+        (progn
+          (foreach row *RMR-WO-LOG*
+            (setq lines (append lines
+                          (list (strcat "  " (nth 0 row) "  " (nth 1 row)
+                                        "  " (nth 2 row) "  " (nth 3 row)))))
+          )
+        )
+        (setq lines (append lines (list "  No work orders raised.")))
+      )
+      (setq lines (append lines (list "" "CONDITION SUMMARY")))
+      (if *RMR-CONDITION-LOG*
+        (progn
+          (foreach item *RMR-CONDITION-LOG*
+            (setq lines (append lines
+                          (list (strcat "  Grade " (nth 0 item) "  " (nth 1 item)))))
+          )
+        )
+        (setq lines (append lines (list "  No condition grades recorded.")))
+      )
+      (setq lines (append lines (list "" "STATUTORY COMPLIANCE")))
+      (if *RMR-COMPLIANCE-LOG*
+        (progn
+          (foreach item *RMR-COMPLIANCE-LOG*
+            (setq lines (append lines
+                          (list (strcat "  " (nth 0 item) "  " (nth 1 item)))))
+          )
+        )
+        (setq lines (append lines (list "  No compliance register in this session.")))
+      )
+      (setq lines (append lines
+                    (list ""
+                          (strcat "Assets " (itoa (if *RMR-ASSET-LOG* (length *RMR-ASSET-LOG*) 0)))
+                          (strcat "Work orders " (itoa (if *RMR-WO-LOG* (length *RMR-WO-LOG*) 0)))
+                          (strcat "Condition records " (itoa (if *RMR-CONDITION-LOG* (length *RMR-CONDITION-LOG*) 0)))
+                          "End of report")))
+      (if (RMR:WriteLines path lines)
+        (princ (strcat "\nFacility management report written: " path))
+        (princ "\nCould not write the report.")
+      )
+    )
+  )
+  (princ)
+)
 
 (princ (strcat "\nRooMNRooF " *RMR-VERSION* " loaded | " (itoa (length *RMR-LAYER-SPECS*)) " layers, "
                (itoa (length *RMR-HATCH-SPECS*)) " materials, " (itoa (length *RMR-NOTES*)) " notes."))

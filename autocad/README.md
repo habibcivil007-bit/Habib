@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 12.0 CONSTRUCTION DETAILING SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 13.0 FACILITY MANAGEMENT SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -44,9 +44,17 @@ construction build-up tables, detail tags with a running counter, locator
 plans, continuous dimension chains, a materials key, a detail scale bar, a
 complete A1 detail sheet, a specification link block, the detail index, a U
 value calculator, fire compartment lines, acoustic ratings and a detail
-compliance check, plus `RMR-A-FIRE` and `RMR-A-ACOUSTIC` annotation layers).
+compliance check, plus `RMR-A-FIRE` and `RMR-A-ACOUSTIC` annotation layers)
+plus the 13.0 facility management suite (asset tags with automatic numbering,
+asset registers read from the session or the drawing, printable asset label
+sheets with a CSV export, maintenance cards built from the task table, a 52
+week PPM planner, work orders with priority and response times, condition
+grading 1 to 5, lifecycle replacement forecasts with a five year budget,
+space standard and occupancy checks, room data sheets, a statutory compliance
+register with real next-due month arithmetic, inspection stamps and a session
+report, all drawn on a new **FACILITY** layer group `RMR-FM-`).
 
-Version string inside the LISP: `*RMR-VERSION* = "12.0 CONSTRUCTION DETAILING SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "13.0 FACILITY MANAGEMENT SUITE"`.
 
 ## Package contents
 
@@ -75,6 +83,8 @@ Version string inside the LISP: `*RMR-VERSION* = "12.0 CONSTRUCTION DETAILING SU
 | `preview/RooMNRooF_PRO_Structural_MEP_Suite.png` | Rendered structural and MEP sheet. |
 | `preview/RooMNRooF_PRO_Detailing_Suite.dxf` | A1 sheet showing the 12.0 construction detailing suite: six captioned detail frames, an eaves junction built from the roof and external wall build-ups, a locator plan with two detail bubbles, a dimension chain with witness ticks over a metric scale bar, the materials key, a U value calculation with its layer resistances, a fire compartment line and an acoustic partition with the ratings table, a specification link block above the detail index, and the A1 detail sheet in miniature with the compliance verdict. |
 | `preview/RooMNRooF_PRO_Detailing_Suite.png` | Rendered construction detailing sheet. |
+| `preview/RooMNRooF_PRO_Facility_Management_Suite.dxf` | A1 sheet showing the 13.0 facility suite: asset tags and a register, a 52 week PPM planner with the visits marked, a compliance table with an inspection stamp, a maintenance card beside a work order card, the five condition grades with the action each one triggers, a lifecycle table with a five year budget chart, a room data sheet beside a space standard check, an occupancy and utilisation panel with the space budget, and six asset labels with the CSV column set. |
+| `preview/RooMNRooF_PRO_Facility_Management_Suite.png` | Rendered facility management sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 | `tools/check_preview_sheets.py` | Layout audit for the generated sheets: text outside the frame and copy that would overprint other copy. |
@@ -94,7 +104,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (139 commands)
+## Command reference (153 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -284,6 +294,24 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-ACOUSTIC` | Acoustic rating markers on partitions from `*RMR-ACOUSTIC-SPECS*`, with an optional ratings table, on the new `RMR-A-ACOUSTIC` layer. |
 | `RMR-CHECKDETAIL` | Detail compliance check: counts the detail markers, compares the library against what is tagged, confirms the scale and the title block, and writes an optional report with a PASS / REVIEW verdict. |
 
+### Facility management suite (new in 13.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-ASSET` | Asset tag. Pick the type from `*RMR-ASSET-TYPES*`, then the position: a square tag with a tick cross, the category above, the type below and an automatic `A-001` number. Each tag is kept in the session asset log. |
+| `RMR-ASSETREG` | Asset register. Draws a schedule of the session log, or — in a fresh drawing — reads the `A-###` tags already drawn on `RMR-FM-ASSET`, so a register can be rebuilt from the drawing itself. |
+| `RMR-ASSETLABEL` | Printable asset label sheet: three column blocks of numbered labels with location, life and a CAFM note, plus an optional CSV (`ID,TYPE,CATEGORY,LOCATION,LIFE_YEARS,COST`). |
+| `RMR-MAINT` | Maintenance card for one asset: every task in `*RMR-MAINT-TASKS*` whose category is `ALL` or matches the asset category, with its frequency and priority. |
+| `RMR-PPM` | 52 week planned maintenance planner: one row per task and one column per month, with a cell marked every time the task falls due. |
+| `RMR-WORKORDER` | Work order card: `WO-###` number, asset, priority, description and the response time that priority carries — `P1` 4 hours, `P2` 24, `P3` 120, `P4` 480. |
+| `RMR-CONDITION` | Condition grade 1–5 marker. Each grade in `*RMR-CONDITION-GRADES*` carries a label, the action it triggers and a brand colour, so the marker reads on a plot. |
+| `RMR-LIFECYCLE` | Lifecycle forecast: installation year plus each asset's life gives a replacement year, with the replacement cost and a five year budget total. |
+| `RMR-SPACESTD` | Space standard check: pick the use from `*RMR-SPACE-STANDARDS*`, enter the area and the occupants, and it draws the achieved density against the minimum and target with a `PASS` / `REVIEW` verdict. |
+| `RMR-ROOMDATA` | Room data sheet card: number, name, area, occupancy, density, finishes and services, with the density worked out for you. |
+| `RMR-OCCUPANCY` | Occupancy and utilisation for a whole building: density and the percentage of the 12 m² benchmark, with a bar and an over-benchmark warning. |
+| `RMR-COMPLIANCE` | Statutory compliance register. Enter the last inspection month per item and it computes the next due month from the interval in `*RMR-COMPLIANCE-ITEMS*`, grading each item `OK`, `DUE` or `OVERDUE` against today. |
+| `RMR-INSPECT` | Inspection stamp: area, inspector, date, result and the next inspection month, coloured by the result. |
+| `RMR-FMREPORT` | Facility management report for the session: asset register, work orders, condition records, compliance status and the totals, written to a text file. |
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -373,6 +401,16 @@ All visual data lives in plain editable tables near the top of the LISP:
   `NFR` through to `FD120`
 - `*RMR-ACOUSTIC-SPECS*` — acoustic ratings: `(Rating Rw_dB Note)`,
   5 ratings from `Rw 38` to `Rw 58`
+- `*RMR-ASSET-TYPES*` — asset types:
+  `(Code Category LifeYears Cost MaintMonths Note)`, 12 types across mechanical,
+  vertical transport, electrical, fire and fabric. `RMR-ASSET`,
+  `RMR-ASSETLABEL` and `RMR-LIFECYCLE` all read it
+- `*RMR-MAINT-TASKS*` — maintenance tasks:
+  `(Code Task Category FreqMonths Priority Note)`, 12 tasks. Category `ALL`
+  applies to every asset; any other value must match an asset category
+- `*RMR-CONDITION-GRADES*` — `(Grade Label Action ColourKey)`, grades 1 to 5
+- `*RMR-COMPLIANCE-ITEMS*` — `(Item Regulation IntervalMonths Owner)`, 8 items
+- `*RMR-SPACE-STANDARDS*` — `(Key Use Min_m2 Target_m2 Note)`, 7 uses
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Services, Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -381,7 +419,9 @@ Version 11.0 adds the whole **Services** group — `RMR-E-DUCT`, `RMR-E-GRILLE`,
 `RMR-E-PIPE`, `RMR-E-EQUIP`, `RMR-E-POWER`, `RMR-E-LIGHT`, `RMR-E-TRAY`,
 `RMR-E-DATA` and `RMR-E-SPRINK` — so every MEP discipline has its own
 true-colour layer. Version 12.0 adds `RMR-A-FIRE` and `RMR-A-ACOUSTIC` to the
-annotation group. Add a row (or a whole new group) and every generator,
+annotation group, and version 13.0 adds the whole **Facility** group —
+`RMR-FM-ASSET`, `RMR-FM-MAINT`, `RMR-FM-ROOM` and `RMR-FM-ROUTE`. Add a row
+(or a whole new group) and every generator,
 legend, layer-group command and the preview tool pick it up automatically. For
 non-LISP workflows use `RMR-EXPORT-PALETTE` / `RMR-IMPORT-PALETTE` (CSV round-trip).
 
@@ -457,6 +497,13 @@ RMR-MATKEY  RMR-UVALUE               ; materials key and thermal check
 RMR-FIRESTOP  RMR-ACOUSTIC           ; fire and acoustic ratings
 RMR-SPECLINK  RMR-DETINDEX           ; link to spec, index the details
 RMR-DETSHEET  RMR-CHECKDETAIL        ; lay out the sheet, then check it
+RMR-ASSET  RMR-ASSETREG              ; tag the kit, list the kit
+RMR-ASSETLABEL  RMR-MAINT            ; print the labels, plan the upkeep
+RMR-PPM  RMR-WORKORDER               ; the year ahead, then today's job
+RMR-CONDITION  RMR-LIFECYCLE         ; how it is now, when it needs replacing
+RMR-SPACESTD  RMR-ROOMDATA           ; is the space right, what is in the room
+RMR-OCCUPANCY  RMR-COMPLIANCE        ; utilisation, then the statutory register
+RMR-INSPECT  RMR-FMREPORT            ; stamp the visit, report the month
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -465,7 +512,7 @@ RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds ten A1 sheets: the standard sheet (below) and
+values) and rebuilds eleven A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
@@ -509,7 +556,12 @@ over a metric scale bar, the materials key for an external wall, a U value
 calculation with its layer resistances, a fire compartment line and an
 acoustic partition with the ratings table, a specification link block above
 the detail index, and the A1 detail sheet in miniature with the compliance
-verdict. The standard sheet contains: sample 1:50 apartment plan with walls,
+verdict, and `RooMNRooF_PRO_Facility_Management_Suite.dxf`, which previews the
+13.0 facility suite: asset tags and a register, a PPM planner, a compliance
+table with an inspection stamp, a maintenance card beside a work order card,
+the condition grades, a lifecycle table with a five year budget chart, a room
+data sheet beside a space standard check, an occupancy panel with the space
+budget and six asset labels. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -523,14 +575,14 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 
 `tools/check_preview_sheets.py` reads the generated DXFs back and reports copy that
 runs outside the sheet frame and text boxes that would print on top of each other.
-Current state across the ten sheets: **0 problems** (2,377 text entities and
-2,127 geometry entities checked).
+Current state across the eleven sheets: **0 problems** (2,764 text entities and
+2,390 geometry entities checked).
 
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (475,305 bytes / 11,494 lines, 321 defuns,
-139 commands).
+variables). Current state: **PASS**, 0 findings (520,168 bytes / 12,485 lines, 345 defuns,
+153 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -602,6 +654,23 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 - `RMR-SETOUT` divides the picked coordinates by the units-per-metre factor,
   so it reports metres in a metric drawing and the same numbers scaled in a
   millimetre drawing. Give it `0.001` for a millimetre drawing.
+- The facility registers (`*RMR-ASSET-LOG*`, `*RMR-WO-LOG*`,
+  `*RMR-CONDITION-LOG*`, `*RMR-COMPLIANCE-LOG*`) live in memory for the
+  session. They are not saved to the drawing, so `RMR-FMREPORT` only reports
+  what this session recorded; `RMR-ASSETREG` can rebuild the asset list from
+  the tags in the drawing, but nothing rebuilds the work orders or the
+  compliance dates.
+- `RMR-COMPLIANCE` works in whole months. It compares the computed next-due
+  month with the current month, so an item inspected on the 30th reports the
+  same status as one inspected on the 1st.
+- `RMR-LIFECYCLE` is straight-line: installation year plus life, at today's
+  replacement cost. It does not model inflation, condition-adjusted remaining
+  life or a phased programme — treat the five year figure as a budget
+  indicator, not a cost plan.
+- `RMR-SPACESTD` and `RMR-OCCUPANCY` compare net internal area with a density
+  benchmark. They do not measure the room from the drawing, so the area has
+  to be entered; use `RMR-AREA` or `RMR-MEASURE` first if you need it
+  measured.
 - `RMR-JUNCTION` reads both legs out of `*RMR-BUILDUP-SPECS*`, so a junction
   is only as good as the build-up rows behind it. A leg with no rows is
   reported and nothing is drawn.

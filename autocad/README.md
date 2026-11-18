@@ -1,4 +1,4 @@
-# RooMNRooF PRO 2D AutoCAD Standard — 11.0 STRUCTURAL AND MEP COORDINATION SUITE
+# RooMNRooF PRO 2D AutoCAD Standard — 12.0 CONSTRUCTION DETAILING SUITE
 
 `RooMNRooF_Master.lsp` is a professional, metric AutoLISP generator for a modern
 consultant 2D CAD standard. It creates a consistent visual system rather than only a
@@ -38,9 +38,15 @@ columns, beams, pad and strip foundations, reinforcement, slab panels,
 setting-out coordinates and a structural element schedule, then ductwork,
 pipework, cable containment, lighting, sprinklers, a services schedule and a
 vertical clearance check against the service zone bands, all drawn on a new
-true-colour **SERVICES** layer group).
+true-colour **SERVICES** layer group) plus the 12.0 construction detailing
+suite (a detail library, a parametric junction builder driven by the
+construction build-up tables, detail tags with a running counter, locator
+plans, continuous dimension chains, a materials key, a detail scale bar, a
+complete A1 detail sheet, a specification link block, the detail index, a U
+value calculator, fire compartment lines, acoustic ratings and a detail
+compliance check, plus `RMR-A-FIRE` and `RMR-A-ACOUSTIC` annotation layers).
 
-Version string inside the LISP: `*RMR-VERSION* = "11.0 STRUCTURAL AND MEP COORDINATION SUITE"`.
+Version string inside the LISP: `*RMR-VERSION* = "12.0 CONSTRUCTION DETAILING SUITE"`.
 
 ## Package contents
 
@@ -67,6 +73,8 @@ Version string inside the LISP: `*RMR-VERSION* = "11.0 STRUCTURAL AND MEP COORDI
 | `preview/RooMNRooF_PRO_Quantity_Suite.png` | Rendered quantity and automation sheet. |
 | `preview/RooMNRooF_PRO_Structural_MEP_Suite.dxf` | A1 sheet showing the 11.0 structural and MEP suite: a column grid with beams, pads on a strip with three rebar runs, a slab panel layout with its schedule, three duct sizes, three pipe sizes with a cable tray, a luminaire grid with its switch, a sprinkler grid with coverage circles, the vertical service zone diagram with its verdict, and the structural and services schedules. |
 | `preview/RooMNRooF_PRO_Structural_MEP_Suite.png` | Rendered structural and MEP sheet. |
+| `preview/RooMNRooF_PRO_Detailing_Suite.dxf` | A1 sheet showing the 12.0 construction detailing suite: six captioned detail frames, an eaves junction built from the roof and external wall build-ups, a locator plan with two detail bubbles, a dimension chain with witness ticks over a metric scale bar, the materials key, a U value calculation with its layer resistances, a fire compartment line and an acoustic partition with the ratings table, a specification link block above the detail index, and the A1 detail sheet in miniature with the compliance verdict. |
+| `preview/RooMNRooF_PRO_Detailing_Suite.png` | Rendered construction detailing sheet. |
 | `tools/rmr_lint.py` | Standalone static checker that validates the LISP structure before delivery. |
 | `tools/make_preview_dxf.py` | Regenerates the preview DXF/PNGs directly from the LISP data tables (needs `ezdxf`, `matplotlib`). |
 | `tools/check_preview_sheets.py` | Layout audit for the generated sheets: text outside the frame and copy that would overprint other copy. |
@@ -86,7 +94,7 @@ inside AutoCAD by loading the LISP and running `RMR-SAVE-TEMPLATE`.
 additionally refreshes the RMR-owned text styles to the PRO font stack; set
 `*RMR-FORCE-STYLE-REFRESH*` to `T` to force the same refresh from `RMR-MASTER`.
 
-## Command reference (125 commands)
+## Command reference (139 commands)
 
 ### Setup, palette and templates
 | Command | What it does |
@@ -258,6 +266,24 @@ additionally refreshes the RMR-owned text styles to the PRO font stack; set
 | `RMR-MEPSCHED` | Counts every services layer in the drawing and draws the schedule, with an optional `.txt` report. |
 | `RMR-CLEARANCE` | Draws the vertical service zone bands from `*RMR-SERVICE-ZONES*`, then groups every services layer that carries geometry by the zone in `*RMR-SERVICE-LAYER-ZONES*`. Any zone carrying more than one service is listed as a shared zone to coordinate, with a PASS / REVIEW verdict and an optional report. |
 
+### Construction detailing suite (new in 12.0)
+| Command | What it does |
+| --- | --- |
+| `RMR-DETAILLIB` | Lays out one captioned frame per entry in `*RMR-DETAIL-SPECS*` — number, title and scale in the caption bar, a placeholder cross in the picture area — across as many columns as you ask for. |
+| `RMR-JUNCTION` | Parametric junction builder. Pick a junction type and the command reads both legs out of `*RMR-BUILDUP-SPECS*`, draws the horizontal leg as layers stacked downwards and the vertical leg as layers stacked across, hatches every layer in its own colour and lists each one with its thickness. |
+| `RMR-DETAILTAG` | Detail bubble and leader. Pick the point of interest, then the bubble position; the number comes from the library or from a session counter that runs `D01`, `D02`…, and each tag carries its sheet reference and title. |
+| `RMR-DETLOC` | Locator plan: a light setting-out grid over a picked rectangle with the detail position ringed and called out. |
+| `RMR-DIMCHAIN` | Continuous dimension chain with witness ticks and a running total, drawn on `RMR-A-DIMS` at a chosen offset. |
+| `RMR-MATKEY` | Materials key for any build-up type: swatch, layer name, thickness and note. It reads the same table the junction builder draws from, so the two can never disagree. |
+| `RMR-DETSCALE` | Sets the detail scale and syncs `DIMSCALE`, `CELTSCALE`, `LTSCALE`, `MSLTSCALE` and `PSLTSCALE`, then draws a metric scale bar — 100 mm increments at 1:20 and finer, 500 mm above that. |
+| `RMR-DETSHEET` | Lays out a complete A1 detail sheet in one command: sheet frame, brand masthead, six captioned detail frames and the detail index. |
+| `RMR-SPECLINK` | Links a detail to specification clauses from `*RMR-SPEC-CLAUSES*` and draws a `REFER TO SPECIFICATION` block under the detail. |
+| `RMR-DETINDEX` | Detail index schedule: number, title, scale, category and sheet. |
+| `RMR-UVALUE` | Thermal calculator. Build the construction layer by layer from `*RMR-MATERIAL-R-SPECS*`, and it draws the build-up with each layer's resistance, gives the total R and the U value in W/m²K, and can write the calculation to a text file. |
+| `RMR-FIRESTOP` | Fire compartment line: a band along the picked route labelled with its rating from `*RMR-FIRE-SPECS*`, on the new `RMR-A-FIRE` layer. |
+| `RMR-ACOUSTIC` | Acoustic rating markers on partitions from `*RMR-ACOUSTIC-SPECS*`, with an optional ratings table, on the new `RMR-A-ACOUSTIC` layer. |
+| `RMR-CHECKDETAIL` | Detail compliance check: counts the detail markers, compares the library against what is tagged, confirms the scale and the title block, and writes an optional report with a PASS / REVIEW verdict. |
+
 ### Production suite
 | Command | What it does |
 | --- | --- |
@@ -333,6 +359,20 @@ All visual data lives in plain editable tables near the top of the LISP:
 - `*RMR-SERVICE-LAYER-ZONES*` — which vertical zone each services layer
   occupies: `(Layer Zone)`, 13 rows. `RMR-CLEARANCE` reads both tables, so
   retargeting a service is a one-row edit
+- `*RMR-DETAIL-SPECS*` — the detail library:
+  `(Number Title Scale Category)`, 12 details across
+  `ROOF / FLOOR / WALL / OPENING`
+- `*RMR-JUNCTION-SPECS*` — junctions: `(Type Category LegA LegB Description)`,
+  6 junctions. `LegA` and `LegB` name a type in `*RMR-BUILDUP-SPECS*`, so
+  adding a junction is a one-row edit and changing a build-up updates every
+  junction that uses it
+- `*RMR-MATERIAL-R-SPECS*` — thermal properties:
+  `(Material Lambda_WmK Thickness_mm Note)`, 8 materials from
+  `PIR INSULATION` at 0.022 to `CONCRETE` at 1.130 W/mK
+- `*RMR-FIRE-SPECS*` — fire ratings: `(Rating Minutes ColourKey Note)`,
+  `NFR` through to `FD120`
+- `*RMR-ACOUSTIC-SPECS*` — acoustic ratings: `(Rating Rw_dB Note)`,
+  5 ratings from `Rw 38` to `Rw 58`
 
 Groups currently shipped: **Control, Main Theme, Furniture, Structural, Plumbing,
 Services, Annotation, Presentation**. Version 4.0 adds `RMR-A-MATCH` (match / break / cut
@@ -340,7 +380,8 @@ lines, phantom) and `RMR-PRES-VPORT` (viewport frames and labels) to those group
 Version 11.0 adds the whole **Services** group — `RMR-E-DUCT`, `RMR-E-GRILLE`,
 `RMR-E-PIPE`, `RMR-E-EQUIP`, `RMR-E-POWER`, `RMR-E-LIGHT`, `RMR-E-TRAY`,
 `RMR-E-DATA` and `RMR-E-SPRINK` — so every MEP discipline has its own
-true-colour layer. Add a row (or a whole new group) and every generator,
+true-colour layer. Version 12.0 adds `RMR-A-FIRE` and `RMR-A-ACOUSTIC` to the
+annotation group. Add a row (or a whole new group) and every generator,
 legend, layer-group command and the preview tool pick it up automatically. For
 non-LISP workflows use `RMR-EXPORT-PALETTE` / `RMR-IMPORT-PALETTE` (CSV round-trip).
 
@@ -409,6 +450,13 @@ RMR-STRUCTSCHED                      ; structural element schedule
 RMR-DUCT  RMR-PIPE  RMR-TRAY         ; ductwork, pipework, containment
 RMR-LIGHTING  RMR-SPRINKLER          ; lighting and sprinkler grids
 RMR-MEPSCHED  RMR-CLEARANCE          ; services schedule and zone check
+RMR-DETAILLIB  RMR-JUNCTION          ; library and parametric junctions
+RMR-DETAILTAG  RMR-DETLOC            ; tag the detail, locate the detail
+RMR-DIMCHAIN  RMR-DETSCALE           ; dimension chain and detail scale
+RMR-MATKEY  RMR-UVALUE               ; materials key and thermal check
+RMR-FIRESTOP  RMR-ACOUSTIC           ; fire and acoustic ratings
+RMR-SPECLINK  RMR-DETINDEX           ; link to spec, index the details
+RMR-DETSHEET  RMR-CHECKDETAIL        ; lay out the sheet, then check it
 RMR-TRANSMITTAL      ; issue record for the set
 RMR-BACKUP           ; timestamped safety copy
 RMR-SAVE-TEMPLATE    ; freeze as .DWT
@@ -417,7 +465,7 @@ RMR-SAVE-TEMPLATE    ; freeze as .DWT
 ## Preview sheet and QA tooling
 
 `tools/make_preview_dxf.py` parses the LISP data tables (it never hard-codes palette
-values) and rebuilds nine A1 sheets: the standard sheet (below) and
+values) and rebuilds ten A1 sheets: the standard sheet (below) and
 `RooMNRooF_PRO_Studio_Suite.dxf`, which previews the 4.0 studio suite — layout and
 viewport setup, the branded `RMR-TITLEBLOCK`, section / elevation / match / break /
 cloud markers, the `RMR-SYM-*` symbol gallery, a door schedule and the project-data
@@ -453,7 +501,15 @@ MEP suite: a 3 x 2 column grid with two beams, three pads on a strip with three
 rebar runs, a six-panel slab with its schedule, three duct sizes, three pipe
 sizes above a cable tray, a luminaire grid with its switch, a sprinkler grid with
 coverage circles, the vertical service zone diagram with its verdict, and the
-structural and services schedules. The standard sheet contains: sample 1:50 apartment plan with walls,
+structural and services schedules, and `RooMNRooF_PRO_Detailing_Suite.dxf`,
+which previews the 12.0 construction detailing suite: six captioned detail
+frames, an eaves junction built from the roof and external wall build-ups, a
+locator plan with two detail bubbles, a dimension chain with witness ticks
+over a metric scale bar, the materials key for an external wall, a U value
+calculation with its layer resistances, a fire compartment line and an
+acoustic partition with the ratings table, a specification link block above
+the detail index, and the A1 detail sheet in miniature with the compliance
+verdict. The standard sheet contains: sample 1:50 apartment plan with walls,
 doors, glass, columns, furniture, plumbing, grid bubbles, room tags, dimensions,
 keynotes, level datum, section marker, north arrow, scale bar, area schedule,
 revision table, layer palette legend, text-style samples, symbol gallery, the
@@ -467,14 +523,14 @@ python -m venv .venv-rmr && .venv-rmr/bin/pip install ezdxf matplotlib
 
 `tools/check_preview_sheets.py` reads the generated DXFs back and reports copy that
 runs outside the sheet frame and text boxes that would print on top of each other.
-Current state across the nine sheets: **0 problems** (2,178 text entities and
-1,936 geometry entities checked).
+Current state across the ten sheets: **0 problems** (2,377 text entities and
+2,127 geometry entities checked).
 
 `tools/rmr_lint.py` statically checks the LISP before every delivery (string
 termination, parenthesis balance, defun argument/local hygiene, duplicate defuns,
 undeclared `setq`, unknown function calls, quoted-symbol references and unset global
-variables). Current state: **PASS**, 0 findings (429,174 bytes / 10,437 lines, 300 defuns,
-125 commands).
+variables). Current state: **PASS**, 0 findings (475,305 bytes / 11,494 lines, 321 defuns,
+139 commands).
 
 ```bash
 python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
@@ -546,6 +602,21 @@ python3 autocad/tools/rmr_lint.py autocad/RooMNRooF_Master.lsp
 - `RMR-SETOUT` divides the picked coordinates by the units-per-metre factor,
   so it reports metres in a metric drawing and the same numbers scaled in a
   millimetre drawing. Give it `0.001` for a millimetre drawing.
+- `RMR-JUNCTION` reads both legs out of `*RMR-BUILDUP-SPECS*`, so a junction
+  is only as good as the build-up rows behind it. A leg with no rows is
+  reported and nothing is drawn.
+- `RMR-UVALUE` gives a steady-state U value only: it adds `Rsi 0.13` and
+  `Rse 0.04`, ignores repeating thermal bridges, air gaps are treated as a
+  material with a lambda, and it does not check condensation risk.
+- `RMR-DETAILLIB` and `RMR-DETSHEET` draw empty frames with a placeholder
+  cross. They lay out the sheet; the geometry inside each frame is still
+  yours, or comes from `RMR-JUNCTION`.
+- `RMR-CHECKDETAIL` counts `CIRCLE` entities on `RMR-A-DETAIL` as detail
+  markers and looks for the detail number as `TEXT` on the same layer. Tags
+  drawn any other way will not be counted.
+- `RMR-DETAILTAG` keeps its counter in memory for the session. Start a new
+  drawing and the counter restarts at `D01`, so check the sheet before you
+  trust the numbering on an old drawing.
 - `RMR-SUNPATH` uses the standard solar position formulae (declination,
   hour angle, altitude and azimuth); noon altitude equals `90 - |latitude -
   declination|`, and southern latitudes put the noon sun in the north.

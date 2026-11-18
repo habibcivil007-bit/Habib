@@ -48,6 +48,13 @@
 ;;;   pipework, cable containment, lighting, sprinklers, a services schedule
 ;;;   and a vertical clearance check against the service zone bands. It also
 ;;;   adds a SERVICES layer group so every discipline has its own layer.
+;;;   Version 12.0 adds the construction detailing suite: a detail library,
+;;;   a parametric junction builder driven by the construction build-up
+;;;   tables, detail tags with a running counter, locator plans, continuous
+;;;   dimension chains, a materials key, a detail scale bar, a complete A1
+;;;   detail sheet, a specification link block, the detail index, a U value
+;;;   calculator, fire compartment lines, acoustic ratings and a detail
+;;;   compliance check, plus RMR-A-FIRE and RMR-A-ACOUSTIC annotation layers.
 ;;;
 ;;; Main command
 ;;;   RMR-MASTER       Build / refresh the standard in the current drawing
@@ -199,6 +206,22 @@
 ;;;   RMR-MEPSCHED    Services schedule from the drawing
 ;;;   RMR-CLEARANCE   Vertical service zone diagram and shared-zone check
 ;;;
+;;; Construction detailing commands
+;;;   RMR-DETAILLIB   Grid of captioned detail frames from *RMR-DETAIL-SPECS*
+;;;   RMR-JUNCTION    Parametric junction built from two build-up legs
+;;;   RMR-DETAILTAG   Detail bubble and leader with a running number
+;;;   RMR-DETLOC      Locator plan with the detail position marked
+;;;   RMR-DIMCHAIN    Continuous dimension chain with witness ticks
+;;;   RMR-MATKEY      Materials key for a build-up
+;;;   RMR-DETSCALE    Detail scale plus a metric scale bar
+;;;   RMR-DETSHEET    Complete A1 detail sheet in one command
+;;;   RMR-SPECLINK    Link a detail to specification clauses
+;;;   RMR-DETINDEX    Detail index schedule
+;;;   RMR-UVALUE      U value and thermal resistance calculator
+;;;   RMR-FIRESTOP    Fire compartment line with its rating
+;;;   RMR-ACOUSTIC    Acoustic rating markers and table
+;;;   RMR-CHECKDETAIL Detail compliance check and report
+;;;
 ;;; IMPORTANT
 ;;;   1. This is an AutoLISP source file. APPLOAD it in AutoCAD.
 ;;;   2. Run RMR-MASTER in a blank drawing before drawing production work.
@@ -298,6 +321,8 @@
    ("RMR-A-KEYNOTE" "ANNOTATION" (214 163  76) "Continuous" 18 "Numbered keynote bubbles")
    ("RMR-A-LEVEL"   "ANNOTATION" ( 57 137 130) "Continuous" 18 "Level and datum markers")
    ("RMR-A-REVISION" "ANNOTATION" (198  93  72) "Continuous" 18 "Revision triangles and clouds")
+   ("RMR-A-FIRE"    "ANNOTATION" (198  93  72) "Continuous" 25 "Fire compartment lines and ratings")
+   ("RMR-A-ACOUSTIC" "ANNOTATION" ( 47 116 181) "DASHED"      18 "Acoustic ratings and partitions")
 
    ;; 7. Presentation / plotting
    ("RMR-PRES-TITLE" "PRESENTATION" (198  93  72) "Continuous" 25 "Title block and brand")
@@ -357,7 +382,7 @@
 ;;; -----------------------------------------------------------------------------
 
 ;;; Suite version, printed by RMR-PALETTE and at load time.
-(setq *RMR-VERSION* "11.0 STRUCTURAL AND MEP COORDINATION SUITE")
+(setq *RMR-VERSION* "12.0 CONSTRUCTION DETAILING SUITE")
 
 ;;; Annotation scale factor applied to every PRO symbol command.
 ;;; RMR-SCALE updates it. 1.0 means the drawing is annotated at 1:100 size.
@@ -1592,6 +1617,8 @@
   (princ "\nStruct: RMR-SLABPANEL, RMR-SETOUT, RMR-STRUCTSCHED")
   (princ "\nMEP:    RMR-DUCT, RMR-PIPE, RMR-TRAY, RMR-CLEARANCE")
   (princ "\nMEP:    RMR-LIGHTING, RMR-SPRINKLER, RMR-MEPSCHED")
+  (princ "\nDetail: RMR-DETAILLIB, RMR-JUNCTION, RMR-DETAILTAG, RMR-MATKEY")
+  (princ "\nDetail: RMR-DETSCALE, RMR-DETSHEET, RMR-UVALUE, RMR-CHECKDETAIL")
   (princ)
 )
 
@@ -3142,6 +3169,22 @@
   (princ "\n  RMR-MEPSCHED       Services schedule from the drawing")
   (princ "\n  RMR-CLEARANCE      Service zone diagram and shared-zone check")
   (princ "\n")
+  (princ "\n Construction detailing suite")
+  (princ "\n  RMR-DETAILLIB      Grid of captioned detail frames")
+  (princ "\n  RMR-JUNCTION       Parametric junction from two build-up legs")
+  (princ "\n  RMR-DETAILTAG      Detail bubble, leader and running number")
+  (princ "\n  RMR-DETLOC         Locator plan with the detail marked")
+  (princ "\n  RMR-DIMCHAIN       Continuous dimension chain")
+  (princ "\n  RMR-MATKEY         Materials key for a build-up")
+  (princ "\n  RMR-DETSCALE       Detail scale and metric scale bar")
+  (princ "\n  RMR-DETSHEET       Complete A1 detail sheet")
+  (princ "\n  RMR-SPECLINK       Link a detail to specification clauses")
+  (princ "\n  RMR-DETINDEX       Detail index schedule")
+  (princ "\n  RMR-UVALUE         U value and thermal resistance")
+  (princ "\n  RMR-FIRESTOP       Fire compartment line and rating")
+  (princ "\n  RMR-ACOUSTIC       Acoustic rating markers and table")
+  (princ "\n  RMR-CHECKDETAIL    Detail compliance check and report")
+  (princ "\n")
   (princ "\n Editable tables near the top of this file")
   (princ "\n  *RMR-LAYER-SPECS*    layer palette and group structure")
   (princ "\n  *RMR-TEXT-STYLES*    fonts, width factors and obliques")
@@ -3178,6 +3221,11 @@
   (princ "\n  *RMR-PIPE-SPECS*      pipe sizes: size, bore, colour")
   (princ "\n  *RMR-SERVICE-ZONES*   vertical bands: zone, bottom, top, colour")
   (princ "\n  *RMR-SERVICE-LAYER-ZONES*  which zone each services layer uses")
+  (princ "\n  *RMR-DETAIL-SPECS*    detail library: number, title, scale, category")
+  (princ "\n  *RMR-JUNCTION-SPECS*  junctions: type, category, leg A, leg B, note")
+  (princ "\n  *RMR-MATERIAL-R-SPECS* thermal: material, lambda, thickness, note")
+  (princ "\n  *RMR-FIRE-SPECS*     fire ratings: code, minutes, colour, note")
+  (princ "\n  *RMR-ACOUSTIC-SPECS* acoustic ratings: code, Rw dB, application")
   (princ "\n")
   (princ "\n Add a personal palette by appending a layer spec:")
   (princ "\n  (\"RMR-X-ITEM\" \"MY GROUP\" (R G B) \"Continuous\" 18 \"Description\")")
@@ -9066,7 +9114,11 @@
       ("STRUCTURE" "RMR-COLUMN RMR-BEAM RMR-FOUNDATION RMR-REBAR"
        "RMR-SLABPANEL RMR-SETOUT RMR-STRUCTSCHED")
       ("SERVICES" "RMR-DUCT RMR-PIPE RMR-TRAY RMR-LIGHTING"
-       "RMR-SPRINKLER RMR-MEPSCHED RMR-CLEARANCE"))
+       "RMR-SPRINKLER RMR-MEPSCHED RMR-CLEARANCE")
+      ("DETAILING" "RMR-DETAILLIB RMR-JUNCTION RMR-DETAILTAG RMR-DETLOC"
+       "RMR-DIMCHAIN RMR-MATKEY RMR-DETSCALE")
+      ("DETAIL SHEETS" "RMR-DETSHEET RMR-SPECLINK RMR-DETINDEX RMR-UVALUE"
+       "RMR-FIRESTOP RMR-ACOUSTIC RMR-CHECKDETAIL"))
     (setq out (append out (list group)))
   )
   out
@@ -9114,7 +9166,7 @@
     (progn
       (princ (strcat "\nWritten: " path))
       (princ (strcat "\n" (itoa count)
-                     " commands across 16 pull-down sections."))
+                     " commands across 18 pull-down sections."))
       (princ "\nLoad it with MENULOAD, or CUILOAD for newer builds.")
     )
     (princ "\nCould not write the menu file.")
@@ -10424,6 +10476,1011 @@
       )
       (princ (strcat "\nClearance check: " verdict ", "
                      (itoa (length conflicts)) " shared zones."))
+    )
+  )
+  (princ)
+)
+
+
+;;; =====================================================================
+;;; PRO 12.0 CONSTRUCTION DETAILING SUITE
+;;; A detail library, a parametric junction builder built from the
+;;; construction build-up tables, detail tags with a running counter,
+;;; locator plans, continuous dimension chains, a materials key, a
+;;; detail scale bar, a complete A1 detail sheet, a specification link
+;;; block, the detail index, a U value calculator, fire compartment
+;;; lines, acoustic ratings and a detail compliance check.
+;;; =====================================================================
+
+;;; --- detail library -------------------------------------------------------------
+;;; (Number Title Scale Category)
+(setq *RMR-DETAIL-SPECS*
+ '(
+    ("D01" "Eaves, roof to external wall"        "1:5"  "ROOF")
+    ("D02" "Parapet, roof over external wall"    "1:5"  "ROOF")
+    ("D03" "Verge, roof to gable wall"           "1:5"  "ROOF")
+    ("D04" "Threshold, floor to external wall"   "1:5"  "FLOOR")
+    ("D05" "Balcony threshold and upstand"       "1:5"  "FLOOR")
+    ("D06" "Intermediate floor to internal wall" "1:10" "FLOOR")
+    ("D07" "External corner, wall to wall"       "1:10" "WALL")
+    ("D08" "Party wall to party wall junction"   "1:10" "WALL")
+    ("D09" "Window head and reveal"              "1:5"  "OPENING")
+    ("D10" "Window cill and cavity tray"         "1:5"  "OPENING")
+    ("D11" "External door threshold"             "1:5"  "OPENING")
+    ("D12" "Roof abutment to parapet upstand"    "1:5"  "ROOF")
+  )
+)
+
+;;; Junction types: (Type Category LegA LegB Description)
+;;; LegA and LegB name a type in *RMR-BUILDUP-SPECS*.
+(setq *RMR-JUNCTION-SPECS*
+ '(
+    ("EAVES"     "ROOF"  "ROOF"    "EXTWALL" "Eaves, roof meeting the external wall")
+    ("PARAPET"   "ROOF"  "ROOF"    "EXTWALL" "Parapet, roof upstand over the wall")
+    ("THRESHOLD" "FLOOR" "FLOOR"   "EXTWALL" "Threshold, floor meeting the external wall")
+    ("CORNER"    "WALL"  "EXTWALL" "EXTWALL" "External corner, wall to wall")
+    ("PARTY"     "WALL"  "INTWALL" "INTWALL" "Party wall junction")
+    ("BALCONY"   "FLOOR" "FLOOR"   "INTWALL" "Balcony, floor meeting the internal wall")
+  )
+)
+
+;;; Thermal properties: (Material Lambda_WmK Thickness_mm Note)
+(setq *RMR-MATERIAL-R-SPECS*
+ '(
+    ("FACING BRICK"   0.770 102 "Facing brickwork, 102mm")
+    ("BLOCKWORK"      0.190 100 "Dense concrete blockwork")
+    ("PIR INSULATION" 0.022 100 "Rigid PIR insulation board")
+    ("MINERAL WOOL"   0.035 100 "Mineral wool quilt")
+    ("PLASTERBOARD"   0.250  13 "12.5mm gypsum plasterboard")
+    ("SCREED"         0.410  65 "Cement and sand screed")
+    ("CONCRETE"       1.130 200 "Reinforced concrete slab")
+    ("RENDER"         0.500  15 "Cement and sand render")
+  )
+)
+
+;;; Fire ratings: (Rating Minutes ColourKey Note)
+(setq *RMR-FIRE-SPECS*
+ '(
+    ("NFR"     0 "SLATE" "No fire rating required")
+    ("FD30"   30 "TERRA" "Half hour fire resisting")
+    ("FD60"   60 "TERRA" "One hour fire resisting")
+    ("FD90"   90 "GOLD"  "Ninety minute fire resisting")
+    ("FD120" 120 "GOLD"  "Two hour fire resisting")
+  )
+)
+
+;;; Acoustic ratings: (Rating Rw_dB Note)
+(setq *RMR-ACOUSTIC-SPECS*
+ '(
+    ("Rw 38" 38 "Internal partition, room to room")
+    ("Rw 43" 43 "Internal partition, quiet to noisy")
+    ("Rw 48" 48 "Party wall, dwelling to dwelling")
+    ("Rw 53" 53 "Party floor, dwelling to dwelling")
+    ("Rw 58" 58 "Plant room enclosure")
+  )
+)
+
+;;; Session counter for the detail tagger.
+(if (not *RMR-DETAIL-N*) (setq *RMR-DETAIL-N* 0))
+
+;;; --- shared detailing helpers -----------------------------------------------------
+(defun RMR:LayerR (spec)
+  ;; Thermal resistance of one layer: thickness in metres over lambda.
+  (/ (/ (float (nth 2 spec)) 1000.0) (float (nth 1 spec)))
+)
+
+(defun RMR:RSum (rows / total spec)
+  (setq total 0.0)
+  (foreach spec rows (setq total (+ total (RMR:LayerR spec))))
+  total
+)
+
+(defun RMR:UValue (rows / r)
+  ;; U = 1 / (Rsi + sum R + Rse), with Rsi 0.13 and Rse 0.04.
+  (setq r (+ 0.17 (RMR:RSum rows)))
+  (if (> r 0.0) (/ 1.0 r) 0.0)
+)
+
+(defun RMR:DetailFrame (p width height number title scale s / bar)
+  ;; A captioned detail frame: picture area above, caption bar below.
+  (setq bar (* 11.0 s))
+  (RMR:Rect (list (car p) (+ (cadr p) bar) 0.0) width height
+            "RMR-A-DETAIL" *RMR-BRAND-SLATE*)
+  (RMR:Solid p width bar "RMR-PRES-TITLE" *RMR-BRAND-TERRA*)
+  (RMR:Rect p width bar "RMR-A-FRAME" *RMR-BRAND-INK*)
+  (RMR:Text (list (+ (car p) (* 2.0 s)) (+ (cadr p) (* 3.4 s)) 0.0)
+            number (* 3.4 s) "RMR-NUMBER" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+  (RMR:Text (list (+ (car p) (* 14.0 s)) (+ (cadr p) (* 3.2 s)) 0.0)
+            (RMR:Shorten title 44) (* 2.6 s) "RMR-HEAD" "RMR-PRES-TITLE"
+            *RMR-BRAND-SAND*)
+  (RMR:Text (list (- (+ (car p) width) (* 16.0 s)) (+ (cadr p) (* 3.2 s)) 0.0)
+            scale (* 2.6 s) "RMR-NUMBER" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+  bar
+)
+
+(defun RMR:WitnessTicks (pts offset size layer rgb / index point normal pt1 pt2)
+  ;; Short witness ticks standing off a chain of measured points.
+  (setq index 0)
+  (while (< index (length pts))
+    (setq point (nth index pts))
+    (if (< index (1- (length pts)))
+      (setq normal (angle point (nth (1+ index) pts)))
+    )
+    (setq pt1 (polar point (+ normal (* 0.5 pi)) offset))
+    (setq pt2 (polar point (+ normal (* 0.5 pi)) (+ offset size)))
+    (RMR:Line pt1 pt2 layer rgb)
+    (setq index (1+ index))
+  )
+)
+
+(defun RMR:DetailCategories (/ out spec name)
+  (setq out '())
+  (foreach spec *RMR-DETAIL-SPECS*
+    (setq name (nth 3 spec))
+    (if (not (RMR:InList name out)) (setq out (append out (list name))))
+  )
+  out
+)
+
+(defun RMR:FireBand (p1 p2 width rgb / normal a b c d)
+  ;; A band of a given true width drawn along a picked line.
+  (setq normal (+ (angle p1 p2) (* 0.5 pi)))
+  (setq a (polar p1 normal (/ width 2.0)))
+  (setq b (polar p2 normal (/ width 2.0)))
+  (setq c (polar p2 (- normal pi) (/ width 2.0)))
+  (setq d (polar p1 (- normal pi) (/ width 2.0)))
+  (RMR:Quad a b c d "RMR-A-FIRE" rgb)
+  (RMR:Line a b "RMR-A-FIRE" *RMR-BRAND-INK*)
+  (RMR:Line c d "RMR-A-FIRE" *RMR-BRAND-INK*)
+)
+
+;;; --- detail library sheet -----------------------------------------------------------
+(defun C:RMR-DETAILLIB (/ base s cols count spec index col row fw fh gx gy
+                     origin bar)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nTop-left of the detail library: "))
+  (if base
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq cols (RMR:PromptInt "Frames across" 3))
+      (setq fw (* 250.0 s))
+      (setq fh (* 120.0 s))
+      (setq gx (* 14.0 s))
+      (setq gy (* 16.0 s))
+      (setq index 0)
+      (setq count 0)
+      (foreach spec *RMR-DETAIL-SPECS*
+        (setq col (rem index cols))
+        (setq row (/ index cols))
+        (setq origin (list (+ (car base) (* col (+ fw gx)))
+                           (- (cadr base) (* row (+ fh gy (* 11.0 s))))
+                           0.0))
+        (setq bar (RMR:DetailFrame origin fw fh (nth 0 spec) (nth 1 spec)
+                                   (nth 2 spec) s))
+        ;; a placeholder cross so an empty frame still reads as a frame
+        (RMR:Line (list (car origin) (+ (cadr origin) bar) 0.0)
+                  (list (+ (car origin) fw) (+ (cadr origin) bar fh) 0.0)
+                  "RMR-A-DETAIL" *RMR-BRAND-SAND*)
+        (RMR:Line (list (car origin) (+ (cadr origin) bar fh) 0.0)
+                  (list (+ (car origin) fw) (+ (cadr origin) bar) 0.0)
+                  "RMR-A-DETAIL" *RMR-BRAND-SAND*)
+        (setq count (1+ count))
+        (setq index (1+ index))
+      )
+      (princ (strcat "\n" (itoa count) " detail frames drawn across "
+                     (itoa (length (RMR:DetailCategories)))
+                     " categories."))
+      (foreach spec (RMR:DetailCategories)
+        (princ (strcat "\n  " spec))
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- parametric junction builder -------------------------------------------------------
+(defun C:RMR-JUNCTION (/ keys type spec lega legb rowsa rowsb k s corner
+                     count y x thk rgb pattern name note totala totalb
+                     leglen labx laby ename)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-JUNCTION-SPECS*))
+  (setq type (RMR:PromptKeyword "Junction" keys
+                                (nth 0 (nth 0 *RMR-JUNCTION-SPECS*))))
+  (setq spec (RMR:TableSpec type *RMR-JUNCTION-SPECS*))
+  (if spec
+    (progn
+      (setq rowsa (RMR:BuildupRows (nth 2 spec)))
+      (setq rowsb (RMR:BuildupRows (nth 3 spec)))
+      (if (and rowsa rowsb)
+        (progn
+          (setq k (RMR:PromptReal "Drawing units per metre" 1.0))
+          (setq s (RMR:Scaled 1.0))
+          (setq corner (getpoint "\nPick the inside corner of the junction: "))
+          (if corner
+            (progn
+              (setq corner (list (car corner) (cadr corner) 0.0))
+              (setq leglen (* 2.4 (RMR:Scaled 1.0)))
+              ;; leg A: the horizontal element, layers stacked downwards
+              (setq totala 0.0)
+              (foreach spec rowsa (setq totala (+ totala (float (nth 3 spec)))))
+              (setq y (cadr corner))
+              (setq count 0)
+              (foreach spec rowsa
+                (setq thk (RMR:Mm (nth 3 spec) k))
+                (setq rgb (nth 4 spec))
+                (setq pattern (nth 5 spec))
+                (setq name (nth 2 spec))
+                (setq note (nth 6 spec))
+                (setq ename (RMR:ClosedPoly
+                              (list (list (- (car corner) leglen) (- y thk))
+                                    (list (car corner) (- y thk))
+                                    (list (car corner) y)
+                                    (list (- (car corner) leglen) y))
+                              "RMR-M-HATCH" rgb))
+                (if ename (RMR:HatchEntity ename pattern rgb))
+                (RMR:Rect (list (- (car corner) leglen) (- y thk) 0.0)
+                          leglen thk "RMR-A-DETAIL" *RMR-BRAND-INK*)
+                (RMR:Text (list (+ (car corner) (* 3.0 s)) (- y (/ thk 2.0)) 0.0)
+                          (strcat name "  " (itoa (nth 3 spec)) " mm")
+                          (* 2.0 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-INK*)
+                (setq y (- y thk))
+                (setq count (1+ count))
+              )
+              ;; leg B: the vertical element, layers stacked to the right
+              (setq totalb 0.0)
+              (foreach spec rowsb (setq totalb (+ totalb (float (nth 3 spec)))))
+              (setq x (car corner))
+              (foreach spec rowsb
+                (setq thk (RMR:Mm (nth 3 spec) k))
+                (setq rgb (nth 4 spec))
+                (setq pattern (nth 5 spec))
+                (setq name (nth 2 spec))
+                (setq ename (RMR:ClosedPoly
+                              (list (list x (- (cadr corner) leglen))
+                                    (list (+ x thk) (- (cadr corner) leglen))
+                                    (list (+ x thk) (cadr corner))
+                                    (list x (cadr corner)))
+                              "RMR-M-HATCH" rgb))
+                (if ename (RMR:HatchEntity ename pattern rgb))
+                (RMR:Rect (list x (- (cadr corner) leglen) 0.0) thk leglen
+                          "RMR-A-DETAIL" *RMR-BRAND-INK*)
+                (RMR:RotText (list (+ x (/ thk 2.0))
+                                   (- (cadr corner) leglen (* 3.0 s)) 0.0)
+                             (strcat name "  " (itoa (nth 3 spec)) " mm")
+                             (* 2.0 s) "RMR-NOTE" "RMR-A-TEXT"
+                             *RMR-BRAND-INK* (* 0.5 pi))
+                (setq x (+ x thk))
+              )
+              ;; caption block underneath the junction
+              (setq laby (- (cadr corner) leglen (* 10.0 s)))
+              (RMR:Text (list (car corner) laby 0.0)
+                        (strcat type "  |  " (nth 4 spec)) (* 3.0 s)
+                        "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+              (RMR:Text (list (car corner) (- laby (* 5.0 s)) 0.0)
+                        (strcat (nth 2 spec) " " (RMR:Num totala 0)
+                                " mm total  |  " (nth 3 spec) " "
+                                (RMR:Num totalb 0) " mm total")
+                        (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+              (princ (strcat "\n" type " drawn: " (itoa (length rowsa))
+                             " + " (itoa (length rowsb)) " layers."))
+            )
+          )
+        )
+        (princ "\nThat junction needs two build-up types that both exist.")
+      )
+    )
+    (princ "\nUnknown junction type.")
+  )
+  (princ)
+)
+
+;;; --- detail tag -------------------------------------------------------------------------
+(defun C:RMR-DETAILTAG (/ keys number spec pick point tip s radius sheet)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-DETAIL-SPECS*))
+  (setq number (RMR:PromptKeyword
+                 "Detail number"
+                 (strcat keys " Next")
+                 "Next"))
+  (if (= (strcase number) "NEXT")
+    (progn
+      (setq *RMR-DETAIL-N* (1+ *RMR-DETAIL-N*))
+      (setq number (strcat "D" (RMR:NumPad2 *RMR-DETAIL-N*)))
+    )
+  )
+  (setq spec (RMR:TableSpec number *RMR-DETAIL-SPECS*))
+  (setq s (RMR:Scaled 1.0))
+  (setq radius (* 4.6 s))
+  (setq sheet (RMR:PromptText "Sheet the detail is drawn on" "A-500"))
+  (princ "\nPick the point the detail refers to, then the bubble position.")
+  (setq pick (getpoint "\nPoint of interest: "))
+  (while pick
+    (setq point (list (car pick) (cadr pick) 0.0))
+    (setq tip (getpoint point "\nBubble position: "))
+    (if tip
+      (progn
+        (setq tip (list (car tip) (cadr tip) 0.0))
+        (RMR:Line point tip "RMR-A-DETAIL" *RMR-BRAND-TERRA*)
+        (RMR:Circle point (* 1.0 s) "RMR-A-DETAIL" *RMR-BRAND-TERRA*)
+        (RMR:Circle tip radius "RMR-PRES-KEY" *RMR-BRAND-TERRA*)
+        (RMR:CenterText tip number radius "RMR-NUMBER" "RMR-A-DETAIL"
+                        *RMR-BRAND-INK*)
+        (RMR:Text (RMR:PT+ tip (* 1.6 s) (- (* 9.0 s)))
+                  (strcat "SEE SHEET " sheet) (* 2.0 s) "RMR-NOTE"
+                  "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (if spec
+          (RMR:Text (RMR:PT+ tip (* 1.6 s) (- (* 13.0 s)))
+                    (RMR:Shorten (nth 1 spec) 40) (* 2.0 s) "RMR-BODY"
+                    "RMR-A-TEXT" *RMR-BRAND-INK*)
+        )
+      )
+    )
+    (setq pick (getpoint "\nNext point of interest <finish>: "))
+  )
+  (princ (strcat "\nDetail tags drawn. Next free number is D"
+                 (RMR:NumPad2 (1+ *RMR-DETAIL-N*)) "."))
+  (princ)
+)
+
+;;; --- detail locator -----------------------------------------------------------------------
+(defun C:RMR-DETLOC (/ c1 c2 pick number s cx cy w h mx my)
+  (RMR:EnsureReady)
+  (setq c1 (getpoint "\nFirst corner of the locator plan: "))
+  (if c1
+    (progn
+      (setq c2 (getcorner c1 "\nOpposite corner: "))
+      (if c2
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq number (strcase (RMR:PromptText "Detail number" "D01")))
+          (setq cx (min (car c1) (car c2)))
+          (setq cy (min (cadr c1) (cadr c2)))
+          (setq w (- (max (car c1) (car c2)) cx))
+          (setq h (- (max (cadr c1) (cadr c2)) cy))
+          (RMR:Rect (list cx cy 0.0) w h "RMR-A-DETAIL" *RMR-BRAND-SLATE*)
+          ;; a light setting-out grid inside the locator
+          (setq mx (+ cx (/ w 3.0)))
+          (while (< mx (+ cx w))
+            (RMR:Line (list mx cy 0.0) (list mx (+ cy h) 0.0)
+                      "RMR-00-REF" *RMR-BRAND-SAND*)
+            (setq mx (+ mx (/ w 3.0)))
+          )
+          (setq my (+ cy (/ h 3.0)))
+          (while (< my (+ cy h))
+            (RMR:Line (list cx my 0.0) (list (+ cx w) my 0.0)
+                      "RMR-00-REF" *RMR-BRAND-SAND*)
+            (setq my (+ my (/ h 3.0)))
+          )
+          (setq pick (getpoint "\nPick the detail location inside the plan: "))
+          (if pick
+            (progn
+              (setq pick (list (car pick) (cadr pick) 0.0))
+              (RMR:Circle pick (* 3.4 s) "RMR-A-DETAIL" *RMR-BRAND-GOLD*)
+              (RMR:Line (RMR:PT+ pick (* 2.4 s) (* 2.4 s))
+                        (RMR:PT+ pick (* 8.0 s) (* 8.0 s))
+                        "RMR-A-DETAIL" *RMR-BRAND-GOLD*)
+              (RMR:Line (RMR:PT+ pick (* 8.0 s) (* 8.0 s))
+                        (RMR:PT+ pick (* 22.0 s) (* 8.0 s))
+                        "RMR-A-DETAIL" *RMR-BRAND-GOLD*)
+              (RMR:Text (RMR:PT+ pick (* 23.0 s) (* 6.4 s))
+                        (strcat number " LOCATED HERE") (* 2.2 s) "RMR-LABEL"
+                        "RMR-A-TEXT" *RMR-BRAND-GOLD*)
+            )
+          )
+          (RMR:Text (list cx (- cy (* 5.0 s)) 0.0)
+                    (strcat "LOCATOR PLAN  |  DETAIL " number)
+                    (* 2.4 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (princ (strcat "\nLocator drawn for " number "."))
+        )
+      )
+    )
+  )
+  (princ)
+)
+
+;;; --- continuous dimension chain -------------------------------------------------------------
+(defun C:RMR-DIMCHAIN (/ s offset pick pts point text size tick total index
+                    p1 p2 mid ang)
+  (RMR:EnsureReady)
+  (setq s (RMR:Scaled 1.0))
+  (setq offset (RMR:PromptReal "Dimension line offset" (* 12.0 s)))
+  (princ "\nPick the points to chain, Enter when finished.")
+  (setq pts '())
+  (setq pick (getpoint "\nFirst point: "))
+  (while pick
+    (setq pts (append pts (list (list (car pick) (cadr pick) 0.0))))
+    (setq pick (getpoint "\nNext point <finish>: "))
+  )
+  (if (> (length pts) 1)
+    (progn
+      (setq size (* 3.0 s))
+      (setq total 0.0)
+      (setq index 0)
+      (while (< index (1- (length pts)))
+        (setq p1 (nth index pts))
+        (setq p2 (nth (1+ index) pts))
+        (setq ang (angle p1 p2))
+        (setq mid (RMR:Mid2D p1 p2))
+        ;; the dimension line, offset to the left of the chain direction
+        (RMR:Line (polar p1 (+ ang (* 0.5 pi)) offset)
+                  (polar p2 (+ ang (* 0.5 pi)) offset)
+                  "RMR-A-DIMS" *RMR-BRAND-INK*)
+        (RMR:RotText (polar mid (+ ang (* 0.5 pi)) (+ offset (* 1.6 s)))
+                     (RMR:Num (distance p1 p2) 0) (* 2.2 s) "RMR-NUMBER"
+                     "RMR-A-DIMS" *RMR-BRAND-INK* ang)
+        (setq total (+ total (distance p1 p2)))
+        (setq index (1+ index))
+      )
+      (RMR:WitnessTicks pts (- offset size) size "RMR-A-DIMS" *RMR-BRAND-INK*)
+      (RMR:Text (list (car (nth 0 pts)) (- (cadr (nth 0 pts)) (* 8.0 s)) 0.0)
+                (strcat (itoa (1- (length pts)))
+                        " DIMENSIONS  |  CHAIN " (RMR:Num total 0))
+                (* 2.2 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (princ (strcat "\n" (itoa (1- (length pts))) " dimensions, chain "
+                     (RMR:Num total 0) "."))
+    )
+    (princ "\nA chain needs at least two points.")
+  )
+  (princ)
+)
+
+;;; --- materials key ---------------------------------------------------------------------------
+(defun C:RMR-MATKEY (/ keys base s rows spec y swatch name)
+  (RMR:EnsureReady)
+  (setq keys "")
+  (foreach name (RMR:BuildupTypes)
+    (setq keys (strcat keys (if (> (strlen keys) 0) " ") name))
+  )
+  (setq name (RMR:PromptKeyword "Build-up for the key" keys
+                                (nth 0 (RMR:BuildupTypes))))
+  (setq rows (RMR:BuildupRows name))
+  (setq base (getpoint "\nTop-left of the materials key: "))
+  (if (and rows base)
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq y (cadr base))
+      (RMR:Text base (strcat "MATERIALS KEY  |  " name) (* 3.4 s) "RMR-HEAD"
+                "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 8.0 s)))
+      (foreach spec rows
+        (setq swatch (* 5.0 s))
+        (RMR:Solid (list (car base) (- y swatch) 0.0) swatch swatch
+                   "RMR-M-HATCH" (nth 4 spec))
+        (RMR:Rect (list (car base) (- y swatch) 0.0) swatch swatch
+                  "RMR-A-FRAME" *RMR-BRAND-INK*)
+        (RMR:Text (list (+ (car base) (* 8.0 s)) y 0.0)
+                  (nth 2 spec) (* 2.2 s) "RMR-LABEL" "RMR-A-TEXT"
+                  *RMR-BRAND-INK*)
+        (RMR:Text (list (+ (car base) (* 60.0 s)) y 0.0)
+                  (strcat (itoa (nth 3 spec)) " mm") (* 2.2 s) "RMR-NUMBER"
+                  "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+        (RMR:Text (list (+ (car base) (* 78.0 s)) y 0.0)
+                  (RMR:Shorten (nth 6 spec) 40) (* 2.0 s) "RMR-NOTE"
+                  "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        (setq y (- y (* 7.0 s)))
+      )
+      (RMR:Text (list (car base) (- y (* 3.0 s)) 0.0)
+                (strcat (itoa (length rows)) " materials  |  pattern "
+                        (nth 5 (nth 0 rows)) " upward")
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (princ (strcat "\nMaterials key drawn for " name "."))
+    )
+  )
+  (princ)
+)
+
+;;; --- detail scale and scale bar -----------------------------------------------------------------
+(defun C:RMR-DETSCALE (/ keys scale spec base s seg mm unit bar y index)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-SCALE-SPECS*))
+  (setq scale (RMR:PromptKeyword "Detail scale" keys "20"))
+  (setq spec (RMR:TableSpec scale *RMR-SCALE-SPECS*))
+  (if spec
+    (progn
+      (setq *RMR-DRAW-SCALE-LABEL* (nth 1 spec))
+      (setq *RMR-ANNO-SPACE* "MODEL")
+      (setq *RMR-ANNO-SCALE* (float (nth 2 spec)))
+      (RMR:SafeSet "DIMSCALE" (float (nth 2 spec)))
+      (RMR:SafeSet "CELTSCALE" 1.0)
+      (RMR:SafeSet "MSLTSCALE" 1)
+      (RMR:SafeSet "PSLTSCALE" 1)
+      (RMR:SafeSet "LTSCALE" 1.0)
+      (princ (strcat "\nDetail scale set to " (nth 1 spec) "."))
+      (setq base (getpoint "\nPick the left end of the scale bar <enter to skip>: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          ;; a detail bar works in 100 mm steps at 1:20 and coarser
+          (setq mm (if (<= (float (nth 2 spec)) 20.0) 100.0 500.0))
+          (setq seg 4)
+          (setq unit (RMR:Mm mm 1.0))
+          (setq bar (* 9.0 s))
+          (setq y (cadr base))
+          (setq index 0)
+          (while (< index seg)
+            (if (= (rem index 2) 0)
+              (RMR:Solid (list (+ (car base) (* index unit)) y 0.0) unit bar
+                         "RMR-A-DIMS" *RMR-BRAND-INK*)
+              (RMR:Solid (list (+ (car base) (* index unit)) y 0.0) unit bar
+                         "RMR-A-DIMS" *RMR-BRAND-SAND*)
+            )
+            (setq index (1+ index))
+          )
+          (RMR:Rect (list (car base) y 0.0) (* seg unit) bar "RMR-A-FRAME"
+                    *RMR-BRAND-INK*)
+          (RMR:Text (list (car base) (- y (* 5.0 s)) 0.0) "0" (* 2.0 s)
+                    "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          (RMR:Text (RMR:PT+ base (* seg unit) (- (* 5.0 s)))
+                    (strcat (RMR:Num (* seg mm) 0) " mm") (* 2.0 s)
+                    "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-INK*)
+          (RMR:Text (list (car base) (+ y (* bar) (* 3.0 s)) 0.0)
+                    (strcat "SCALE " (nth 1 spec) " AT A1") (* 2.4 s)
+                    "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (princ (strcat "\nScale bar drawn at " (nth 1 spec) "."))
+        )
+      )
+    )
+    (princ "\nUnknown detail scale.")
+  )
+  (princ)
+)
+
+;;; --- complete detail sheet ------------------------------------------------------------------------
+(defun C:RMR-DETSHEET (/ base size s wide high frame rows spec index col row
+                    fw fh gx gy origin bar count y key)
+  (RMR:EnsureReady)
+  (setq base (getpoint "\nBottom-left of the detail sheet: "))
+  (if base
+    (progn
+      (setq size (RMR:SheetSize "A1"))
+      (setq wide (nth 0 size))
+      (setq high (nth 1 size))
+      (setq s (RMR:Scaled 1.0))
+      (setq base (list (car base) (cadr base) 0.0))
+      (RMR:Rect base wide high "RMR-A-FRAME" *RMR-BRAND-INK*)
+      (RMR:Rect (list (+ (car base) (* 10.0 s)) (+ (cadr base) (* 10.0 s)) 0.0)
+                (- wide (* 20.0 s)) (- high (* 20.0 s))
+                "RMR-A-FRAME" *RMR-BRAND-TEAL*)
+      ;; six detail frames in two rows of three
+      (setq fw (* 250.0 s))
+      (setq fh (* 150.0 s))
+      (setq gx (* 12.0 s))
+      (setq gy (* 30.0 s))
+      (setq count 0)
+      (setq index 0)
+      (foreach spec *RMR-DETAIL-SPECS*
+        (if (< index 6)
+          (progn
+            (setq col (rem index 3))
+            (setq row (/ index 3))
+            (setq origin (list (+ (car base) (* 24.0 s) (* col (+ fw gx)))
+                               (+ (cadr base) (* 150.0 s)
+                                  (* (- 1 row) (+ fh gy (* 11.0 s))))
+                               0.0))
+            (setq bar (RMR:DetailFrame origin fw fh (nth 0 spec) (nth 1 spec)
+                                       (nth 2 spec) s))
+            (RMR:Line (list (car origin) (+ (cadr origin) bar) 0.0)
+                      (list (+ (car origin) fw) (+ (cadr origin) bar fh) 0.0)
+                      "RMR-A-DETAIL" *RMR-BRAND-SAND*)
+            (RMR:Line (list (car origin) (+ (cadr origin) bar fh) 0.0)
+                      (list (+ (car origin) fw) (+ (cadr origin) bar) 0.0)
+                      "RMR-A-DETAIL" *RMR-BRAND-SAND*)
+            (setq count (1+ count))
+          )
+        )
+        (setq index (1+ index))
+      )
+      ;; masthead and the detail index down the right hand side
+      (RMR:Solid (list (+ (car base) (* 10.0 s))
+                       (+ (cadr base) high (* -10.0 s) (* -44.0 s)) 0.0)
+                 (- wide (* 20.0 s)) (* 44.0 s) "RMR-PRES-TITLE"
+                 *RMR-BRAND-TERRA*)
+      (RMR:Text (list (+ (car base) (* 24.0 s))
+                      (+ (cadr base) high (* -10.0 s) (* -30.0 s)) 0.0)
+                "CONSTRUCTION DETAILS  |  RooMNRooF" (* 8.0 s) "RMR-TITLE"
+                "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+      (RMR:Text (list (+ (car base) (* 24.0 s))
+                      (+ (cadr base) high (* -10.0 s) (* -38.0 s)) 0.0)
+                (strcat "Project " (RMR:ProjectValue "PROJECT" "")
+                        "  |  " (RMR:Num (length *RMR-DETAIL-SPECS*))
+                        " details  |  scale as labelled")
+                (* 2.6 s) "RMR-HEAD" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+      ;; detail index, listed at the bottom left
+      (setq y (+ (cadr base) (* 96.0 s)))
+      (RMR:Text (list (+ (car base) (* 24.0 s)) y 0.0) "DETAIL INDEX"
+                (* 3.0 s) "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+      (setq y (- y (* 7.0 s)))
+      (setq index 0)
+      (foreach spec *RMR-DETAIL-SPECS*
+        (if (< index 6)
+          (progn
+            (RMR:Text (list (+ (car base) (* 24.0 s)) y 0.0)
+                      (strcat (nth 0 spec) "  " (RMR:Shorten (nth 1 spec) 40)
+                              "  " (nth 2 spec) "  " (nth 3 spec))
+                      (* 2.2 s) "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (setq y (- y (* 5.0 s)))
+          )
+        )
+        (setq index (1+ index))
+      )
+      (RMR:Text (list (+ (car base) wide (* -24.0 s)) (+ (cadr base) (* 30.0 s)) 0.0)
+                "MATERIALS KEY: SEE RMR-MATKEY  |  SPECIFICATION: RMR-SPECLINK"
+                (* 2.2 s) "RMR-NOTE" "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+      (princ (strcat "\nDetail sheet laid out with " (itoa count)
+                     " frames and the detail index."))
+    )
+  )
+  (princ)
+)
+
+;;; --- specification link ----------------------------------------------------------------------------
+(defun C:RMR-SPECLINK (/ number keys code spec base s rows y answer)
+  (RMR:EnsureReady)
+  (setq number (strcase (RMR:PromptText "Detail number" "D01")))
+  (setq keys (RMR:KeywordList *RMR-SPEC-CLAUSES*))
+  (setq s (RMR:Scaled 1.0))
+  (setq rows '())
+  (setq answer (RMR:PromptKeyword "Add a clause" (strcat keys " Done") "Done"))
+  (while (not (= (strcase answer) "DONE"))
+    (setq spec (RMR:TableSpec answer *RMR-SPEC-CLAUSES*))
+    (if spec
+      (setq rows (append rows
+                   (list (list (nth 0 spec) (nth 2 spec)
+                               (RMR:Shorten (nth 3 spec) 58)))))
+    )
+    (setq answer (RMR:PromptKeyword "Add a clause" (strcat keys " Done")
+                                    "Done"))
+  )
+  (if rows
+    (progn
+      (setq base (getpoint "\nTop-left of the specification link block: "))
+      (if base
+        (progn
+          (setq y (cadr base))
+          (RMR:Solid base (* 150.0 s) (* 9.0 s) "RMR-PRES-TITLE"
+                     *RMR-BRAND-TEAL*)
+          (RMR:Text (list (+ (car base) (* 2.0 s)) (+ y (* 3.0 s)) 0.0)
+                    (strcat "DETAIL " number "  |  REFER TO SPECIFICATION")
+                    (* 2.6 s) "RMR-HEAD" "RMR-PRES-TITLE" *RMR-BRAND-SAND*)
+          (setq y (- y (* 14.0 s)))
+          (foreach spec rows
+            (RMR:Text (list (car base) y 0.0)
+                      (strcat "  " (nth 0 spec) "  " (nth 1 spec)) (* 2.2 s)
+                      "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+            (RMR:Text (list (car base) (- y (* 4.4 s)) 0.0)
+                      (strcat "    " (nth 2 spec)) (* 2.0 s) "RMR-BODY"
+                      "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (setq y (- y (* 10.0 s)))
+          )
+          (princ (strcat "\n" (itoa (length rows)) " clauses linked to "
+                         number "."))
+        )
+      )
+    )
+    (princ "\nNo clauses were picked.")
+  )
+  (princ)
+)
+
+;;; --- detail index ------------------------------------------------------------------------------------
+(defun C:RMR-DETINDEX (/ base s rows sheet spec)
+  (RMR:EnsureReady)
+  (setq sheet (strcase (RMR:PromptText "Sheet number for the index" "A-500")))
+  (setq rows '())
+  (foreach spec *RMR-DETAIL-SPECS*
+    (setq rows (append rows
+                 (list (list (nth 0 spec) (RMR:Shorten (nth 1 spec) 42)
+                             (nth 2 spec) (nth 3 spec) sheet))))
+  )
+  (setq s (RMR:Scaled 1.0))
+  (setq base (getpoint "\nTop-left of the detail index <enter to skip>: "))
+  (if base
+    (RMR:DocTable base "DETAIL INDEX  |  RMR-DETINDEX"
+                  (strcat (itoa (length rows)) " details on sheet " sheet)
+                  '("NO" "TITLE" "SCALE" "CATEGORY" "SHEET")
+                  (list (* 12.0 s) (* 78.0 s) (* 16.0 s) (* 24.0 s)
+                        (* 18.0 s))
+                  rows nil s)
+  )
+  (princ (strcat "\n" (itoa (length rows)) " details indexed on " sheet "."))
+  (princ)
+)
+
+;;; --- U value calculator -------------------------------------------------------------------------------
+(defun C:RMR-UVALUE (/ keys name spec rows base s y thick total u r answer
+                  index path lines)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-MATERIAL-R-SPECS*))
+  (setq rows '())
+  (setq name "")
+  (setq answer (RMR:PromptKeyword "Add a layer" (strcat keys " Done") "Done"))
+  (while (not (= (strcase answer) "DONE"))
+    (setq spec (RMR:TableSpec answer *RMR-MATERIAL-R-SPECS*))
+    (if spec
+      (progn
+        (setq thick (RMR:PromptReal (strcat (nth 0 spec) " thickness in mm")
+                                    (float (nth 2 spec))))
+        (setq rows (append rows (list (list (nth 0 spec) (nth 1 spec) thick))))
+        (princ (strcat "\n  " (nth 0 spec) "  " (RMR:Num thick 0)
+                       " mm  R " (RMR:Num (RMR:LayerR
+                                            (list (nth 0 spec) (nth 1 spec)
+                                                  thick)) 3)))
+      )
+    )
+    (setq answer (RMR:PromptKeyword "Add a layer" (strcat keys " Done")
+                                    "Done"))
+  )
+  (if rows
+    (progn
+      (setq r (RMR:RSum rows))
+      (setq u (RMR:UValue rows))
+      (princ (strcat "\nTotal resistance R " (RMR:Num r 3)
+                     " m2K/W  |  U value " (RMR:Num u 3) " W/m2K"))
+      (setq base (getpoint "\nTop-left of the U value panel <enter to skip>: "))
+      (if base
+        (progn
+          (setq s (RMR:Scaled 1.0))
+          (setq y (cadr base))
+          (RMR:Text base "THERMAL PERFORMANCE  |  RMR-UVALUE" (* 4.2 s)
+                    "RMR-HEAD" "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (setq y (- y (* 8.0 s)))
+          (setq thick 0.0)
+          (setq index 0)
+          (foreach spec rows
+            (setq index (1+ index))
+            (RMR:Solid (list (car base) (- y (* 6.0 s)) 0.0) (* 90.0 s)
+                       (* 6.0 s) "RMR-M-FILL" *RMR-BRAND-SAND*)
+            (RMR:Rect (list (car base) (- y (* 6.0 s)) 0.0) (* 90.0 s)
+                      (* 6.0 s) "RMR-A-FRAME" *RMR-BRAND-SLATE*)
+            (RMR:Text (list (+ (car base) (* 2.0 s)) y 0.0) (nth 0 spec)
+                      (* 2.2 s) "RMR-LABEL" "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (RMR:Text (list (+ (car base) (* 96.0 s)) y 0.0)
+                      (RMR:Num (float (nth 2 spec)) 0) (* 2.0 s) "RMR-NUMBER"
+                      "RMR-A-TEXT" *RMR-BRAND-INK*)
+            (RMR:Text (list (+ (car base) (* 112.0 s)) y 0.0)
+                      (strcat "R " (RMR:Num (RMR:LayerR spec) 3)) (* 2.0 s)
+                      "RMR-BODY" "RMR-A-TEXT" *RMR-BRAND-TEAL*)
+            (setq thick (+ thick (float (nth 2 spec))))
+            (setq y (- y (* 8.0 s)))
+          )
+          (RMR:Text (list (car base) (- y (* 2.0 s)) 0.0)
+                    (strcat "TOTAL " (RMR:Num thick 0) " mm  |  R "
+                            (RMR:Num r 3) " m2K/W") (* 2.6 s) "RMR-NUMBER"
+                    "RMR-A-TEXT" *RMR-BRAND-TERRA*)
+          (RMR:Text (list (car base) (- y (* 12.0 s)) 0.0)
+                    (strcat "U = " (RMR:Num u 3) " W/m2K") (* 6.0 s)
+                    "RMR-NUMBER" "RMR-A-TEXT" *RMR-BRAND-TEAL*)
+          (RMR:Text (list (car base) (- y (* 19.0 s)) 0.0)
+                    "Includes Rsi 0.13 and Rse 0.04" (* 2.0 s) "RMR-NOTE"
+                    "RMR-A-TEXT" *RMR-BRAND-SLATE*)
+        )
+      )
+      (setq answer (RMR:PromptYesNo "Write a U value report" "No"))
+      (if (RMR:YesP answer)
+        (progn
+          (setq path (getfiled "Save the U value calculation"
+                               "RooMNRooF_UValue.txt" "txt" 1))
+          (if path
+            (progn
+              (setq lines (list "RooMNRooF U VALUE CALCULATION"
+                                (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+                                (strcat "Date: " (RMR:TodayDate))
+                                ""
+                                "MATERIAL                  LAMBDA   THICKNESS   R"))
+              (foreach spec rows
+                (setq lines (append lines
+                              (list (strcat "  " (nth 0 spec) "  "
+                                            (RMR:Num (float (nth 1 spec)) 3)
+                                            "  " (RMR:Num (float (nth 2 spec)) 0)
+                                            " mm  "
+                                            (RMR:Num (RMR:LayerR spec) 3)))))
+              )
+              (setq lines (append lines
+                (list ""
+                      (strcat "Total resistance R " (RMR:Num r 3) " m2K/W")
+                      (strcat "U value            " (RMR:Num u 3) " W/m2K")
+                      "Includes Rsi 0.13 and Rse 0.04")))
+              (if (RMR:WriteLines path lines)
+                (princ (strcat "\nWritten: " path))
+                (princ "\nCould not write the report.")
+              )
+            )
+          )
+        )
+      )
+    )
+    (princ "\nNo layers were added.")
+  )
+  (princ)
+)
+
+;;; --- fire compartment line ------------------------------------------------------------------------------
+(defun C:RMR-FIRESTOP (/ keys rating spec width rgb pick p1 p2 s mid label
+                    count length)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-FIRE-SPECS*))
+  (setq rating (RMR:PromptKeyword "Fire rating" keys "FD60"))
+  (setq spec (RMR:TableSpec rating *RMR-FIRE-SPECS*))
+  (if spec
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq width (* 3.0 s))
+      (setq rgb (RMR:BrandRGB (nth 2 spec)))
+      (setq count 0)
+      (setq length 0.0)
+      (princ "\nPick the compartment line, two points at a time.")
+      (setq pick (getpoint "\nLine start <finish>: "))
+      (while pick
+        (setq p1 (list (car pick) (cadr pick) 0.0))
+        (setq p2 (getpoint p1 "\nLine end: "))
+        (if p2
+          (progn
+            (setq p2 (list (car p2) (cadr p2) 0.0))
+            (RMR:FireBand p1 p2 width rgb)
+            (setq mid (RMR:Mid2D p1 p2))
+            (setq label (strcat rating "  " (nth 3 spec)))
+            (RMR:RotText (RMR:PT+ mid 0.0 (* 6.0 s)) label (* 2.4 s)
+                         "RMR-LABEL" "RMR-A-FIRE" *RMR-BRAND-INK*
+                         (angle p1 p2))
+            (setq length (+ length (distance p1 p2)))
+            (setq count (1+ count))
+          )
+        )
+        (setq pick (getpoint "\nNext line start <finish>: "))
+      )
+      (princ (strcat "\n" (itoa count) " compartment segments at " rating
+                     ", " (RMR:Num length 2) " total."))
+    )
+    (princ "\nUnknown fire rating.")
+  )
+  (princ)
+)
+
+;;; --- acoustic rating -----------------------------------------------------------------------------------------
+(defun C:RMR-ACOUSTIC (/ keys rating spec s pick p1 p2 mid base rows index)
+  (RMR:EnsureReady)
+  (setq keys (RMR:KeywordList *RMR-ACOUSTIC-SPECS*))
+  (setq rating (RMR:PromptKeyword "Acoustic rating" keys "Rw 48"))
+  (setq spec (RMR:TableSpec rating *RMR-ACOUSTIC-SPECS*))
+  (if spec
+    (progn
+      (setq s (RMR:Scaled 1.0))
+      (setq pick (getpoint "\nFirst end of the partition <finish>: "))
+      (while pick
+        (setq p1 (list (car pick) (cadr pick) 0.0))
+        (setq p2 (getpoint p1 "\nOther end: "))
+        (if p2
+          (progn
+            (setq p2 (list (car p2) (cadr p2) 0.0))
+            (RMR:Line p1 p2 "RMR-A-ACOUSTIC" *RMR-BRAND-BLUE*)
+            (setq mid (RMR:Mid2D p1 p2))
+            (RMR:Circle mid (* 5.0 s) "RMR-A-ACOUSTIC" *RMR-BRAND-BLUE*)
+            (RMR:CenterText mid rating (* 2.6 s) "RMR-NUMBER"
+                            "RMR-A-ACOUSTIC" *RMR-BRAND-INK*)
+            (RMR:RotText (RMR:PT+ mid 0.0 (* 8.0 s))
+                         (RMR:Shorten (nth 2 spec) 40) (* 2.0 s) "RMR-NOTE"
+                         "RMR-A-ACOUSTIC" *RMR-BRAND-SLATE* (angle p1 p2))
+          )
+        )
+        (setq pick (getpoint "\nNext partition <finish>: "))
+      )
+      (setq base (getpoint "\nTop-left of the acoustic table <enter to skip>: "))
+      (if base
+        (progn
+          (setq rows '())
+          (foreach spec *RMR-ACOUSTIC-SPECS*
+            (setq rows (append rows
+                         (list (list (nth 0 spec) (itoa (nth 1 spec))
+                                     (RMR:Shorten (nth 2 spec) 40)))))
+          )
+          (RMR:DocTable base "ACOUSTIC PERFORMANCE  |  RMR-ACOUSTIC"
+                        "Ratings from *RMR-ACOUSTIC-SPECS*"
+                        '("RATING" "Rw dB" "APPLICATION")
+                        (list (* 20.0 s) (* 18.0 s) (* 82.0 s))
+                        rows nil s)
+        )
+      )
+      (princ (strcat "\nAcoustic markers drawn at " rating "."))
+    )
+    (princ "\nUnknown acoustic rating.")
+  )
+  (princ)
+)
+
+;;; --- detail compliance check -------------------------------------------------------------------------------------
+(defun C:RMR-CHECKDETAIL (/ ss i ent data total problems verdict answer path
+                     lines spec index found)
+  (RMR:EnsureReady)
+  (setq problems '())
+  (setq total 0)
+  (setq ss (ssget "_X" (list (cons 8 "RMR-A-DETAIL"))))
+  (if ss
+    (progn
+      (setq i 0)
+      (repeat (sslength ss)
+        (setq ent (ssname ss i))
+        (setq data (entget ent))
+        (if (= (cdr (assoc 0 data)) "CIRCLE") (setq total (1+ total)))
+        (setq i (1+ i))
+      )
+    )
+  )
+  (princ (strcat "\nRooMNRooF detail compliance check"))
+  (princ (strcat "\n  " (itoa total) " detail markers on RMR-A-DETAIL"))
+  (princ (strcat "\n  " (itoa (length *RMR-DETAIL-SPECS*))
+                 " details in the library"))
+  (if (< total 1)
+    (setq problems (append problems
+                     (list "No detail markers found - tag the details first.")))
+  )
+  (if (not *RMR-DRAW-SCALE-LABEL*)
+    (setq problems (append problems
+                     (list "No drawing scale set - run RMR-DETSCALE.")))
+  )
+  (setq index 0)
+  (foreach spec *RMR-DETAIL-SPECS*
+    (setq found nil)
+    (if (and ss
+             (ssget "_X" (list (cons 8 "RMR-A-DETAIL") (cons 0 "TEXT")
+                               (cons 1 (nth 0 spec)))))
+      (setq found T)
+    )
+    (if (not found) (setq index (1+ index)))
+  )
+  (if (> index 0)
+    (setq problems (append problems
+                     (list (strcat (itoa index)
+                                   " library details are not tagged on any sheet."))))
+  )
+  (if (not (tblsearch "BLOCK" "RMR-TITLEBLOCK"))
+    (setq problems (append problems
+                     (list "No RMR-TITLEBLOCK in the drawing - run RMR-MASTER.")))
+  )
+  (setq verdict (if problems "REVIEW" "PASS"))
+  (princ (strcat "\n  Verdict: " verdict))
+  (foreach item problems
+    (princ (strcat "\n    " item))
+  )
+  (setq answer (RMR:PromptYesNo "Write a detail check report" "No"))
+  (if (RMR:YesP answer)
+    (progn
+      (setq path (getfiled "Save the detail check"
+                           "RooMNRooF_Detail_Check.txt" "txt" 1))
+      (if path
+        (progn
+          (setq lines (list "RooMNRooF DETAIL COMPLIANCE CHECK"
+                            (strcat "Project: " (RMR:ProjectValue "PROJECT" ""))
+                            (strcat "Date: " (RMR:TodayDate))
+                            (strcat "Scale: "
+                                    (if *RMR-DRAW-SCALE-LABEL*
+                                      *RMR-DRAW-SCALE-LABEL* "not set"))
+                            ""
+                            (strcat "Detail markers: " (itoa total))
+                            (strcat "Library details: "
+                                    (itoa (length *RMR-DETAIL-SPECS*)))
+                            ""
+                            "DETAIL LIBRARY"))
+          (foreach spec *RMR-DETAIL-SPECS*
+            (setq lines (append lines
+                          (list (strcat "  " (nth 0 spec) "  "
+                                        (nth 1 spec) "  " (nth 2 spec)
+                                        "  " (nth 3 spec)))))
+          )
+          (setq lines (append lines (list "" "PROBLEMS")))
+          (if problems
+            (foreach item problems
+              (setq lines (append lines (list (strcat "  " item))))
+            )
+            (setq lines (append lines (list "  none")))
+          )
+          (setq lines (append lines
+                        (list "" (strcat "Verdict: " verdict))))
+          (if (RMR:WriteLines path lines)
+            (princ (strcat "\nWritten: " path))
+            (princ "\nCould not write the report.")
+          )
+        )
+      )
     )
   )
   (princ)

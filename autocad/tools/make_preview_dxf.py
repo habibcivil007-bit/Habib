@@ -181,6 +181,11 @@ def load_lisp_data():
         "pipes": _extract_form(src, "*RMR-PIPE-SPECS*"),
         "service_zones": _extract_form(src, "*RMR-SERVICE-ZONES*"),
         "service_layer_zones": _extract_form(src, "*RMR-SERVICE-LAYER-ZONES*"),
+        "details": _extract_form(src, "*RMR-DETAIL-SPECS*"),
+        "junctions": _extract_form(src, "*RMR-JUNCTION-SPECS*"),
+        "materials": _extract_form(src, "*RMR-MATERIAL-R-SPECS*"),
+        "fire": _extract_form(src, "*RMR-FIRE-SPECS*"),
+        "acoustic": _extract_form(src, "*RMR-ACOUSTIC-SPECS*"),
     }
 
 
@@ -3933,6 +3938,375 @@ def build_structural_mep():
 
 
 # --------------------------------------------------------------------------- #
+# 12.0 CONSTRUCTION DETAILING SHEET PANELS
+# --------------------------------------------------------------------------- #
+DETAILS = DATA["details"]
+JUNCTIONS = DATA["junctions"]
+MATERIALS = DATA["materials"]
+FIRE = DATA["fire"]
+ACOUSTIC = DATA["acoustic"]
+BUILDUP = DATA["buildups"]
+
+
+def _detrgb(key):
+    return tuple(DATA["brand"][str(key).upper()])
+
+
+def _buildup_rows(wanted):
+    return [r for r in BUILDUP if str(r[0]).upper() == str(wanted).upper()]
+
+
+def draw_det_library(sh):
+    x, y, w, h = 20.0, 396.0, 286.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "DETAIL LIBRARY  |  RMR-DETAILLIB  |  *RMR-DETAIL-SPECS*")
+
+    # six captioned frames in three columns, exactly as the command lays them
+    cols = 3
+    fw, fh = 80.0, 42.0
+    gx, gy, bar = 8.0, 9.0, 8.0
+    ox, oy = x + 12.0, ty - 6.0
+    for i, spec in enumerate(DETAILS[:6]):
+        col, row = i % cols, i // cols
+        px = ox + col * (fw + gx)
+        py = oy - row * (fh + gy + bar)
+        sh.solid((px, py - fh), fw, bar, "RMR-PRES-TITLE", TERRA)
+        sh.rect((px, py - fh), fw, bar, "RMR-A-FRAME", INK)
+        sh.rect((px, py - fh + bar), fw, fh, "RMR-A-DETAIL", SLATE)
+        sh.text((px + 2.0, py - fh + 2.4), spec[0], 2.6, "RMR-NUMBER",
+                "RMR-PRES-TITLE", SAND)
+        sh.text((px + 2.0, py - fh + bar + fh * 0.55),
+                spec[1].split(",")[0][:14], 1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+        sh.text((px + fw - 14.0, py - fh + 2.4), spec[2], 2.0, "RMR-NUMBER",
+                "RMR-PRES-TITLE", SAND)
+    sh.text((x + 12.0, y + 12.0),
+            "12 details across 5 categories  |  frames are drawn with a",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 7.8),
+            "placeholder cross ready for the detail geometry.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_det_junction(sh):
+    x, y, w, h = 316.0, 396.0, 250.0, 140.0
+    ty = _panel(sh, x, y, w, h,
+                "PARAMETRIC JUNCTION  |  RMR-JUNCTION")
+
+    # an eaves junction: the roof leg horizontal, the external wall leg vertical
+    lega = _buildup_rows("ROOF") or _buildup_rows("FLOOR")
+    legb = _buildup_rows("EXTWALL")
+    k = 0.16                       # drawing units per mm at detail scale
+    cx, cy = x + 78.0, y + 104.0
+    leglen = 72.0
+
+    yy = cy
+    for spec in lega:
+        thk = float(spec[3]) * k
+        rgb = tuple(int(v) for v in spec[4])
+        sh.solid((cx - leglen, yy - thk), leglen, thk, "RMR-M-HATCH", rgb)
+        sh.rect((cx - leglen, yy - thk), leglen, thk, "RMR-A-DETAIL", INK)
+        yy -= thk
+    xx = cx
+    for spec in legb:
+        thk = float(spec[3]) * k
+        rgb = tuple(int(v) for v in spec[4])
+        sh.solid((xx, cy - leglen), thk, leglen, "RMR-M-HATCH", rgb)
+        sh.rect((xx, cy - leglen), thk, leglen, "RMR-A-DETAIL", INK)
+        xx += thk
+
+    # both legs are listed beside the drawing, so thin layers stay readable
+    sh.text((x + 140.0, cy + 3.0), "ROOF LEG", 2.0, "RMR-HEAD", "RMR-A-TEXT",
+            TERRA)
+    ly = cy - 4.0
+    for spec in lega:
+        sh.text((x + 140.0, ly), "%s  %d mm" % (spec[2][:16], int(spec[3])),
+                1.9, "RMR-BODY", "RMR-A-TEXT", INK)
+        ly -= 5.6
+    sh.text((x + 140.0, ly - 3.0), "EXTERNAL WALL LEG", 2.0, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    ly -= 10.0
+    for spec in legb:
+        sh.text((x + 140.0, ly), "%s  %d mm" % (spec[2][:16], int(spec[3])),
+                1.9, "RMR-BODY", "RMR-A-TEXT", INK)
+        ly -= 5.6
+
+    ta = sum(float(s[3]) for s in lega)
+    tb = sum(float(s[3]) for s in legb)
+    sh.text((x + 12.0, y + 26.0), "EAVES  |  roof meeting the external wall",
+            2.1, "RMR-LABEL", "RMR-A-TEXT", TERRA)
+    sh.text((x + 12.0, y + 21.0),
+            "ROOF %d mm total  |  EXTWALL %d mm total" % (ta, tb), 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 15.4),
+            "Both legs are read from *RMR-BUILDUP-SPECS*, hatched in",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 11.2), "their own colour and listed with thickness.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_det_tags(sh):
+    x, y, w, h = 576.0, 396.0, 240.0, 140.0
+    ty = _panel(sh, x, y, w, h, "DETAIL TAGS AND LOCATOR  |  RMR-DETAILTAG / RMR-DETLOC")
+
+    # a locator plan with the detail position ringed
+    px, py, pw, ph = x + 12.0, y + 74.0, 96.0, 62.0
+    sh.rect((px, py), pw, ph, "RMR-A-DETAIL", SLATE)
+    for i in (1, 2):
+        sh.line((px + i * pw / 3.0, py), (px + i * pw / 3.0, py + ph),
+                "RMR-00-REF", SAND)
+        sh.line((px, py + i * ph / 3.0), (px + pw, py + i * ph / 3.0),
+                "RMR-00-REF", SAND)
+    lx, ly = px + pw * 0.68, py + ph * 0.62
+    sh.circle((lx, ly), 4.4, "RMR-A-DETAIL", GOLD)
+    sh.line((lx + 3.0, ly + 3.0), (lx + 11.0, ly + 11.0), "RMR-A-DETAIL", GOLD)
+    sh.line((lx + 11.0, ly + 11.0), (lx + 34.0, ly + 11.0), "RMR-A-DETAIL", GOLD)
+    sh.text((lx + 35.0, ly + 9.0), "D01 LOCATED HERE", 1.9, "RMR-LABEL",
+            "RMR-A-TEXT", GOLD)
+    sh.text((px, py - 5.0), "LOCATOR PLAN  |  DETAIL D01", 2.0, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+
+    # two detail bubbles on leaders
+    for i, (bx, by, num) in enumerate(((x + 40.0, y + 52.0, "D01"),
+                                       (x + 118.0, y + 52.0, "D02"))):
+        sh.line((bx - 30.0, by + 26.0), (bx, by), "RMR-A-DETAIL", TERRA)
+        sh.circle((bx - 30.0, by + 26.0), 1.4, "RMR-A-DETAIL", TERRA)
+        sh.circle((bx, by), 5.2, "RMR-PRES-KEY", TERRA)
+        sh.text((bx - 2.4, by - 2.0), num, 4.4, "RMR-NUMBER", "RMR-A-DETAIL", INK)
+        sh.text((bx + 1.6, by - 11.0), "SEE SHEET A-500", 1.8, "RMR-NOTE",
+                "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 12.0),
+            "The counter runs on: D01, D02 ... or pick a number from",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, y + 7.8), "the library and the title follows it.",
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_det_dims(sh):
+    x, y, w, h = 20.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "DIMENSION CHAIN AND SCALE BAR  |  RMR-DIMCHAIN / RMR-DETSCALE")
+
+    # a chain of four measured points
+    pts = [(x + 16.0, y + 116.0), (x + 66.0, y + 116.0),
+           (x + 66.0, y + 92.0), (x + 136.0, y + 92.0)]
+    sh.poly(pts, [0.0] * len(pts), False, "RMR-A-DETAIL", INK)
+    off = 12.0
+    for i in range(len(pts) - 1):
+        p1, p2 = pts[i], pts[i + 1]
+        dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+        length = (dx * dx + dy * dy) ** 0.5
+        nx, ny = -dy / length, dx / length
+        sh.line((p1[0] + nx * off, p1[1] + ny * off),
+                (p2[0] + nx * off, p2[1] + ny * off), "RMR-A-DIMS", INK)
+        sh.text(((p1[0] + p2[0]) / 2.0 + nx * (off + 5.0),
+                 (p1[1] + p2[1]) / 2.0 + ny * (off + 5.0)),
+                "%d" % round(length), 2.0, "RMR-NUMBER", "RMR-A-DIMS", INK)
+    for p in pts:
+        sh.line((p[0], p[1]), (p[0] - 0.0, p[1] - 9.0), "RMR-A-DIMS", INK)
+    sh.text((x + 16.0, y + 74.0), "3 DIMENSIONS  |  CHAIN 120", 2.0, "RMR-LABEL",
+            "RMR-A-TEXT", TERRA)
+
+    # a metric scale bar: four segments at 100 mm each
+    bx, by, unit, bar = x + 16.0, y + 56.0, 26.0, 8.0
+    for i in range(4):
+        sh.solid((bx + i * unit, by), unit, bar, "RMR-A-DIMS",
+                 INK if i % 2 == 0 else SAND)
+    sh.rect((bx, by), unit * 4, bar, "RMR-A-FRAME", INK)
+    sh.text((bx, by - 5.0), "0", 2.0, "RMR-NUMBER", "RMR-A-TEXT", INK)
+    sh.text((bx + unit * 4 - 8.0, by - 5.0), "400 mm", 2.0, "RMR-NUMBER",
+            "RMR-A-TEXT", INK)
+    sh.text((bx, by + bar + 3.0), "SCALE 1:5 AT A1", 2.2, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    sh.text((x + 16.0, y + 26.0),
+            "RMR-DETSCALE sets the scale, then steps the bar in 100 mm",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 16.0, y + 21.8),
+            "increments at 1:20 and finer, 500 mm above it.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_det_matkey(sh):
+    x, y, w, h = 280.0, 242.0, 250.0, 144.0
+    ty = _panel(sh, x, y, w, h, "MATERIALS KEY  |  RMR-MATKEY")
+
+    rows = _buildup_rows("EXTWALL")
+    yy = ty - 6.0
+    sh.text((x + 12.0, yy), "MATERIALS KEY  |  EXTWALL", 2.6, "RMR-HEAD",
+            "RMR-A-TEXT", TERRA)
+    yy -= 9.0
+    for spec in rows:
+        rgb = tuple(int(v) for v in spec[4])
+        sh.solid((x + 12.0, yy - 4.2), 4.6, 4.6, "RMR-M-HATCH", rgb)
+        sh.rect((x + 12.0, yy - 4.2), 4.6, 4.6, "RMR-A-FRAME", INK)
+        sh.text((x + 20.0, yy), spec[2][:24], 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((x + 132.0, yy), "%d mm" % int(spec[3]), 2.0, "RMR-NUMBER",
+                "RMR-A-TEXT", TERRA)
+        yy -= 7.4
+    sh.text((x + 12.0, yy - 3.0),
+            "%d materials  |  pattern %s upward" % (len(rows), rows[0][5]),
+            2.0, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, yy - 8.4),
+            "The key is read from the same build-up table the junction",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 12.0, yy - 12.6), "builder draws from, so they cannot disagree.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_det_uvalue(sh):
+    x, y, w, h = 540.0, 242.0, 276.0, 144.0
+    ty = _panel(sh, x, y, w, h, "THERMAL PERFORMANCE  |  RMR-UVALUE")
+
+    # brick, blockwork, PIR 100, plasterboard
+    stack = [MATERIALS[0], MATERIALS[1], MATERIALS[2], MATERIALS[4]]
+    stack[2] = [MATERIALS[2][0], MATERIALS[2][1], 100, MATERIALS[2][3]]
+    r_total = sum((float(m[2]) / 1000.0) / float(m[1]) for m in stack)
+    u = 1.0 / (0.17 + r_total)
+
+    sh.text((x + 12.0, ty - 5.0), "THERMAL PERFORMANCE  |  RMR-UVALUE", 2.8,
+            "RMR-HEAD", "RMR-A-TEXT", TERRA)
+    yy = ty - 14.0
+    for m in stack:
+        r = (float(m[2]) / 1000.0) / float(m[1])
+        sh.solid((x + 12.0, yy - 5.0), 108.0, 5.4, "RMR-M-FILL", SAND)
+        sh.rect((x + 12.0, yy - 5.0), 108.0, 5.4, "RMR-A-FRAME", SLATE)
+        sh.text((x + 14.0, yy), m[0][:18], 2.0, "RMR-LABEL", "RMR-A-TEXT", INK)
+        sh.text((x + 126.0, yy), "%d" % int(float(m[2])), 1.9, "RMR-NUMBER",
+                "RMR-A-TEXT", INK)
+        sh.text((x + 150.0, yy), "R %.3f" % r, 1.9, "RMR-BODY", "RMR-A-TEXT", TEAL)
+        yy -= 7.6
+    sh.text((x + 12.0, yy - 2.0),
+            "TOTAL %d mm  |  R %.3f m2K/W"
+            % (sum(int(float(m[2])) for m in stack), r_total), 2.2,
+            "RMR-NUMBER", "RMR-A-TEXT", TERRA)
+    sh.text((x + 12.0, yy - 13.0), "U = %.3f W/m2K" % u, 7.0, "RMR-NUMBER",
+            "RMR-A-TEXT", TEAL)
+    sh.text((x + 12.0, yy - 19.0), "Includes Rsi 0.13 and Rse 0.04", 1.9,
+            "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_det_fire(sh):
+    x, y, w, h = 20.0, 74.0, 286.0, 158.0
+    ty = _panel(sh, x, y, w, h, "FIRE AND ACOUSTIC  |  RMR-FIRESTOP / RMR-ACOUSTIC")
+
+    # a compartment line with two labelled segments
+    pts = [(x + 16.0, y + 128.0), (x + 130.0, y + 128.0),
+           (x + 130.0, y + 96.0)]
+    sh.poly([(p[0], p[1] + 2.4) for p in pts] +
+            [(p[0], p[1] - 2.4) for p in reversed(pts)],
+            [0.0] * 6, True, "RMR-A-FIRE", _detrgb("TERRA"))
+    sh.text((x + 20.0, y + 134.0), "FD60  One hour fire resisting", 2.0,
+            "RMR-LABEL", "RMR-A-FIRE", INK)
+
+    # an acoustic partition with its rating bubble
+    ax, ay = x + 170.0, y + 112.0
+    sh.line((ax, ay), (ax + 90.0, ay), "RMR-A-ACOUSTIC", BLUE)
+    sh.circle((ax + 45.0, ay), 6.0, "RMR-A-ACOUSTIC", BLUE)
+    sh.text((ax + 39.0, ay - 2.0), "Rw 48", 2.6, "RMR-NUMBER", "RMR-A-ACOUSTIC",
+            INK)
+    sh.text((ax, ay - 10.0), "Party wall, dwelling to dwelling", 1.9, "RMR-NOTE",
+            "RMR-A-ACOUSTIC", SLATE)
+
+    rows = [[f[0], "%s min" % f[1], f[3][:26]] for f in FIRE]
+    cy = _table(sh, x + 16.0, y + 86.0, ("RATING", "MINUTES", "APPLICATION"),
+                (34.0, 34.0, 84.0), rows, text=1.9)
+    sh.text((x + 16.0, cy - 5.0),
+            "RMR-FIRESTOP draws the band and labels every segment;",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    sh.text((x + 16.0, cy - 9.2),
+            "RMR-ACOUSTIC marks the partition and can draw the table.",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def draw_det_speclink(sh):
+    x, y, w, h = 316.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "SPECIFICATION LINK AND INDEX  |  RMR-SPECLINK / RMR-DETINDEX")
+
+    sh.solid((x + 12.0, y + 138.0), 216.0, 9.0, "RMR-PRES-TITLE", TEAL)
+    sh.text((x + 14.0, y + 141.0), "DETAIL D01  |  REFER TO SPECIFICATION", 2.2,
+            "RMR-HEAD", "RMR-PRES-TITLE", SAND)
+    yy = y + 128.0
+    for clause in DATA["specs"][:3]:
+        sh.text((x + 12.0, yy), "%s  %s" % (clause[0], clause[2][:26]), 2.0,
+                "RMR-LABEL", "RMR-A-TEXT", TERRA)
+        sh.text((x + 12.0, yy - 4.4), clause[3][:56], 1.8, "RMR-BODY",
+                "RMR-A-TEXT", INK)
+        yy -= 12.0
+
+    idx = [[d[0], d[1][:24], d[2], d[3]] for d in DETAILS[:6]]
+    _table(sh, x + 12.0, y + 84.0, ("NO", "TITLE", "SCALE", "CATEGORY"),
+           (16.0, 96.0, 24.0, 40.0), idx, text=1.8)
+    return ty
+
+
+def draw_det_sheet(sh):
+    x, y, w, h = 576.0, 74.0, 240.0, 158.0
+    ty = _panel(sh, x, y, w, h, "DETAIL SHEET AND CHECK  |  RMR-DETSHEET / RMR-CHECKDETAIL")
+
+    # the compliance verdict first, then an A1 sheet in miniature below it
+    sh.solid((x + 12.0, y + 8.0), 216.0, 8.0, "RMR-PRES-TITLE", TEAL)
+    sh.text((x + 14.0, y + 10.0), "RMR-CHECKDETAIL  VERDICT: PASS", 2.4,
+            "RMR-HEAD", "RMR-PRES-TITLE", SAND)
+    sh.text((x + 12.0, y + 22.0), "12 detail markers on RMR-A-DETAIL", 1.9,
+            "RMR-BODY", "RMR-A-TEXT", INK)
+    sh.text((x + 12.0, y + 17.4), "12 details in the library, all tagged", 1.9,
+            "RMR-BODY", "RMR-A-TEXT", INK)
+    sh.text((x + 12.0, y + 12.8), "RMR-TITLEBLOCK present", 1.9, "RMR-BODY",
+            "RMR-A-TEXT", INK)
+
+    k = 0.155
+    sw, sh_h = 841.0 * k, 594.0 * k
+    sx, sy = x + 14.0, y + 52.0
+    sh.rect((sx, sy), sw, sh_h, "RMR-A-FRAME", INK)
+    sh.rect((sx + 1.6, sy + 1.6), sw - 3.2, sh_h - 3.2, "RMR-A-FRAME", TEAL)
+    sh.solid((sx + 1.6, sy + sh_h - 10.4), sw - 3.2, 8.0, "RMR-PRES-TITLE",
+             TERRA)
+    sh.text((sx + 3.0, sy + sh_h - 8.2), "CONSTRUCTION DETAILS", 1.9,
+            "RMR-TITLE", "RMR-PRES-TITLE", SAND)
+    fw, fh = 38.0, 22.0
+    for i in range(6):
+        col, row = i % 3, i // 3
+        fx = sx + 4.0 + col * (fw + 2.0)
+        fy = sy + sh_h - 14.0 - (row + 1) * (fh + 5.0)
+        sh.rect((fx, fy), fw, fh, "RMR-A-DETAIL", SLATE)
+        sh.solid((fx, fy), fw, 4.0, "RMR-PRES-TITLE", TERRA)
+        sh.text((fx + 1.2, fy + 0.6), DETAILS[i][0], 1.8, "RMR-NUMBER",
+                "RMR-PRES-TITLE", SAND)
+    sh.text((x + 12.0, y + 44.0), "RMR-DETSHEET  |  A1 detail sheet in one command",
+            1.9, "RMR-NOTE", "RMR-A-TEXT", SLATE)
+    return ty
+
+
+def build_detailing():
+    global SHEET_TITLE, SHEET_SUBTITLE, SHEET_NOTE
+    SHEET_TITLE = "CONSTRUCTION DETAILING SHEET"
+    SHEET_SUBTITLE = ("DETAIL LIBRARY, PARAMETRIC JUNCTIONS, TAGS, DIMENSION CHAINS, "
+                      "MATERIALS KEY")
+    SHEET_NOTE = ("The 12.0 suite: every junction, tag, key and number a detail sheet "
+                  "needs, drawn from one set of tables.")
+    doc = build_document()
+    sh = Sheet(doc)
+    draw_frame(sh)
+    draw_header(sh)
+    draw_det_library(sh)
+    draw_det_junction(sh)
+    draw_det_tags(sh)
+    draw_det_dims(sh)
+    draw_det_matkey(sh)
+    draw_det_uvalue(sh)
+    draw_det_fire(sh)
+    draw_det_speclink(sh)
+    draw_det_sheet(sh)
+    draw_title_block(sh)
+    return doc
+
+
+# --------------------------------------------------------------------------- #
 # 7. assemble, save, render
 # --------------------------------------------------------------------------- #
 def build():
@@ -4103,7 +4477,21 @@ def main():
         print("Structural MEP PNG render skipped:", exc)
     print("columns: %d | beams: %d | rebar: %d | ducts: %d | pipes: %d | zones: %d"
           % (len(DATA["columns"]), len(DATA["beams"]), len(DATA["rebar"]),
-             len(DATA["ducts"]), len(DATA["pipes"]), len(DATA["zones"])))
+             len(DATA["ducts"]), len(DATA["pipes"]),
+             len(DATA["service_zones"])))
+
+    detailing = build_detailing()
+    det_path = os.path.join(OUT_DIR, "RooMNRooF_PRO_Detailing_Suite.dxf")
+    detailing.saveas(det_path)
+    print("DXF  :", det_path, os.path.getsize(det_path), "bytes")
+    try:
+        print("PNG  :", render_png(detailing, os.path.join(
+            OUT_DIR, "RooMNRooF_PRO_Detailing_Suite.png"), dpi=150))
+    except Exception as exc:
+        print("Detailing PNG render skipped:", exc)
+    print("details: %d | junctions: %d | materials: %d | fire: %d | acoustic: %d"
+          % (len(DATA["details"]), len(DATA["junctions"]), len(DATA["materials"]),
+             len(DATA["fire"]), len(DATA["acoustic"])))
     return 0
 
 
